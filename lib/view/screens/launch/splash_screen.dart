@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
+import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/view/screens/auth/login.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 
@@ -26,12 +27,7 @@ class _SplashScreenState extends State<SplashScreen> {
     return Material(
       color: kPrimaryColor,
       child: Center(
-        child: MyText(
-          text: 'Motor Sport',
-          size: 42,
-          weight: FontWeight.w700,
-          color: kTertiaryColor,
-        ),
+        child: Image.asset(Assets.imagesLogo, width: 150, height: 150),
       ),
     );
   }

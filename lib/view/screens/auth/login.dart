@@ -5,6 +5,7 @@ import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/view/screens/auth/forgot_pass/forgot_pass.dart';
 import 'package:motorsport/view/screens/auth/sign_up/sign_up.dart';
+import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/custom_check_box_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
@@ -142,7 +143,7 @@ class _LoginBottomSheet extends StatelessWidget {
           MyButton(
             buttonText: 'Login',
             onTap: () {
-              // Get.to(() => BottomNavBar());
+              Get.offAll(() => BottomNavBar());
             },
           ),
           SizedBox(height: 20),

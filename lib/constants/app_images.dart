@@ -74,6 +74,10 @@ class Assets {
   /// assets/images/check.png
   static const String imagesCheck = "assets/images/check.png";
 
+  /// Assets for imagesCircuit
+  /// assets/images/circuit.png
+  static const String imagesCircuit = "assets/images/circuit.png";
+
   /// Assets for imagesCity
   /// assets/images/city.png
   static const String imagesCity = "assets/images/city.png";
@@ -129,6 +133,10 @@ class Assets {
   /// Assets for imagesDropdown
   /// assets/images/dropdown.png
   static const String imagesDropdown = "assets/images/dropdown.png";
+
+  /// Assets for imagesDry
+  /// assets/images/dry.png
+  static const String imagesDry = "assets/images/dry.png";
 
   /// Assets for imagesEdit
   /// assets/images/edit.png
@@ -270,6 +278,10 @@ class Assets {
   /// assets/images/or.png
   static const String imagesOr = "assets/images/or.png";
 
+  /// Assets for imagesOval
+  /// assets/images/oval.png
+  static const String imagesOval = "assets/images/oval.png";
+
   /// Assets for imagesPdf
   /// assets/images/pdf.png
   static const String imagesPdf = "assets/images/pdf.png";
@@ -326,6 +338,10 @@ class Assets {
   /// assets/images/searching.png
   static const String imagesSearching = "assets/images/searching.png";
 
+  /// Assets for imagesSelected
+  /// assets/images/selected.png
+  static const String imagesSelected = "assets/images/selected.png";
+
   /// Assets for imagesSend
   /// assets/images/send.png
   static const String imagesSend = "assets/images/send.png";
@@ -337,6 +353,10 @@ class Assets {
   /// Assets for imagesSettings
   /// assets/images/settings.png
   static const String imagesSettings = "assets/images/settings.png";
+
+  /// Assets for imagesShale
+  /// assets/images/shale.png
+  static const String imagesShale = "assets/images/shale.png";
 
   /// Assets for imagesShare
   /// assets/images/share.png
@@ -374,6 +394,10 @@ class Assets {
   /// assets/images/support.png
   static const String imagesSupport = "assets/images/support.png";
 
+  /// Assets for imagesSurfaceType
+  /// assets/images/surface_type.png
+  static const String imagesSurfaceType = "assets/images/surface_type.png";
+
   /// Assets for imagesSyncContact
   /// assets/images/sync_contact.png
   static const String imagesSyncContact = "assets/images/sync_contact.png";
@@ -386,6 +410,14 @@ class Assets {
   /// assets/images/take_photo.png
   static const String imagesTakePhoto = "assets/images/take_photo.png";
 
+  /// Assets for imagesTarmac
+  /// assets/images/tarmac.png
+  static const String imagesTarmac = "assets/images/tarmac.png";
+
+  /// Assets for imagesTrackType
+  /// assets/images/track_type.png
+  static const String imagesTrackType = "assets/images/track_type.png";
+
   /// Assets for imagesTrash
   /// assets/images/trash.png
   static const String imagesTrash = "assets/images/trash.png";
@@ -393,6 +425,10 @@ class Assets {
   /// Assets for imagesTt
   /// assets/images/tt.png
   static const String imagesTt = "assets/images/tt.png";
+
+  /// Assets for imagesUnSelected
+  /// assets/images/un_selected.png
+  static const String imagesUnSelected = "assets/images/un_selected.png";
 
   /// Assets for imagesUpload
   /// assets/images/upload.png
@@ -425,5 +461,9 @@ class Assets {
   /// Assets for imagesVisibility
   /// assets/images/visibility.png
   static const String imagesVisibility = "assets/images/visibility.png";
+
+  /// Assets for imagesWeather
+  /// assets/images/weather.png
+  static const String imagesWeather = "assets/images/weather.png";
 }
 

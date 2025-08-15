@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:get/route_manager.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
+import 'package:motorsport/view/screens/auth/sign_up/track_configuration.dart';
+import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
@@ -45,7 +48,7 @@ class _OnboardingState extends State<Onboarding> {
         curve: Curves.ease,
       );
     } else {
-      // Handle finish onboarding (navigate to home or sign up)
+      Get.offAll(() => TrackConfiguration());
     }
   }
 
@@ -60,6 +63,7 @@ class _OnboardingState extends State<Onboarding> {
     return Scaffold(
       appBar: simpleAppBar(title: 'Welcome to Motorsport ', haveLeading: false),
       body: PageView.builder(
+        physics: BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: onboardingData.length,
         onPageChanged: (index) {
