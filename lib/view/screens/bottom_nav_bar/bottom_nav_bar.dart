@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
+import 'package:motorsport/view/screens/geometry/geometry.dart';
+import 'package:motorsport/view/screens/settings/settings.dart';
 
 // ignore: must_be_immutable
 class BottomNavBar extends StatefulWidget {
@@ -30,8 +32,8 @@ class _BottomNavBarState extends State<BottomNavBar> {
       Container(),
       Container(),
       Container(),
-      Container(),
-      Container(),
+      Geometry(),
+      Settings(),
     ];
 
     return Scaffold(

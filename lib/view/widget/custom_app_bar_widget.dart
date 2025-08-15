@@ -29,7 +29,7 @@ AppBar simpleAppBar({
                       onTap: onLeadingTap ?? () => Get.back(),
                       child: Image.asset(
                         Assets.imagesArrowBack,
-                        height: 16,
+                        height: 14,
                         color: kTertiaryColor,
                       ),
                     ),
@@ -39,7 +39,7 @@ AppBar simpleAppBar({
         : null,
     title: MyText(
       text: title ?? '',
-      size: 22,
+      size: 18,
       weight: FontWeight.w600,
       color: kTertiaryColor,
     ),

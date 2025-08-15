@@ -46,6 +46,10 @@ class Assets {
   /// assets/images/avatar.png
   static const String imagesAvatar = "assets/images/avatar.png";
 
+  /// Assets for imagesBanner
+  /// assets/images/banner.png
+  static const String imagesBanner = "assets/images/banner.png";
+
   /// Assets for imagesCalendar
   /// assets/images/calendar.png
   static const String imagesCalendar = "assets/images/calendar.png";
@@ -61,6 +65,14 @@ class Assets {
   /// Assets for imagesCategory
   /// assets/images/category.png
   static const String imagesCategory = "assets/images/category.png";
+
+  /// Assets for imagesChamber
+  /// assets/images/chamber.png
+  static const String imagesChamber = "assets/images/chamber.png";
+
+  /// Assets for imagesChassisDoc
+  /// assets/images/chassis_doc.png
+  static const String imagesChassisDoc = "assets/images/chassis_doc.png";
 
   /// Assets for imagesChatFeedback
   /// assets/images/chat_feedback.png
@@ -114,6 +126,14 @@ class Assets {
   /// assets/images/d_image.png
   static const String imagesDImage = "assets/images/d_image.png";
 
+  /// Assets for imagesData
+  /// assets/images/data.png
+  static const String imagesData = "assets/images/data.png";
+
+  /// Assets for imagesDelete
+  /// assets/images/delete.png
+  static const String imagesDelete = "assets/images/delete.png";
+
   /// Assets for imagesDeleteChat
   /// assets/images/delete_chat.png
   static const String imagesDeleteChat = "assets/images/delete_chat.png";
@@ -129,6 +149,10 @@ class Assets {
   /// Assets for imagesDoubleTick
   /// assets/images/double_tick.png
   static const String imagesDoubleTick = "assets/images/double_tick.png";
+
+  /// Assets for imagesDoubleWishbone
+  /// assets/images/double_wishbone.png
+  static const String imagesDoubleWishbone = "assets/images/double_wishbone.png";
 
   /// Assets for imagesDropdown
   /// assets/images/dropdown.png
@@ -214,9 +238,17 @@ class Assets {
   /// assets/images/logout.png
   static const String imagesLogout = "assets/images/logout.png";
 
+  /// Assets for imagesLogoutIcon
+  /// assets/images/logout_icon.png
+  static const String imagesLogoutIcon = "assets/images/logout_icon.png";
+
   /// Assets for imagesMPrivacy
   /// assets/images/m_privacy.png
   static const String imagesMPrivacy = "assets/images/m_privacy.png";
+
+  /// Assets for imagesMenu
+  /// assets/images/menu.png
+  static const String imagesMenu = "assets/images/menu.png";
 
   /// Assets for imagesMic
   /// assets/images/mic.png
@@ -286,6 +318,14 @@ class Assets {
   /// assets/images/pdf.png
   static const String imagesPdf = "assets/images/pdf.png";
 
+  /// Assets for imagesPersonalInfo
+  /// assets/images/personal_info.png
+  static const String imagesPersonalInfo = "assets/images/personal_info.png";
+
+  /// Assets for imagesPlaceHolder
+  /// assets/images/place_holder.png
+  static const String imagesPlaceHolder = "assets/images/place_holder.png";
+
   /// Assets for imagesPlus
   /// assets/images/plus.png
   static const String imagesPlus = "assets/images/plus.png";
@@ -310,6 +350,10 @@ class Assets {
   /// assets/images/proof.png
   static const String imagesProof = "assets/images/proof.png";
 
+  /// Assets for imagesPushNotification
+  /// assets/images/push_notification.png
+  static const String imagesPushNotification = "assets/images/push_notification.png";
+
   /// Assets for imagesRateUs
   /// assets/images/rate_us.png
   static const String imagesRateUs = "assets/images/rate_us.png";
@@ -325,6 +369,10 @@ class Assets {
   /// Assets for imagesRoostsSettings
   /// assets/images/roosts_settings.png
   static const String imagesRoostsSettings = "assets/images/roosts_settings.png";
+
+  /// Assets for imagesSave
+  /// assets/images/save.png
+  static const String imagesSave = "assets/images/save.png";
 
   /// Assets for imagesSearchIcon
   /// assets/images/search_icon.png
