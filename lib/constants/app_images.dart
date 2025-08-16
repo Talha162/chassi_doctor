@@ -158,6 +158,18 @@ class Assets {
   /// assets/images/d_image.png
   static const String imagesDImage = "assets/images/d_image.png";
 
+  /// Assets for imagesDarkOn1
+  /// assets/images/dark_on1.png
+  static const String imagesDarkOn1 = "assets/images/dark_on1.png";
+
+  /// Assets for imagesDarkOn2
+  /// assets/images/dark_on2.png
+  static const String imagesDarkOn2 = "assets/images/dark_on2.png";
+
+  /// Assets for imagesDarkOn3
+  /// assets/images/dark_on3.png
+  static const String imagesDarkOn3 = "assets/images/dark_on3.png";
+
   /// Assets for imagesData
   /// assets/images/data.png
   static const String imagesData = "assets/images/data.png";
