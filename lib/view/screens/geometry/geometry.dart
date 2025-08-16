@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
-import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 
@@ -12,7 +11,7 @@ class Geometry extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Geometry'),
+      appBar: simpleAppBar(title: 'Geometry', haveLeading: false),
       body: ListView(
         padding: AppSizes.DEFAULT,
         shrinkWrap: true,

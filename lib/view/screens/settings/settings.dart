@@ -4,10 +4,11 @@ import 'package:get/get.dart';
 import 'package:get/utils.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/main.dart';
+import 'package:motorsport/view/screens/settings/edit_profile.dart';
 import 'package:motorsport/view/screens/settings/privacy_policy.dart';
+import 'package:motorsport/view/screens/settings/saved_setup_history.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
-import 'package:motorsport/view/widget/custom_tile_widget.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
@@ -18,7 +19,7 @@ class Settings extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Settings'),
+      appBar: simpleAppBar(title: 'Settings', haveLeading: false),
       body: ListView(
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
@@ -69,7 +70,9 @@ class Settings extends StatelessWidget {
                 _SettingsTile(
                   imagePath: Assets.imagesProfile,
                   title: 'Profile information',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(() => EditProfile());
+                  },
                 ),
                 _Divider(),
                 _SettingsTile(
@@ -97,7 +100,9 @@ class Settings extends StatelessWidget {
                 _SettingsTile(
                   imagePath: Assets.imagesSave,
                   title: 'Save setup history',
-                  onTap: () {},
+                  onTap: () {
+                    Get.to(() => SavedSetupHistory());
+                  },
                 ),
                 _Divider(),
 

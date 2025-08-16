@@ -2,7 +2,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
+import 'package:motorsport/view/screens/courses/courses.dart';
 import 'package:motorsport/view/screens/geometry/geometry.dart';
+import 'package:motorsport/view/screens/home/home.dart';
+import 'package:motorsport/view/screens/learning_hub/learning_hub.dart';
 import 'package:motorsport/view/screens/settings/settings.dart';
 
 // ignore: must_be_immutable
@@ -29,9 +32,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
     ];
 
     final List<Widget> _screens = [
-      Container(),
-      Container(),
-      Container(),
+      Home(),
+      LearningHub(),
+      Courses(),
       Geometry(),
       Settings(),
     ];

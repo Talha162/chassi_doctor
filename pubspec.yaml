@@ -17,6 +17,7 @@ dependencies:
   flutter_svg: ^2.2.0
   get: ^4.7.2
   google_fonts: ^6.3.0
+  percent_indicator: ^4.2.5
   pinput: ^5.0.1
 
 dev_dependencies:
