@@ -162,6 +162,18 @@ class Assets {
   /// assets/images/d_image.png
   static const String imagesDImage = "assets/images/d_image.png";
 
+  /// Assets for imagesDarkApple
+  /// assets/images/dark_apple.png
+  static const String imagesDarkApple = "assets/images/dark_apple.png";
+
+  /// Assets for imagesDarkFacebooj
+  /// assets/images/dark_facebooj.png
+  static const String imagesDarkFacebooj = "assets/images/dark_facebooj.png";
+
+  /// Assets for imagesDarkGoogle
+  /// assets/images/dark_google.png
+  static const String imagesDarkGoogle = "assets/images/dark_google.png";
+
   /// Assets for imagesDarkOn1
   /// assets/images/dark_on1.png
   static const String imagesDarkOn1 = "assets/images/dark_on1.png";

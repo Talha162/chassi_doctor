@@ -157,9 +157,13 @@ class _LoginBottomSheet extends StatelessWidget {
             children: List.generate(3, (index) {
               return Image.asset(
                 [
-                  Assets.imagesGoogle,
-                  Assets.imagesApple,
-                  Assets.imagesFacebook,
+                  Get.isDarkMode
+                      ? Assets.imagesDarkGoogle
+                      : Assets.imagesGoogle,
+                  Get.isDarkMode ? Assets.imagesDarkApple : Assets.imagesApple,
+                  Get.isDarkMode
+                      ? Assets.imagesDarkFacebooj
+                      : Assets.imagesFacebook,
                 ][index],
                 height: 48,
               );
