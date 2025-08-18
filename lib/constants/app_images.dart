@@ -86,6 +86,10 @@ class Assets {
   /// assets/images/card_bg_2.png
   static const String imagesCardBg2 = "assets/images/card_bg_2.png";
 
+  /// Assets for imagesCardBg2Dark
+  /// assets/images/card_bg_2_dark.png
+  static const String imagesCardBg2Dark = "assets/images/card_bg_2_dark.png";
+
   /// Assets for imagesCareer
   /// assets/images/career.png
   static const String imagesCareer = "assets/images/career.png";
@@ -585,6 +589,10 @@ class Assets {
   /// Assets for imagesTc
   /// assets/images/tc.png
   static const String imagesTc = "assets/images/tc.png";
+
+  /// Assets for imagesTheme
+  /// assets/images/theme.png
+  static const String imagesTheme = "assets/images/theme.png";
 
   /// Assets for imagesTrackMap
   /// assets/images/track_map.png

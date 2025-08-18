@@ -63,7 +63,6 @@ class EditProfile extends StatelessWidget {
             color: kTertiaryColor.withValues(alpha: 0.8),
             paddingBottom: 50,
           ),
-
           _EditProfileTile(
             title: 'Email',
             trailing: 'Rayan.ali@gmail.com',
@@ -143,13 +142,13 @@ class _EditProfileTileState extends State<_EditProfileTile> {
                   ? TextField(
                       controller: _controller,
                       autofocus: true,
-                      style: const TextStyle(
+                      style:  TextStyle(
                         fontSize: 14,
                         color: kTertiaryColor,
                         fontWeight: FontWeight.w500,
                       ),
                       textAlign: TextAlign.end,
-                      decoration: const InputDecoration(
+                      decoration:  InputDecoration(
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
                         focusedBorder: InputBorder.none,

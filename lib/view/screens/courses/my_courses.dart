@@ -113,7 +113,7 @@ class _LearningHubTile extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: kQuaternaryColor,
-        border: Border.all(color: Color(0xff634F91)),
+        border: Border.all(color: kBorderColor2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
+import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/view/screens/home/setup_recommendation.dart';
@@ -78,11 +79,16 @@ class IdentifyIssues extends StatelessWidget {
                   width: Get.width,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xff333030), width: 1),
+                    border: Border.all(color: kBorderColor2, width: 1),
                     color: kQuaternaryColor,
                     image: DecorationImage(
-                      image: AssetImage(Assets.imagesCardBg2),
+                      image: AssetImage(
+                        ThemeController.instance.isDarkMode
+                            ? Assets.imagesCardBg2Dark
+                            : Assets.imagesCardBg2,
+                      ),
                       alignment: Alignment.bottomRight,
+                      fit: BoxFit.cover,
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -134,10 +140,14 @@ class IdentifyIssues extends StatelessWidget {
               width: Get.width,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Color(0xff333030), width: 1),
+                border: Border.all(color: kBorderColor2, width: 1),
                 color: kQuaternaryColor,
                 image: DecorationImage(
-                  image: AssetImage(Assets.imagesCardBg2),
+                  image: AssetImage(
+                    ThemeController.instance.isDarkMode
+                        ? Assets.imagesCardBg2Dark
+                        : Assets.imagesCardBg2,
+                  ),
                   alignment: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(12),

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:get/utils.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/main.dart';
+import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/view/screens/settings/edit_profile.dart';
 import 'package:motorsport/view/screens/settings/privacy_policy.dart';
 import 'package:motorsport/view/screens/settings/saved_setup_history.dart';
@@ -13,11 +14,17 @@ import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 
-class Settings extends StatelessWidget {
+class Settings extends StatefulWidget {
   const Settings({super.key});
 
   @override
+  State<Settings> createState() => _SettingsState();
+}
+
+class _SettingsState extends State<Settings> {
+  @override
   Widget build(BuildContext context) {
+    final themeController = Get.find<ThemeController>();
     return Scaffold(
       appBar: simpleAppBar(title: 'Settings', haveLeading: false),
       body: ListView(
@@ -113,6 +120,34 @@ class Settings extends StatelessWidget {
                     Get.to(() => PrivacyPolicy());
                   },
                 ),
+                _Divider(),
+                Obx(
+                  () => _SettingsTile(
+                    imagePath: Assets.imagesTheme,
+                    title: themeController.isDarkMode
+                        ? 'Switch to Light Mode'
+                        : 'Switch to Dark Mode',
+                    onTap: () {},
+                    trailing: Transform.scale(
+                      scale: 0.65,
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        margin: EdgeInsets.only(right: 10),
+                        height: 20 / 0.65,
+                        width: 20 / 0.65,
+                        child: CupertinoSwitch(
+                          value: themeController.isDarkMode,
+                          thumbColor: kPrimaryColor,
+                          activeTrackColor: kSecondaryColor,
+                          onChanged: (bool value) {
+                            themeController.toggleTheme();
+                            setState(() {});
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -134,7 +169,7 @@ class Settings extends StatelessWidget {
                       context: context,
                       builder: (context) => Theme(
                         data: Theme.of(context).copyWith(
-                          cupertinoOverrideTheme: const CupertinoThemeData(
+                          cupertinoOverrideTheme: CupertinoThemeData(
                             scaffoldBackgroundColor: kPrimaryColor,
                           ),
                         ),
@@ -198,11 +233,10 @@ class Settings extends StatelessWidget {
                       context: context,
                       builder: (context) => Theme(
                         data: Theme.of(context).copyWith(
-                          cupertinoOverrideTheme: const CupertinoThemeData(
+                          cupertinoOverrideTheme: CupertinoThemeData(
                             scaffoldBackgroundColor: kPrimaryColor,
                           ),
                         ),
-
                         child: CupertinoAlertDialog(
                           title: Column(
                             children: [
@@ -285,7 +319,7 @@ class _SettingsTile extends StatelessWidget {
       onTap: onTap,
       child: Row(
         children: [
-          Image.asset(imagePath, height: 24),
+          Image.asset(imagePath, height: 24, color: kTertiaryColor),
           SizedBox(width: 12),
           Expanded(
             child: MyText(text: title, size: 16, weight: FontWeight.w500),
@@ -302,7 +336,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 1,
-      color: Color(0xff4B3B73),
+      color: kBorderColor2,
       margin: EdgeInsets.symmetric(vertical: 12),
     );
   }

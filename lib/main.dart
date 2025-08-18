@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:motorsport/config/theme/dark_theme.dart';
+import 'package:motorsport/config/theme/theme_controller.dart';
 import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  Get.put(ThemeController());
   runApp(MyApp());
 }
 
@@ -19,12 +23,14 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
+    final ThemeController themeController = Get.find<ThemeController>();
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
-      title: 'Drink With Me',
+      title: 'Chassis Doctor',
       theme: lightTheme,
-      themeMode: ThemeMode.light,
+      darkTheme: darkTheme,
+      themeMode: themeController.themeMode.value,
       initialRoute: AppLinks.splash_screen,
       getPages: AppRoutes.pages,
       defaultTransition: Transition.fadeIn,

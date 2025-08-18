@@ -143,7 +143,7 @@ class _LoginBottomSheet extends StatelessWidget {
           MyButton(
             buttonText: 'Login',
             onTap: () {
-              Get.offAll(() => BottomNavBar());
+              Get.to(() => BottomNavBar());
             },
           ),
           SizedBox(height: 20),

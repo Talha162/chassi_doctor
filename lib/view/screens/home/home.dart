@@ -104,7 +104,7 @@ class Home extends StatelessWidget {
                       width: Get.width,
                       padding: EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Color(0xff333030), width: 1),
+                        border: Border.all(color: kBorderColor2, width: 1),
                         color: kQuaternaryColor,
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -168,7 +168,7 @@ class Home extends StatelessWidget {
             width: Get.width,
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
-              border: Border.all(color: Color(0xff634F91), width: 1),
+              border: Border.all(color: kBorderColor2, width: 1),
               color: kQuaternaryColor,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -254,7 +254,7 @@ class Home extends StatelessWidget {
             width: Get.width,
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
-              border: Border.all(color: Color(0xff634F91), width: 1),
+              border: Border.all(color: kBorderColor2, width: 1),
               color: kQuaternaryColor,
               borderRadius: BorderRadius.circular(12),
             ),

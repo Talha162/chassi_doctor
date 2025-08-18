@@ -58,7 +58,7 @@ class SetupRecommendation extends StatelessWidget {
                   width: Get.width,
                   padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xff333030), width: 1),
+                    border: Border.all(color: kBorderColor2, width: 1),
                     color: kQuaternaryColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
@@ -161,7 +161,7 @@ class _AdjustmentTile extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: kQuaternaryColor,
-        border: Border.all(color: Color(0xff634F91)),
+        border: Border.all(color: kBorderColor2),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
