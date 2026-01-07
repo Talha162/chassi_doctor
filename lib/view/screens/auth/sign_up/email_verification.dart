@@ -4,143 +4,48 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_fonts.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
-import 'package:motorsport/view/screens/auth/forgot_pass/create_new_pass.dart';
-import 'package:motorsport/view/screens/auth/forgot_pass/forgot_pass.dart';
 import 'package:motorsport/view/screens/auth/sign_up/sign_up.dart';
-import 'package:motorsport/view/screens/launch/onboarding.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:pinput/pinput.dart';
 
+import '../../../../controller/auth/verification_conroller.dart';
+
 class EmailVerification extends StatefulWidget {
-  const EmailVerification({super.key});
+  final String? email;
+  const EmailVerification({super.key, this.email});
 
   @override
   State<EmailVerification> createState() => _EmailVerificationState();
 }
 
 class _EmailVerificationState extends State<EmailVerification> {
-  String pinStatus = 'default'; // 'default', 'verified', 'invalid'
-  String pinValue = '';
-  int resendSeconds = 28;
-  final TextEditingController _pinController = TextEditingController();
-
-  Color getPinTextColor() {
-    switch (pinStatus) {
-      case 'invalid':
-        return Color(0xFFF73434);
-      default:
-        return kTertiaryColor;
-    }
-  }
-
-  void _onPinChanged(String value) {
-    setState(() {
-      pinValue = value;
-      if (value.length == 5) {
-        if (value == '12345') {
-          pinStatus = 'verified';
-        } else {
-          pinStatus = 'invalid';
-        }
-      } else {
-        pinStatus = 'default';
-      }
-    });
-  }
+  late VerificationController controller;
 
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration.zero, () {
-      Get.bottomSheet(
-        _OTPBottomSheet(
-          pinStatus: pinStatus,
-          pinValue: pinValue,
-          pinController: _pinController,
-          onPinChanged: _onPinChanged,
-          onVerify: () {
-            Get.to(() => Onboarding());
-          },
-        ),
-        backgroundColor: Colors.transparent,
-        barrierColor: Colors.transparent,
-        isScrollControlled: true,
-        isDismissible: false,
-        enableDrag: false,
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(24),
-            topRight: Radius.circular(24),
-          ),
-        ),
-        clipBehavior: Clip.antiAlias,
-      );
-    });
+    controller = Get.put(VerificationController());
+    if (widget.email != null) controller.email = widget.email!;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: simpleAppBar(
-        title: 'Verification',
-        onLeadingTap: () {
-          Get.offAll(() => SignUp());
-        },
-      ),
-      body: Container(
-        height: Get.height,
-        width: Get.width,
-        decoration: BoxDecoration(
-          color: kPrimaryColor,
-          image: DecorationImage(
-            image: AssetImage(Assets.imagesCar),
-            alignment: Alignment(0, -0.65),
-            fit: BoxFit.contain,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OTPBottomSheet extends StatelessWidget {
-  final String pinStatus;
-  final String pinValue;
-  final TextEditingController pinController;
-  final ValueChanged<String> onPinChanged;
-  final VoidCallback onVerify;
-
-  const _OTPBottomSheet({
-    required this.pinStatus,
-    required this.pinValue,
-    required this.pinController,
-    required this.onPinChanged,
-    required this.onVerify,
-  });
-
-  Color getPinTextColor() {
-    switch (pinStatus) {
-      case 'invalid':
-        return Color(0xFFF73434);
-      default:
-        return kTertiaryColor;
+    // Helper to get color based on status
+    Color getPinTextColor(String status) {
+      return status == 'invalid' ? const Color(0xFFF73434) : kTertiaryColor;
     }
-  }
 
-  @override
-  Widget build(BuildContext context) {
-    final PinTheme pinTheme = PinTheme(
+    final pinTheme = PinTheme(
       width: 56,
       height: 56,
       margin: EdgeInsets.zero,
       textStyle: TextStyle(
         fontSize: 20,
-        height: 0.0,
         fontWeight: FontWeight.w600,
         fontFamily: AppFonts.ROBOTO,
-        color: getPinTextColor(),
+        color: getPinTextColor(controller.pinStatus.value),
       ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
@@ -148,76 +53,111 @@ class _OTPBottomSheet extends StatelessWidget {
       ),
     );
 
-    return Container(
-      height: 340,
-      margin: EdgeInsets.only(top: 60),
-      decoration: BoxDecoration(
-        color: kQuaternaryColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    return Scaffold(
+      appBar: simpleAppBar(
+        title: 'Verification',
+        onLeadingTap: () => Get.offAll(() => const SignUp()),
       ),
-      child: ListView(
-        shrinkWrap: true,
-        padding: AppSizes.DEFAULT,
-        physics: BouncingScrollPhysics(),
+      body: Stack(
         children: [
-          MyText(
-            text: 'Verify it\'s you',
-            paddingTop: 8,
-            size: 24,
-            weight: FontWeight.w600,
-            paddingBottom: 8,
-          ),
-          MyText(
-            text: 'Enter the 4-digit code we sent to your email.',
-            size: 16,
-            lineHeight: 1.5,
-            weight: FontWeight.w500,
-            color: kTertiaryColor.withValues(alpha: 0.8),
-            paddingBottom: 30,
-          ),
-          Pinput(
-            keyboardType: TextInputType.number,
-            length: 4,
-            controller: pinController,
-            onChanged: onPinChanged,
-            pinContentAlignment: Alignment.center,
-            defaultPinTheme: pinTheme,
-            focusedPinTheme: pinTheme,
-            submittedPinTheme: pinTheme,
-            mainAxisAlignment: MainAxisAlignment.center,
-            onCompleted: onPinChanged,
-          ),
-          if (pinStatus == 'invalid')
-            MyText(
-              textAlign: TextAlign.end,
-              text: 'Wrong Code, Try Again',
-              color: Color(0xFFF73434),
-              size: 16,
-              weight: FontWeight.w600,
-              paddingTop: 10,
-            ),
-          SizedBox(height: 50),
-          MyButton(buttonText: 'Verify & Continue', onTap: onVerify),
-          SizedBox(height: 30),
-          Center(
-            child: Wrap(
-              children: [
-                MyText(
-                  text: 'Didn’t receive the code? ',
-                  size: 16,
-                  weight: FontWeight.w500,
-                ),
-                MyText(
-                  onTap: () {},
-                  text: 'Resend',
-                  weight: FontWeight.w600,
-                  color: kSecondaryColor,
-                  size: 16,
-                ),
-              ],
+          Container(
+            height: Get.height,
+            width: Get.width,
+            decoration: BoxDecoration(
+              color: kPrimaryColor,
+              image: DecorationImage(
+                image: AssetImage(Assets.imagesCar),
+                alignment: const Alignment(0, -0.65),
+                fit: BoxFit.contain,
+              ),
             ),
           ),
-          SizedBox(height: 120),
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Obx(() => Container(
+                  height: Get.height * 0.55,
+                  decoration: BoxDecoration(
+                    color: kQuaternaryColor,
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                  ),
+                  child: ListView(
+                    shrinkWrap: true,
+                    padding: AppSizes.DEFAULT,
+                    physics: const BouncingScrollPhysics(),
+                    children: [
+                      MyText(
+                        text: 'Verify it\'s you',
+                        paddingTop: 8,
+                        size: 24,
+                        weight: FontWeight.w600,
+                        paddingBottom: 8,
+                      ),
+                      MyText(
+                        text: 'Enter the 6-digit code we sent to ${controller.email}',
+                        size: 16,
+                        lineHeight: 1.5,
+                        weight: FontWeight.w500,
+                        color: kTertiaryColor.withValues(alpha: 0.8),
+                        paddingBottom: 30,
+                      ),
+                      Pinput(
+                        keyboardType: TextInputType.number,
+                        length: 6, // Supabase default is usually 6 digits
+                        controller: controller.pinController,
+                        onChanged: controller.onPinChanged,
+                        pinContentAlignment: Alignment.center,
+                        defaultPinTheme: pinTheme,
+                        focusedPinTheme: pinTheme,
+                        submittedPinTheme: pinTheme,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        onCompleted: (val) => controller.verifyOtp(),
+                      ),
+                      if (controller.pinStatus.value == 'invalid')
+                        MyText(
+                          textAlign: TextAlign.end,
+                          text: 'Wrong Code, Try Again',
+                          color: const Color(0xFFF73434),
+                          size: 16,
+                          weight: FontWeight.w600,
+                          paddingTop: 10,
+                        ),
+                      const SizedBox(height: 50),
+                      controller.isLoading.value
+                          ? Center(
+                              child: CircularProgressIndicator(
+                                  color: kSecondaryColor))
+                          : MyButton(
+                              buttonText: 'Verify & Continue',
+                              onTap: controller.verifyOtp),
+                      const SizedBox(height: 30),
+                      Center(
+                        child: Wrap(
+                          children: [
+                            MyText(
+                              text: 'Didn’t receive the code? ',
+                              size: 16,
+                              weight: FontWeight.w500,
+                            ),
+                            MyText(
+                              onTap: controller.resendSeconds.value > 0
+                                  ? null
+                                  : controller.resendCode,
+                              text: controller.resendSeconds.value > 0
+                                  ? 'Resend in ${controller.resendSeconds.value}s'
+                                  : 'Resend',
+                              weight: FontWeight.w600,
+                              color: controller.resendSeconds.value > 0
+                                  ? kTertiaryColor.withOpacity(0.5)
+                                  : kSecondaryColor,
+                              size: 16,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                )),
+          )
         ],
       ),
     );

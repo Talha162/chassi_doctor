@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeController extends GetxController {
   static ThemeController get instance => Get.find<ThemeController>();
+  static const String _prefKey = 'theme_mode';
   Rx<ThemeMode> themeMode = ThemeMode.light.obs;
 
   final Rx<Color> currentPrimaryColor = Color(0xff231543).obs;
@@ -21,11 +23,20 @@ class ThemeController extends GetxController {
   final Rx<Color> currentGreenColor = Color(0xff0E9B09).obs;
   final Rx<Color> currentQuaternaryColor = Color(0xff392A5E).obs;
 
-  void toggleTheme() {
-    themeMode.value = themeMode.value == ThemeMode.light
-        ? ThemeMode.dark
-        : ThemeMode.light;
-    if (themeMode.value == ThemeMode.dark) {
+  Future<void> loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool(_prefKey);
+    if (isDark == null) return;
+    setTheme(isDark ? ThemeMode.dark : ThemeMode.light);
+  }
+
+  Future<void> _persistTheme(ThemeMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_prefKey, mode == ThemeMode.dark);
+  }
+
+  void _applyThemeColors(ThemeMode mode) {
+    if (mode == ThemeMode.dark) {
       currentPrimaryColor.value = Color(0xff000000);
       currentSecondaryColor.value = Color(0xffFFD700);
       currentTertiaryColor.value = Color(0xffDFDEDE);
@@ -58,11 +69,18 @@ class ThemeController extends GetxController {
       currentGreenColor.value = Color(0xff0E9B09);
       currentQuaternaryColor.value = Color(0xff392A5E);
     }
-    Get.changeThemeMode(themeMode.value);
+  }
+
+  Future<void> toggleTheme() async {
+    final nextMode =
+        themeMode.value == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    setTheme(nextMode);
+    await _persistTheme(nextMode);
   }
 
   void setTheme(ThemeMode mode) {
     themeMode.value = mode;
+    _applyThemeColors(mode);
     Get.changeThemeMode(mode);
   }
 

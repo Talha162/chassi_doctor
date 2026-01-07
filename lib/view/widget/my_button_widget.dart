@@ -18,7 +18,7 @@ class MyButton extends StatelessWidget {
   });
 
   final String buttonText;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   double? height, textSize, radius;
   FontWeight? weight;
   Widget? customChild;

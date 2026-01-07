@@ -3,12 +3,22 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/theme/dark_theme.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
+import 'package:motorsport/view/bindings/auth_bindings.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Get.put(ThemeController());
+  final themeController = Get.put(ThemeController());
+  await themeController.loadTheme();
+
+
+  await Supabase.initialize(
+    url: 'https://pmhsmskjxywqtkyhdvgj.supabase.co',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtaHNtc2tqeHl3cXRreWhkdmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNzYwMDgsImV4cCI6MjA3Nzg1MjAwOH0.XnYxiYdzpfGsJxAnccRj8SqQkOKwo693YI8AaInL9Tg',
+  );
+
   runApp(MyApp());
 }
 
@@ -18,6 +28,7 @@ String dummyImg =
 
 class MyApp extends StatelessWidget {
   @override
+
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,

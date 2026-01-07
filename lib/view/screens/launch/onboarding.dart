@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/route_manager.dart';
+import 'package:motorsport/config/routes/routes.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
-import 'package:motorsport/view/screens/auth/sign_up/track_configuration.dart';
-import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
@@ -44,11 +43,12 @@ class _OnboardingState extends State<Onboarding> {
   void _nextPage() {
     if (currentPage < onboardingData.length - 1) {
       _pageController.nextPage(
-        duration: Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 300),
         curve: Curves.ease,
       );
     } else {
-      Get.offAll(() => TrackConfiguration());
+      // Corrected Navigation: Use a named route
+      Get.offAllNamed(AppLinks.trackConfiguration);
     }
   }
 
@@ -63,7 +63,7 @@ class _OnboardingState extends State<Onboarding> {
     return Scaffold(
       appBar: simpleAppBar(title: 'Welcome to Motorsport ', haveLeading: false),
       body: PageView.builder(
-        physics: BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(),
         controller: _pageController,
         itemCount: onboardingData.length,
         onPageChanged: (index) {
@@ -77,7 +77,7 @@ class _OnboardingState extends State<Onboarding> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Image.asset(data['image'] ?? '', height: 280),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               MyText(
                 text: data['title'] ?? '',
                 size: 18,
@@ -94,7 +94,7 @@ class _OnboardingState extends State<Onboarding> {
                 text: data['subtitle'] ?? '',
                 size: 14,
                 lineHeight: 1.5,
-                color: Color(0xffF7CDB0),
+                color: const Color(0xffF7CDB0),
                 textAlign: TextAlign.center,
               ),
             ],

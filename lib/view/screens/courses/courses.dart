@@ -11,7 +11,6 @@ import 'package:percent_indicator/linear_percent_indicator.dart';
 
 class Courses extends StatelessWidget {
   const Courses({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -49,18 +48,7 @@ class Courses extends StatelessWidget {
                   color: kTertiaryColor,
                   paddingBottom: 16,
                 ),
-                SizedBox(
-                  width: 135,
-                  child: MyButton(
-                    buttonText: 'Explore Courses',
-                    height: 30,
-                    textSize: 12,
-                    textColor: kTertiaryColor,
-                    bgColor: Color(0xff636AE8),
-                    radius: 8,
-                    onTap: () {},
-                  ),
-                ),
+
               ],
             ),
           ),
