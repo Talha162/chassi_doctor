@@ -10,7 +10,7 @@ class GeminiService {
   GeminiService({http.Client? client}) : _client = client ?? http.Client();
 
   static const String _apiKey =
-      'AIzaSyAZUFsCI8oYV0ZZAKtICt5vw701DsR7vJs';
+      'AIzaSyA2IaDKQoAygH9FotQI1K0A4j5e1PN8Hzw';
   static const String _endpoint =
       'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
 
