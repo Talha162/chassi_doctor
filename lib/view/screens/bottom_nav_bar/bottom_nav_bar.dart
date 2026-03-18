@@ -14,18 +14,30 @@ import 'package:motorsport/view/screens/settings/settings.dart';
 
 // ignore: must_be_immutable
 class BottomNavBar extends StatefulWidget {
+  final int initialIndex;
+
+  const BottomNavBar({super.key, this.initialIndex = 0});
+
   @override
-  _BottomNavBarState createState() => _BottomNavBarState();
+  State<BottomNavBar> createState() => _BottomNavBarState();
 }
 
 class _BottomNavBarState extends State<BottomNavBar> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+  }
+
   void _getCurrentIndex(int index) {
     setState(() {
       _currentIndex = index;
     });
-    if (index == 3) {
+
+    if (index == 2) {
       if (Get.isRegistered<SavedSetupHistoryController>()) {
         Get.find<SavedSetupHistoryController>().fetchSavedSetups();
       }
@@ -34,17 +46,15 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> _items = [
+    final List<Map<String, dynamic>> items = [
       {'icon': Assets.imagesHome, 'label': 'Home'},
-      // {'icon': Assets.imagesLearn, 'label': 'Learn'},
       {'icon': Assets.imagesCourses, 'label': 'Courses'},
       {'icon': Assets.imagesSave, 'label': 'History'},
       {'icon': Assets.imagesProfile, 'label': 'Profile'},
     ];
 
-    final List<Widget> _screens = [
+    final List<Widget> screens = [
       Home(),
-      // LearningHub(),
       Courses(),
       SavedSetupHistory(),
       Settings(),
@@ -53,59 +63,96 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
-      body: _screens[_currentIndex],
-      bottomNavigationBar: _buildNavBar(_items),
+      body: screens[_currentIndex],
+      bottomNavigationBar: _buildNavBar(items),
     );
   }
 
-  Widget _buildNavBar(List<Map<String, dynamic>> _items) {
-    return Obx(() {
-      return SafeArea(
-        top: false,
-        child: Container(
-          decoration: BoxDecoration(
-            color: kPrimaryColor,
-            border: Border(
-              top: BorderSide(color: kTertiaryColor.withOpacity(0.1), width: 1),
-            ),
-          ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            selectedLabelStyle: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-            ),
-            unselectedLabelStyle: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-            ),
-            selectedFontSize: 10,
-            unselectedFontSize: 10,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            backgroundColor: Colors.transparent,
-            selectedItemColor: kSecondaryColor,
-            unselectedItemColor: kTertiaryColor.withOpacity(0.6),
-            currentIndex: _currentIndex,
-            onTap: (index) => _getCurrentIndex(index),
-            items: List.generate(_items.length, (index) {
-              var data = _items[index];
-              return BottomNavigationBarItem(
-                icon: Container(
-                  margin: EdgeInsets.only(bottom: 2),
-                  height: 32,
-                  width: 32,
-                  child: Center(
-                    child: ImageIcon(AssetImage(data["icon"]), size: 24),
-                  ),
-                ),
-                label: data["label"],
-              );
-            }),
+  Widget _buildNavBar(List<Map<String, dynamic>> items) {
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: kPrimaryColor,
+          border: Border(
+            top: BorderSide(color: kTertiaryColor.withOpacity(0.1), width: 1),
           ),
         ),
-      );
-    });
+        child: BottomNavigationBar(
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          selectedItemColor: kSecondaryColor,
+          unselectedItemColor: kTertiaryColor.withOpacity(0.6),
+          currentIndex: _currentIndex,
+          onTap: _getCurrentIndex,
+          items: List.generate(items.length, (index) {
+            final data = items[index];
+            return BottomNavigationBarItem(
+              icon: SizedBox(
+                height: 32,
+                width: 32,
+                child: Center(
+                  child: ImageIcon(AssetImage(data["icon"]), size: 24),
+                ),
+              ),
+              label: data["label"],
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class ChildScreenBottomNav extends StatelessWidget {
+  final int selectedIndex;
+
+  const ChildScreenBottomNav({super.key, required this.selectedIndex});
+
+  @override
+  Widget build(BuildContext context) {
+    final items = [
+      {'icon': Assets.imagesHome, 'label': 'Home'},
+      {'icon': Assets.imagesCourses, 'label': 'Courses'},
+      {'icon': Assets.imagesSave, 'label': 'History'},
+      {'icon': Assets.imagesProfile, 'label': 'Profile'},
+    ];
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        decoration: BoxDecoration(
+          color: kPrimaryColor,
+          border: Border(
+            top: BorderSide(color: kTertiaryColor.withOpacity(0.1), width: 1),
+          ),
+        ),
+        child: BottomNavigationBar(
+          elevation: 0,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: Colors.transparent,
+          selectedItemColor: kSecondaryColor,
+          unselectedItemColor: kTertiaryColor.withOpacity(0.6),
+          currentIndex: selectedIndex,
+          onTap: (index) {
+            Get.offAll(() => BottomNavBar(initialIndex: index));
+          },
+          items: List.generate(items.length, (index) {
+            final data = items[index];
+            return BottomNavigationBarItem(
+              icon: SizedBox(
+                height: 32,
+                width: 32,
+                child: Center(
+                  child: ImageIcon(AssetImage(data["icon"]!), size: 24),
+                ),
+              ),
+              label: data["label"],
+            );
+          }),
+        ),
+      ),
+    );
   }
 }

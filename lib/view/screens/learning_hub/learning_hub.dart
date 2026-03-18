@@ -133,6 +133,7 @@ class _LearningHubState extends State<LearningHub> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: simpleAppBar(title: 'Learning Hub'),
+      bottomNavigationBar: const ChildScreenBottomNav(selectedIndex: 1),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
