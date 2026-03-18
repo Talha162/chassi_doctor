@@ -24,17 +24,20 @@ class GeminiService {
     final issueLines = issues.isEmpty
         ? '- No specific issues selected.'
         : issues
-            .map((issue) =>
-                '- ${issue.title}: ${issue.description.isEmpty ? 'No description.' : issue.description}')
-            .join('\n');
+              .map(
+                (issue) =>
+                    '- ${issue.title}: ${issue.description.isEmpty ? 'No description.' : issue.description}',
+              )
+              .join('\n');
     final track = trackConfiguration;
     final trackText = track == null
         ? 'No saved track configuration.'
         : 'Track type: ${track.trackType ?? 'Not set'}, '
-            'Surface type: ${track.surfaceType ?? 'Not set'}, '
-            'Weather: ${track.weatherCondition ?? 'Not set'}.';
+              'Surface type: ${track.surfaceType ?? 'Not set'}, '
+              'Weather: ${track.weatherCondition ?? 'Not set'}.';
 
-    final prompt = '''
+    final prompt =
+        '''
 You are a race setup expert. Based on the selected issues and the current track configuration, provide concise recommended adjustments.
 Return ONLY valid JSON with this exact structure:
 {"recommendations":[{"title":"...","details":"...","category":"..."}]}
@@ -55,14 +58,11 @@ $trackText
         {
           'role': 'user',
           'parts': [
-            {'text': prompt}
+            {'text': prompt},
           ],
-        }
+        },
       ],
-      'generationConfig': {
-        'temperature': 0.3,
-        'maxOutputTokens': 400,
-      },
+      'generationConfig': {'temperature': 0.3, 'maxOutputTokens': 400},
     });
 
     final response = await _client.post(
@@ -115,27 +115,30 @@ $trackText
     final issueLines = issues.isEmpty
         ? '- No specific issues selected.'
         : issues
-            .map((issue) =>
-                '- ${issue.title}: ${issue.description.isEmpty ? 'No description.' : issue.description}')
-            .join('\n');
+              .map(
+                (issue) =>
+                    '- ${issue.title}: ${issue.description.isEmpty ? 'No description.' : issue.description}',
+              )
+              .join('\n');
     final track = trackConfiguration;
     final trackText = track == null
         ? 'No saved track configuration.'
         : 'Track type: ${track.trackType ?? 'Not set'}, '
-            'Surface type: ${track.surfaceType ?? 'Not set'}, '
-            'Weather: ${track.weatherCondition ?? 'Not set'}.';
+              'Surface type: ${track.surfaceType ?? 'Not set'}, '
+              'Weather: ${track.weatherCondition ?? 'Not set'}.';
 
     // Build candidate list for Gemini
     final candidateList = candidates
         .asMap()
         .entries
         .map((e) {
-      final rec = e.value;
-      return '${e.key + 1}. ID: ${rec.id ?? 'N/A'} | Title: ${rec.title} | Details: ${rec.details}';
-    })
+          final rec = e.value;
+          return '${e.key + 1}. ID: ${rec.id ?? 'N/A'} | Title: ${rec.title} | Details: ${rec.details}';
+        })
         .join('\n');
 
-    final prompt = '''
+    final prompt =
+        '''
 You are a race setup expert. Given a list of adjustment recommendations that apply to the selected symptom and issues, select the top $topK most relevant and important ones to present to the user.
 
 CRITICAL CONSTRAINT: You MUST ONLY select from the provided candidates below. DO NOT invent or suggest any new recommendations that are not in the list.
@@ -164,14 +167,11 @@ Make sure the IDs and titles match exactly from the candidates list above. Selec
         {
           'role': 'user',
           'parts': [
-            {'text': prompt}
+            {'text': prompt},
           ],
-        }
+        },
       ],
-      'generationConfig': {
-        'temperature': 0.2,
-        'maxOutputTokens': 400,
-      },
+      'generationConfig': {'temperature': 0.2, 'maxOutputTokens': 400},
     });
 
     try {
@@ -193,13 +193,17 @@ Make sure the IDs and titles match exactly from the candidates list above. Selec
       }
       final content = resContent.first['content'] as Map?;
       final parts = content?['parts'] as List?;
-      final text = parts != null && parts.isNotEmpty ? parts.first['text'] : null;
+      final text = parts != null && parts.isNotEmpty
+          ? parts.first['text']
+          : null;
       if (text is! String || text.trim().isEmpty) {
         throw Exception('Ranking response was empty.');
       }
 
       final rankedRecs = _parseRankingResponse(text, candidates);
-      debugPrint('[GEMINI] Successfully ranked recommendations from Supabase candidates.');
+      debugPrint(
+        '[GEMINI] Successfully ranked recommendations from Supabase candidates.',
+      );
       for (final rec in rankedRecs) {
         debugPrint('  - [From Supabase] ${rec.title} (id: ${rec.id})');
       }
@@ -287,4 +291,3 @@ Make sure the IDs and titles match exactly from the candidates list above. Selec
     return trimmed;
   }
 }
-

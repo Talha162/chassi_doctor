@@ -11,8 +11,6 @@ import 'package:motorsport/view/screens/auth/sign_up/track_configuration.dart'
     as track_ui;
 import 'package:motorsport/view/screens/home/identify_issues.dart';
 import 'package:motorsport/view/screens/notifications/notifications_screen.dart';
-import 'package:motorsport/view/screens/settings/settings.dart';
-import 'package:motorsport/view/widget/common_image_view_widget.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,6 +37,7 @@ class _HomeState extends State<Home> {
   bool _isLoadingConfig = true;
   String _trackCircuitName = '';
   String _carType = 'Not set';
+  String _note = '';
 
   @override
   void initState() {
@@ -78,9 +77,16 @@ class _HomeState extends State<Home> {
       }
       final latest = await _service.getLatestTrackConfigurationForUser(userId);
       if (!mounted) return;
-      setState(() {
-        _latestConfig = latest;
-      });
+      setState(() => _latestConfig = latest);
+      if (latest != null) {
+        final historyNote = await _service.getHistoryNote(
+          userId: userId,
+          sourceType: 'track',
+          sourceId: 'track-${latest.id}',
+        );
+        if (!mounted) return;
+        setState(() => _note = historyNote?.note ?? '');
+      }
     } catch (e) {
       debugPrint('Error loading latest track configuration in Home: $e');
     } finally {
@@ -131,16 +137,8 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> cardData = [
-      {
-        'subtitle': 'Contact us',
-        'title': 'Chassis Doctor',
-        'image': Assets.imagesChassisDoc,
-      },
-      {
-        'subtitle': 'Contact us',
-        'title': 'Learning Modules',
-        'image': Assets.imagesLogo,
-      },
+      {'subtitle': '', 'title': 'Chassis Doctor', 'image': Assets.mainlogo},
+      {'subtitle': '', 'title': 'Learning Modules', 'image': Assets.imagesLogo},
       // {
       //   'subtitle': 'Contact us',
       //   'title': 'Setup History',
@@ -169,53 +167,60 @@ class _HomeState extends State<Home> {
 
     return Scaffold(
       appBar: simpleAppBar(
-        title: '',
+        title: 'Chassis Doctor',
+        centerTitle: false,
         // Profile avatar on the LEFT
         leading: GestureDetector(
-          onTap: () async {
-            final _ = await Get.to(() => const Settings(showBackButton: true));
-            _loadUser(); // refresh after returning
-          },
+          // onTap: () async {
+          //   final _ = await Get.to(() => const Settings(showBackButton: true));
+          //   _loadUser(); // refresh after returning
+          // },
           child: Padding(
             padding: const EdgeInsets.only(left: 16),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: kSecondaryColor, width: 2),
-                  ),
+                // Container(
+                //   decoration: BoxDecoration(
+                //     shape: BoxShape.circle,
+                //     border: Border.all(color: kSecondaryColor, width: 2),
+                //   ),
+                //   child: ClipOval(
+                //     child: SizedBox(
+                //       height: 32,
+                //       width: 32,
+                //       child: CommonImageView(
+                //         height: 32,
+                //         width: 32,
+                //         radius: 100,
+                //         url: avatarUrl, // 👈 dynamic user avatar or default
+                //         fit: BoxFit.cover,
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                // Small loading overlay if user is loading
+                // if (_isLoadingUser)
+                //   Container(
+                //     height: 32,
+                //     width: 32,
+                //     decoration: BoxDecoration(
+                //       color: Colors.black.withOpacity(0.25),
+                //       shape: BoxShape.circle,
+                //     ),
+                //     child: const SizedBox(
+                //       height: 14,
+                //       width: 14,
+                //       child: CircularProgressIndicator(strokeWidth: 2),
+                //     ),
+                //   ),
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: kBorderColor2,
                   child: ClipOval(
-                    child: SizedBox(
-                      height: 32,
-                      width: 32,
-                      child: CommonImageView(
-                        height: 32,
-                        width: 32,
-                        radius: 100,
-                        url: avatarUrl, // 👈 dynamic user avatar or default
-                        fit: BoxFit.cover,
-                      ),
-                    ),
+                    child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
                   ),
                 ),
-
-                // Small loading overlay if user is loading
-                if (_isLoadingUser)
-                  Container(
-                    height: 32,
-                    width: 32,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.25),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const SizedBox(
-                      height: 14,
-                      width: 14,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
               ],
             ),
           ),
@@ -255,7 +260,7 @@ class _HomeState extends State<Home> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset(Assets.imagesBanner, fit: BoxFit.cover),
+                  Image.asset(Assets.racetracklogo, fit: BoxFit.cover),
                   Container(
                     decoration: const BoxDecoration(
                       gradient: LinearGradient(
@@ -368,9 +373,15 @@ class _HomeState extends State<Home> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset(
-                            cardData[index]['image'] ?? '',
-                            height: 38,
+                          CircleAvatar(
+                            radius: 20,
+                            backgroundColor: kPrimaryColor,
+                            child: ClipOval(
+                              child: Image.asset(
+                                cardData[index]['image'] ?? '',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
                           ),
                           MyText(
                             paddingTop: 8,
@@ -516,11 +527,35 @@ class _HomeState extends State<Home> {
                   ],
                 ),
                 const SizedBox(height: 12),
+                if (_note.isNotEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.sticky_note_2_outlined,
+                        color: kSecondaryColor,
+                        size: 20,
+                      ),
+                      Expanded(
+                        child: MyText(
+                          paddingLeft: 6,
+                          text: 'Notes: ',
+                          size: 14,
+                          color: kSecondaryColor,
+                          maxLines: 3,
+                          textOverflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      MyText(text: _note, size: 14, weight: FontWeight.w500),
+                    ],
+                  ),
+                const SizedBox(height: 12),
               ],
             ),
           ),
           const SizedBox(height: 18),
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
+
+          // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
           const SizedBox(height: 20),
 
           // // Recent Activity card (unchanged)

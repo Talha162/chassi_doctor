@@ -32,8 +32,9 @@ class SavedSetupHistory extends StatelessWidget {
     final symptom = session.symptomSnapshot;
     final issues = session.issuesSnapshot;
     final recommendations = session.recommendations;
-    final formattedDate =
-        DateFormat('yyyy-MM-dd HH:mm').format(session.createdAt.toLocal());
+    final formattedDate = DateFormat(
+      'yyyy-MM-dd HH:mm',
+    ).format(session.createdAt.toLocal());
     final userId = Supabase.instance.client.auth.currentUser?.id;
     final sourceType = session.hasSessionData ? 'session' : 'track';
     final note = userId == null
@@ -112,8 +113,12 @@ class SavedSetupHistory extends StatelessWidget {
             pw.SizedBox(height: 12),
             pw.Text('Track Configuration', style: pw.TextStyle(fontSize: 16)),
             pw.Bullet(text: 'Track Type: ${track['track_type'] ?? 'Not set'}'),
-            pw.Bullet(text: 'Surface Type: ${track['surface_type'] ?? 'Not set'}'),
-            pw.Bullet(text: 'Weather: ${track['weather_condition'] ?? 'Not set'}'),
+            pw.Bullet(
+              text: 'Surface Type: ${track['surface_type'] ?? 'Not set'}',
+            ),
+            pw.Bullet(
+              text: 'Weather: ${track['weather_condition'] ?? 'Not set'}',
+            ),
             pw.SizedBox(height: 12),
             pw.Text('Selected Symptom', style: pw.TextStyle(fontSize: 16)),
             if (!session.hasSessionData)
@@ -145,8 +150,9 @@ class SavedSetupHistory extends StatelessWidget {
                 final category = recMap['category']?.toString();
                 final title = recMap['title']?.toString() ?? 'Recommendation';
                 final details = recMap['details']?.toString() ?? '';
-                final header =
-                    category == null || category.isEmpty ? title : '$title ($category)';
+                final header = category == null || category.isEmpty
+                    ? title
+                    : '$title ($category)';
                 return pw.Bullet(text: '$header - $details');
               }),
             pw.SizedBox(height: 12),
@@ -164,15 +170,16 @@ class SavedSetupHistory extends StatelessWidget {
     final file = File('${dir.path}/chassis_session_${session.id}.pdf');
     await file.writeAsBytes(await pdf.save());
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: 'Chassis Doctor session details',
-    );
+    await Share.shareXFiles([
+      XFile(file.path),
+    ], text: 'Chassis Doctor session details');
   }
 
   @override
   Widget build(BuildContext context) {
-    final SavedSetupHistoryController controller = Get.put(SavedSetupHistoryController());
+    final SavedSetupHistoryController controller = Get.put(
+      SavedSetupHistoryController(),
+    );
 
     return Scaffold(
       body: SafeArea(
@@ -181,25 +188,56 @@ class SavedSetupHistory extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              MyText(
-                text: 'Saved Setup History',
-                size: 18,
-                paddingBottom: 8,
-                weight: FontWeight.bold,
-              ),
-              MyText(
-                text: 'Review and manage your past vehicle configurations.',
-                size: 12,
-                paddingBottom: 25,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: kBorderColor2,
+                        child: ClipOval(
+                          child: Image.asset(
+                            Assets.mainlogo,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MyText(
+                          text: 'Saved Setup History',
+                          size: 18,
+                          paddingBottom: 6,
+                          weight: FontWeight.bold,
+                        ),
+                        MyText(
+                          text:
+                              'Review and manage your past vehicle configurations.',
+                          size: 12,
+                          paddingBottom: 25,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
               Expanded(
                 child: Obx(() {
                   if (controller.isLoading.value) {
-                    return Center(child: CircularProgressIndicator(color: kSecondaryColor));
+                    return Center(
+                      child: CircularProgressIndicator(color: kSecondaryColor),
+                    );
                   }
 
                   if (controller.entries.isEmpty) {
-                    return  Center(
+                    return Center(
                       child: MyText(
                         text: 'No saved setups found.',
                         color: kTertiaryColor,
@@ -211,16 +249,18 @@ class SavedSetupHistory extends StatelessWidget {
                     shrinkWrap: true,
                     physics: const BouncingScrollPhysics(),
                     itemCount: controller.entries.length,
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisExtent: 180,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 16,
-                    ),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          mainAxisExtent: 180,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 16,
+                        ),
                     itemBuilder: (context, index) {
                       final session = controller.entries[index];
-                      final formattedDate =
-                          DateFormat('yyyy-MM-dd').format(session.createdAt);
+                      final formattedDate = DateFormat(
+                        'yyyy-MM-dd',
+                      ).format(session.createdAt);
                       final track = session.trackSnapshot;
 
                       return SetupHistoryTile(

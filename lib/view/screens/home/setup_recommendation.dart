@@ -472,7 +472,15 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         padding: AppSizes.DEFAULT,
         physics: BouncingScrollPhysics(),
         children: [
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 40)),
+          Center(
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: kBorderColor2,
+              child: ClipOval(
+                child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
+              ),
+            ),
+          ),
           SizedBox(height: 12),
           MyText(
             text: widget.symptom.title,

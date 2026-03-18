@@ -182,10 +182,18 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
         padding: AppSizes.DEFAULT,
         physics: BouncingScrollPhysics(),
         children: [
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 42)),
+          Center(
+            child: CircleAvatar(
+              radius: 30,
+              backgroundColor: kBorderColor2,
+              child: ClipOval(
+                child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
+              ),
+            ),
+          ),
           SizedBox(height: 12),
           MyText(
-            text: 'What is going on with the car?',
+            text: 'What’s going on with the car?',
             size: 18,
             paddingBottom: 8,
             weight: FontWeight.bold,
@@ -209,24 +217,28 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
             GridView.builder(
               shrinkWrap: true,
               padding: AppSizes.ZERO,
-              physics: BouncingScrollPhysics(),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              physics: const BouncingScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
                 mainAxisExtent: 200,
               ),
-              itemCount: _symptoms.length,
+              itemCount: _symptoms.length > 4
+                  ? 4
+                  : _symptoms
+                        .length, // used to handle temporarily from frontend as no backend access
               itemBuilder: (context, index) {
                 final issue = _symptoms[index];
                 final imagePath = _issueImageForTitle(issue.title);
+
                 return GestureDetector(
                   onTap: () {
                     Get.to(() => SetupRecommendation(symptom: issue));
                   },
                   child: Container(
                     width: Get.width,
-                    padding: EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
                       border: Border.all(color: kBorderColor2, width: 1),
                       color: kQuaternaryColor,
@@ -275,7 +287,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
               },
             ),
           SizedBox(height: 20),
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
+          // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
           SizedBox(height: 18),
           GestureDetector(
             onTap: () {

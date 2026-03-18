@@ -7,6 +7,7 @@ import 'package:motorsport/models/course_enrollment.dart';
 import 'package:motorsport/models/course_module.dart';
 import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/module_progress_summary.dart';
+import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -147,14 +148,7 @@ class _LearningHubState extends State<LearningHub> {
               padding: AppSizes.DEFAULT,
               physics: const BouncingScrollPhysics(),
               children: [
-                Center(child: Image.asset(Assets.imagesLogo, height: 56)),
                 const SizedBox(height: 14),
-                MyText(
-                  text: 'Learning Hub',
-                  size: 18,
-                  paddingBottom: 8,
-                  weight: FontWeight.bold,
-                ),
                 MyText(
                   text:
                       'Your one-stop destination for skill-building, expert resources, and self-paced learning — anytime, anywhere.',
@@ -217,7 +211,7 @@ class _LearningHubState extends State<LearningHub> {
                 // My Learning Module (enrolled courses)
                 MyText(
                   paddingTop: 16,
-                  text: 'My Learning Module',
+                  text: 'My Courses',
                   size: 18,
                   paddingBottom: 12,
                   weight: FontWeight.bold,
@@ -284,7 +278,6 @@ class _LearningHubState extends State<LearningHub> {
                     size: 14,
                   ),
                 const SizedBox(height: 16),
-                Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
               ],
             ),
     );

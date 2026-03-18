@@ -1,7 +1,15 @@
 // ignore_for_file: prefer_single_quotes
 class Assets {
   Assets._();
-  
+
+  /// Assets for mainlogo
+  /// assets/images/mainlogo.png
+  static const String mainlogo = "assets/images/chassisdrmainlogo.jpeg";
+
+  /// Assets for racetracklogo
+  /// assets/images/racetracklogo.png
+  static const String racetracklogo = "assets/images/racetracklogo.jpeg";
+
   /// Assets for imagesAccept
   /// assets/images/accept.png
   static const String imagesAccept = "assets/images/accept.png";
@@ -36,7 +44,8 @@ class Assets {
 
   /// Assets for imagesArrowBackWhite
   /// assets/images/arrow_back_white.png
-  static const String imagesArrowBackWhite = "assets/images/arrow_back_white.png";
+  static const String imagesArrowBackWhite =
+      "assets/images/arrow_back_white.png";
 
   /// Assets for imagesArrowNext
   /// assets/images/arrow_next.png
@@ -44,7 +53,8 @@ class Assets {
 
   /// Assets for imagesArrowNextRounded
   /// assets/images/arrow_next_rounded.png
-  static const String imagesArrowNextRounded = "assets/images/arrow_next_rounded.png";
+  static const String imagesArrowNextRounded =
+      "assets/images/arrow_next_rounded.png";
 
   /// Assets for imagesAttachment
   /// assets/images/attachment.png
@@ -68,7 +78,8 @@ class Assets {
 
   /// Assets for imagesBrakingInstability
   /// assets/images/braking_instability.png
-  static const String imagesBrakingInstability = "assets/images/braking_instability.png";
+  static const String imagesBrakingInstability =
+      "assets/images/braking_instability.png";
 
   /// Assets for imagesCalendar
   /// assets/images/calendar.png
@@ -216,7 +227,8 @@ class Assets {
 
   /// Assets for imagesDoubleWishbone
   /// assets/images/double_wishbone.png
-  static const String imagesDoubleWishbone = "assets/images/double_wishbone.png";
+  static const String imagesDoubleWishbone =
+      "assets/images/double_wishbone.png";
 
   /// Assets for imagesDropdown
   /// assets/images/dropdown.png
@@ -304,7 +316,8 @@ class Assets {
 
   /// Assets for imagesLearningModules
   /// assets/images/learning_modules.png
-  static const String imagesLearningModules = "assets/images/learning_modules.png";
+  static const String imagesLearningModules =
+      "assets/images/learning_modules.png";
 
   /// Assets for imagesLifestyle
   /// assets/images/lifestyle.png
@@ -372,7 +385,8 @@ class Assets {
 
   /// Assets for imagesNoProfileFound
   /// assets/images/no_profile_found.png
-  static const String imagesNoProfileFound = "assets/images/no_profile_found.png";
+  static const String imagesNoProfileFound =
+      "assets/images/no_profile_found.png";
 
   /// Assets for imagesNoRoostsFound
   /// assets/images/no_roosts_found.png
@@ -456,7 +470,8 @@ class Assets {
 
   /// Assets for imagesPushNotification
   /// assets/images/push_notification.png
-  static const String imagesPushNotification = "assets/images/push_notification.png";
+  static const String imagesPushNotification =
+      "assets/images/push_notification.png";
 
   /// Assets for imagesRaceCraftBg
   /// assets/images/race_craft_bg.png
@@ -476,7 +491,8 @@ class Assets {
 
   /// Assets for imagesRoostsSettings
   /// assets/images/roosts_settings.png
-  static const String imagesRoostsSettings = "assets/images/roosts_settings.png";
+  static const String imagesRoostsSettings =
+      "assets/images/roosts_settings.png";
 
   /// Assets for imagesRoughRide
   /// assets/images/rough_ride.png
@@ -674,4 +690,3 @@ class Assets {
   /// assets/images/weather.png
   static const String imagesWeather = "assets/images/weather.png";
 }
-

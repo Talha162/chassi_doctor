@@ -14,7 +14,31 @@ class Courses extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Courses', haveLeading: showBackButton),
+      appBar: simpleAppBar(
+        title: 'Courses',
+        // haveLeading: showBackButton,
+        leading: GestureDetector(
+          // onTap: () async {
+          //   final _ = await Get.to(() => const Settings(showBackButton: true));
+          //   _loadUser(); // refresh after returning
+          // },
+          child: Padding(
+            padding: const EdgeInsets.only(left: 16),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 20,
+                  backgroundColor: kBorderColor2,
+                  child: ClipOval(
+                    child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
       body: ListView(
         shrinkWrap: true,
         padding: AppSizes.ZERO,
@@ -56,7 +80,7 @@ class Courses extends StatelessWidget {
             tabContents: [AllCourses(), MyCourses()],
           ),
           const SizedBox(height: 16),
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
+          // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
           const SizedBox(height: 16),
         ],
       ),

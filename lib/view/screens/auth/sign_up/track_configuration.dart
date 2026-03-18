@@ -55,13 +55,16 @@ class TrackConfiguration extends StatefulWidget {
 class _TrackConfigurationState extends State<TrackConfiguration> {
   final ProfileService _profileService = ProfileService();
   final SupabaseService _supabaseService = SupabaseService.instance;
+
   static const String _trackCircuitNameKey = 'track_circuit_name';
   static const String _enginePositionKey = 'engine_position';
   static const String _aerofoilsKey = 'aerofoils';
 
   bool _isLoading = false;
+
   final TextEditingController _trackCircuitNameController =
       TextEditingController();
+  final TextEditingController _notesController = TextEditingController();
 
   final Map<String, int> selectedIndexes = {
     'Track Type': 0,
@@ -85,18 +88,42 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
           .trackSections['Surface Type']![selectedIndexes['Surface Type']!]['title']!;
       final weatherCondition = widget
           .trackSections['Weather Condition']![selectedIndexes['Weather Condition']!]['title']!;
-
       final enginePosition = widget
           .trackSections['Engine Position']![selectedIndexes['Engine Position']!]['title']!;
       final aerofoils = widget
           .trackSections['Aerofoils']![selectedIndexes['Aerofoils']!]['title']!;
+
       final nickname = _trackCircuitNameController.text.trim();
+      final notes = _notesController.text.trim();
 
       await _profileService.saveTrackConfiguration(
         trackType: trackType,
         surfaceType: surfaceType,
         weatherCondition: weatherCondition,
       );
+
+      final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId != null) {
+        final latest = await _supabaseService
+            .getLatestTrackConfigurationForUser(userId);
+        if (latest != null) {
+          final sourceId = 'track-${latest.id}';
+          if (notes.isEmpty) {
+            await _supabaseService.deleteHistoryNote(
+              userId: userId,
+              sourceType: 'track',
+              sourceId: sourceId,
+            );
+          } else {
+            await _supabaseService.upsertHistoryNote(
+              userId: userId,
+              sourceType: 'track',
+              sourceId: sourceId,
+              note: notes,
+            );
+          }
+        }
+      }
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
@@ -133,11 +160,35 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
     _applyInitialSelections();
     _loadLatestConfigurationIfNeeded();
     _loadLocalConfiguration();
+    _loadNote();
+  }
+
+  Future<void> _loadNote() async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) return;
+    try {
+      final latest = await _supabaseService.getLatestTrackConfigurationForUser(
+        userId,
+      );
+      if (!mounted || latest == null) return;
+      final note = await _supabaseService.getHistoryNote(
+        userId: userId,
+        sourceType: 'track',
+        sourceId: 'track-${latest.id}',
+      );
+      if (!mounted) return;
+      setState(() {
+        _notesController.text = note?.note ?? '';
+      });
+    } catch (e) {
+      debugPrint('Failed to load note: $e');
+    }
   }
 
   @override
   void dispose() {
     _trackCircuitNameController.dispose();
+    _notesController.dispose();
     super.dispose();
   }
 
@@ -195,6 +246,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
         userId,
       );
       if (!mounted || latest == null) return;
+
       setState(() {
         selectedIndexes['Track Type'] = _indexFor(
           'Track Type',
@@ -240,6 +292,28 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
     }
   }
 
+  InputDecoration _inputDecoration({required String hintText}) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: const TextStyle(color: Colors.grey),
+      filled: true,
+      fillColor: kPrimaryColor,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: kBorderColor2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: kBorderColor2),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: kBorderColor2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -279,27 +353,57 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _trackCircuitNameController,
-                  decoration: InputDecoration(
+                  decoration: _inputDecoration(
                     hintText: 'e.g. Mendips Raceway / Silverstone',
-                    filled: true,
-                    fillColor: kPrimaryColor,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: kBorderColor2),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(color: kBorderColor2),
-                    ),
                   ),
                 ),
               ],
             ),
           ),
+
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: kQuaternaryColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            margin: const EdgeInsets.only(bottom: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.sticky_note_2_outlined,
+                      size: 24,
+                      color: kSecondaryColor,
+                    ),
+                    Expanded(
+                      child: MyText(
+                        text: 'Notes',
+                        size: 16,
+                        weight: FontWeight.w500,
+                        color: kSecondaryColor,
+                        paddingLeft: 10,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _notesController,
+                  maxLines: 4,
+                  minLines: 4,
+                  textInputAction: TextInputAction.newline,
+                  decoration: _inputDecoration(
+                    hintText:
+                        'Add notes about grip, balance, tyre feel, weather, or any setup observations...',
+                  ),
+                ),
+              ],
+            ),
+          ),
+
           ...widget.trackSections.keys.map((sectionKey) {
             final items = widget.trackSections[sectionKey]!;
             return Container(
@@ -344,8 +448,9 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
               ),
             );
           }),
+
           const SizedBox(height: 8),
-          Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
+          // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
         ],
       ),
       bottomNavigationBar: BottomAppBar(
