@@ -15,7 +15,7 @@ class Courses extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: simpleAppBar(
-        title: 'Courses',
+        title: 'Motorsport University',
         // haveLeading: showBackButton,
         leading: GestureDetector(
           // onTap: () async {
@@ -28,7 +28,7 @@ class Courses extends StatelessWidget {
               alignment: Alignment.center,
               children: [
                 CircleAvatar(
-                  radius: 20,
+                  radius: 24,
                   backgroundColor: kBorderColor2,
                   child: ClipOval(
                     child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
@@ -59,14 +59,14 @@ class Courses extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 MyText(
-                  text: 'Boost Your Racing Career!',
+                  text: 'Motorsport University',
                   size: 18,
                   weight: FontWeight.bold,
                   paddingBottom: 6,
                 ),
                 MyText(
                   text:
-                      'Grow your race car knowledge! Discover why race cars do what they do and master the technical knowledge with these easy to understand bitesize modules.',
+                      'Browse one-time paid racing education, keep diagnostics under Chassis Doctor, and manage your learning separately here.',
                   size: 12,
                   lineHeight: 1.5,
                   color: kTertiaryColor,
@@ -76,7 +76,7 @@ class Courses extends StatelessWidget {
             ),
           ),
           CustomTabBar(
-            tabs: ['All Courses', 'My Courses'],
+            tabs: ['All Courses', 'Purchased Courses'],
             tabContents: [AllCourses(), MyCourses()],
           ),
           const SizedBox(height: 16),
@@ -151,7 +151,7 @@ class _CustomTabBarState extends State<CustomTabBar> {
                         weight: FontWeight.w600,
                         color: isSelected
                             ? kPrimaryColor
-                            : kTertiaryColor.withOpacity(0.6),
+                            : kTertiaryColor.withValues(alpha: 0.6),
                       ),
                     ),
                   ),

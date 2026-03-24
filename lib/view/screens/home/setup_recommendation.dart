@@ -11,6 +11,7 @@ import 'package:motorsport/services/gemini_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SetupRecommendation extends StatefulWidget {
@@ -23,6 +24,10 @@ class SetupRecommendation extends StatefulWidget {
 }
 
 class _SetupRecommendationState extends State<SetupRecommendation> {
+  static const String _trackCircuitNameKey = 'track_circuit_name';
+  static const String _enginePositionKey = 'engine_position';
+  static const String _aerofoilsKey = 'aerofoils';
+
   final SupabaseService _supabaseService = SupabaseService.instance;
   final GeminiService _geminiService = GeminiService();
 
@@ -370,9 +375,35 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
 
       final trackSnapshot = {
         'track_type': trackConfig?.trackType,
+        'circuit_name': trackConfig?.circuitName,
         'surface_type': trackConfig?.surfaceType,
         'weather_condition': trackConfig?.weatherCondition,
+        'engine_position': trackConfig?.enginePosition,
+        'aerofoils': trackConfig?.aerofoils,
       };
+      final prefs = await SharedPreferences.getInstance();
+      final savedCircuitName = prefs.getString(_trackCircuitNameKey)?.trim();
+      final savedEnginePosition = prefs.getString(_enginePositionKey)?.trim();
+      final savedAerofoils = prefs.getString(_aerofoilsKey)?.trim();
+
+      if ((trackSnapshot['circuit_name'] == null ||
+              trackSnapshot['circuit_name'].toString().isEmpty) &&
+          savedCircuitName != null &&
+          savedCircuitName.isNotEmpty) {
+        trackSnapshot['circuit_name'] = savedCircuitName;
+      }
+      if ((trackSnapshot['engine_position'] == null ||
+              trackSnapshot['engine_position'].toString().isEmpty) &&
+          savedEnginePosition != null &&
+          savedEnginePosition.isNotEmpty) {
+        trackSnapshot['engine_position'] = savedEnginePosition;
+      }
+      if ((trackSnapshot['aerofoils'] == null ||
+              trackSnapshot['aerofoils'].toString().isEmpty) &&
+          savedAerofoils != null &&
+          savedAerofoils.isNotEmpty) {
+        trackSnapshot['aerofoils'] = savedAerofoils;
+      }
 
       final symptomSnapshot = {
         'id': widget.symptom.id,

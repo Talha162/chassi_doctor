@@ -3,6 +3,8 @@ class Course {
   final String title;
   final String? category;
   final String? description;
+  final String? prePurchaseText;
+  final String? postPurchaseText;
   final String? level;
   final int? durationMinutes;
   final String? thumbnailUrl;
@@ -15,6 +17,8 @@ class Course {
     required this.isPublished,
     this.category,
     this.description,
+    this.prePurchaseText,
+    this.postPurchaseText,
     this.level,
     this.durationMinutes,
     this.thumbnailUrl,
@@ -27,6 +31,8 @@ class Course {
       title: json['title'] as String,
       category: json['category'] as String?,
       description: json['description'] as String?,
+      prePurchaseText: json['pre_purchase_text'] as String?,
+      postPurchaseText: json['post_purchase_text'] as String?,
       level: json['level'] as String?,
       durationMinutes: json['duration_minutes'] as int?,
       thumbnailUrl: json['thumbnail_url'] as String?,

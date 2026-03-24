@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:motorsport/models/chassis_session.dart';
 import 'package:motorsport/models/history_entry.dart';
 import 'package:motorsport/models/track_configuration.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
@@ -28,18 +27,24 @@ class SavedSetupHistoryController extends GetxController {
     }
     try {
       isLoading.value = true;
-      debugPrint('[HISTORY] 📋 Fetching history for user: ${_user!.id}');
-      final sessions =
-          await _supabaseService.getChassisSessionsForUser(_user.id);
-      final configs =
-          await _supabaseService.getTrackConfigurationsForUser(_user.id);
+      debugPrint('[HISTORY] 📋 Fetching history for user: ${_user.id}');
+      final sessions = await _supabaseService.getChassisSessionsForUser(
+        _user.id,
+      );
+      final configs = await _supabaseService.getTrackConfigurationsForUser(
+        _user.id,
+      );
 
-      debugPrint('[HISTORY] ✅ Found ${sessions.length} recommendation sessions');
+      debugPrint(
+        '[HISTORY] ✅ Found ${sessions.length} recommendation sessions',
+      );
       debugPrint('[HISTORY] ✅ Found ${configs.length} track configurations');
 
       final combined = <HistoryEntry>[
         ...sessions.map((session) {
-          debugPrint('[HISTORY] 📌 Session ${session.id}: ${session.symptomSnapshot['title'] ?? 'Unknown'} (${session.recommendations.length} recs)');
+          debugPrint(
+            '[HISTORY] 📌 Session ${session.id}: ${session.symptomSnapshot['title'] ?? 'Unknown'} (${session.recommendations.length} recs)',
+          );
           return HistoryEntry(
             id: session.id,
             createdAt: session.createdAt,
@@ -78,8 +83,11 @@ class SavedSetupHistoryController extends GetxController {
   Map<String, dynamic> _trackSnapshotFromConfig(TrackConfiguration config) {
     return {
       'track_type': config.trackType,
+      'circuit_name': config.circuitName,
       'surface_type': config.surfaceType,
       'weather_condition': config.weatherCondition,
+      'engine_position': config.enginePosition,
+      'aerofoils': config.aerofoils,
     };
   }
 }

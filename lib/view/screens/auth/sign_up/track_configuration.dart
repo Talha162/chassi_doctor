@@ -100,6 +100,9 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
         trackType: trackType,
         surfaceType: surfaceType,
         weatherCondition: weatherCondition,
+        circuitName: nickname.isEmpty ? trackType : nickname,
+        enginePosition: enginePosition,
+        aerofoils: aerofoils,
       );
 
       final userId = Supabase.instance.client.auth.currentUser?.id;

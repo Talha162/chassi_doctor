@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
-import 'package:motorsport/main.dart';
 import 'package:motorsport/models/app_user.dart';
 import 'package:motorsport/models/track_configuration.dart' as track_models;
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
@@ -138,7 +137,11 @@ class _HomeState extends State<Home> {
   Widget build(BuildContext context) {
     final List<Map<String, String>> cardData = [
       {'subtitle': '', 'title': 'Chassis Doctor', 'image': Assets.mainlogo},
-      {'subtitle': '', 'title': 'Learning Modules', 'image': Assets.imagesLogo},
+      {
+        'subtitle': '',
+        'title': 'Motorsport University',
+        'image': Assets.imagesLogo,
+      },
       // {
       //   'subtitle': 'Contact us',
       //   'title': 'Setup History',
@@ -151,7 +154,6 @@ class _HomeState extends State<Home> {
       // },
     ];
 
-    final avatarUrl = _user?.avatarUrl ?? dummyImg;
     final trackTypeText = _isLoadingConfig
         ? 'Loading...'
         : (_latestConfig?.trackType ?? 'Not set');
@@ -215,7 +217,7 @@ class _HomeState extends State<Home> {
                 //     ),
                 //   ),
                 CircleAvatar(
-                  radius: 20,
+                  radius: 24,
                   backgroundColor: kBorderColor2,
                   child: ClipOval(
                     child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
@@ -347,7 +349,7 @@ class _HomeState extends State<Home> {
                   final title = cardData[index]['title'];
                   if (title == 'Chassis Doctor') {
                     Get.to(() => const IdentifyIssues());
-                  } else if (title == 'Learning Modules') {
+                  } else if (title == 'Motorsport University') {
                     Get.to(() => LearningHub());
                   }
                 },
@@ -374,11 +376,12 @@ class _HomeState extends State<Home> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CircleAvatar(
-                            radius: 20,
+                            radius: 24,
                             backgroundColor: kPrimaryColor,
                             child: ClipOval(
                               child: Image.asset(
                                 cardData[index]['image'] ?? '',
+                                height: 100,
                                 fit: BoxFit.contain,
                               ),
                             ),

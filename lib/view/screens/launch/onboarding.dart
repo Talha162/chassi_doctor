@@ -61,7 +61,10 @@ class _OnboardingState extends State<Onboarding> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Welcome to Motorsport ', haveLeading: false),
+      appBar: simpleAppBar(
+        title: 'Welcome to Chassis Doctor',
+        haveLeading: false,
+      ),
       body: PageView.builder(
         physics: const BouncingScrollPhysics(),
         controller: _pageController,

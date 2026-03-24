@@ -3,6 +3,7 @@ class ModuleVideo {
   final String moduleId;
   final String title;
   final String videoPath;
+  final String? supportingText;
   final int? durationSeconds;
   final int orderIndex;
   final DateTime? createdAt;
@@ -13,6 +14,7 @@ class ModuleVideo {
     required this.title,
     required this.videoPath,
     required this.orderIndex,
+    this.supportingText,
     this.durationSeconds,
     this.createdAt,
   });
@@ -23,6 +25,7 @@ class ModuleVideo {
       moduleId: json['module_id'] as String,
       title: json['title'] as String,
       videoPath: json['video_path'] as String,
+      supportingText: json['supporting_text'] as String?,
       durationSeconds: json['duration_seconds'] as int?,
       orderIndex: json['order_index'] as int,
       createdAt: json['created_at'] != null

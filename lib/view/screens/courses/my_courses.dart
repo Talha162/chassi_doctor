@@ -49,8 +49,8 @@ class _MyCoursesState extends State<MyCourses> {
         return;
       }
 
-      final List<CourseEnrollment> enrollments =
-      await _service.getEnrollmentsForUser(userId);
+      final List<CourseEnrollment> enrollments = await _service
+          .getEnrollmentsForUser(userId);
 
       if (enrollments.isEmpty) {
         setState(() {
@@ -62,14 +62,11 @@ class _MyCoursesState extends State<MyCourses> {
       final courseIds = enrollments.map((e) => e.courseId).toList();
       final courses = await _service.getCoursesByIds(courseIds);
 
-      final progressList =
-      await _service.getCourseProgressForUser(userId);
+      final progressList = await _service.getCourseProgressForUser(userId);
 
       setState(() {
         _courses = courses;
-        _progress = {
-          for (final p in progressList) p.courseId: p,
-        };
+        _progress = {for (final p in progressList) p.courseId: p};
       });
     } catch (e) {
       setState(() {
@@ -92,11 +89,7 @@ class _MyCoursesState extends State<MyCourses> {
 
     if (_error != null) {
       return Center(
-        child: MyText(
-          text: 'Error: $_error',
-          size: 14,
-          color: Colors.red,
-        ),
+        child: MyText(text: 'Error: $_error', size: 14, color: Colors.red),
       );
     }
 
@@ -105,17 +98,14 @@ class _MyCoursesState extends State<MyCourses> {
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
         physics: const BouncingScrollPhysics(),
-        children:  [
+        children: [
           MyText(
             text: 'My Courses',
             size: 18,
             paddingBottom: 12,
             weight: FontWeight.bold,
           ),
-          MyText(
-            text: 'You are not enrolled in any course yet.',
-            size: 14,
-          ),
+          MyText(text: 'You are not enrolled in any course yet.', size: 14),
         ],
       );
     }
@@ -125,7 +115,7 @@ class _MyCoursesState extends State<MyCourses> {
       padding: AppSizes.DEFAULT,
       physics: const BouncingScrollPhysics(),
       children: [
-         MyText(
+        MyText(
           text: 'My Courses',
           size: 18,
           paddingBottom: 12,
@@ -140,8 +130,10 @@ class _MyCoursesState extends State<MyCourses> {
             final course = _courses[index];
             final progress = _progress[course.id];
 
-            final percent =
-            ((progress?.progressPercentage ?? 0) / 100).clamp(0.0, 1.0);
+            final percent = ((progress?.progressPercentage ?? 0) / 100).clamp(
+              0.0,
+              1.0,
+            );
             final completedText =
                 '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
 
@@ -159,7 +151,10 @@ class _MyCoursesState extends State<MyCourses> {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => CourseDetailScreen(course: course),
+                      builder: (_) => CourseDetailScreen(
+                        course: course,
+                        initiallyEnrolled: true,
+                      ),
                     ),
                   );
                 },
@@ -218,17 +213,17 @@ class _LearningHubTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: imageUrl != null && imageUrl!.isNotEmpty
                   ? Image.network(
-                imageUrl!,
-                height: 70,
-                width: 70,
-                fit: BoxFit.cover,
-              )
+                      imageUrl!,
+                      height: 70,
+                      width: 70,
+                      fit: BoxFit.cover,
+                    )
                   : Image.asset(
-                Assets.imagesAdvanced,
-                height: 70,
-                width: 70,
-                fit: BoxFit.cover,
-              ),
+                      Assets.imagesAdvanced,
+                      height: 70,
+                      width: 70,
+                      fit: BoxFit.cover,
+                    ),
             ),
             const SizedBox(width: 8),
             Expanded(

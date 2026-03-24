@@ -8,10 +8,7 @@ import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ChassisSessionDetail extends StatefulWidget {
-  const ChassisSessionDetail({
-    super.key,
-    required this.session,
-  });
+  const ChassisSessionDetail({super.key, required this.session});
 
   final HistoryEntry session;
 
@@ -61,10 +58,7 @@ class _ChassisSessionDetailState extends State<ChassisSessionDetail> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: kQuaternaryColor,
-          title: Text(
-            'Session Note',
-            style: TextStyle(color: kTertiaryColor),
-          ),
+          title: Text('Session Note', style: TextStyle(color: kTertiaryColor)),
           content: TextField(
             controller: controller,
             maxLines: 5,
@@ -145,12 +139,24 @@ class _ChassisSessionDetailState extends State<ChassisSessionDetail> {
             value: track['track_type']?.toString() ?? 'Not set',
           ),
           _InfoRow(
+            label: 'Circuit / Track Name',
+            value: track['circuit_name']?.toString() ?? 'Not set',
+          ),
+          _InfoRow(
             label: 'Surface Type',
             value: track['surface_type']?.toString() ?? 'Not set',
           ),
           _InfoRow(
             label: 'Weather',
             value: track['weather_condition']?.toString() ?? 'Not set',
+          ),
+          _InfoRow(
+            label: 'Engine Position',
+            value: track['engine_position']?.toString() ?? 'Not set',
+          ),
+          _InfoRow(
+            label: 'Aerofoils',
+            value: track['aerofoils']?.toString() ?? 'Not set',
           ),
           const SizedBox(height: 16),
           _SectionTitle(title: 'Selected Symptom'),
@@ -225,10 +231,7 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -300,8 +303,10 @@ class _BulletItem extends StatelessWidget {
               ),
               if (trailing != null && trailing!.trim().isNotEmpty)
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xffE8618C).withAlpha(51),
                     borderRadius: BorderRadius.circular(50),

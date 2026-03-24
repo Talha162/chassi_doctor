@@ -60,7 +60,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       // Only for backend progress sync (every 5 seconds)
       _progressTimer = Timer.periodic(
         const Duration(seconds: 5),
-            (_) => _syncProgress(),
+        (_) => _syncProgress(),
       );
     } catch (e) {
       debugPrint('Error initializing video: $e');
@@ -136,28 +136,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           ? const Center(child: CircularProgressIndicator())
           : !_controller!.value.isInitialized
           ? const Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          AspectRatio(
-            aspectRatio: _controller!.value.aspectRatio == 0
-                ? 16 / 9
-                : _controller!.value.aspectRatio,
-            child: VideoPlayer(_controller!),
-          ),
-          const SizedBox(height: 12),
-          _buildControls(),
-          const SizedBox(height: 8),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: MyText(
-              text: video.title,
-              size: 16,
-              weight: FontWeight.bold,
-              paddingBottom: 4,
+          : ListView(
+              children: [
+                AspectRatio(
+                  aspectRatio: _controller!.value.aspectRatio == 0
+                      ? 16 / 9
+                      : _controller!.value.aspectRatio,
+                  child: VideoPlayer(_controller!),
+                ),
+                const SizedBox(height: 12),
+                _buildControls(),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MyText(
+                        text: video.title,
+                        size: 16,
+                        weight: FontWeight.bold,
+                        paddingBottom: 4,
+                      ),
+                      _SupportingContentCard(
+                        supportingText:
+                            video.supportingText?.trim().isNotEmpty ?? false
+                            ? video.supportingText!.trim()
+                            : 'This space is reserved for post-purchase support content such as written guidance, notes, or reference material below the lesson video.',
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -167,8 +178,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final position = value.position;
     final duration = value.duration;
 
-    final totalSeconds =
-    duration.inSeconds == 0 ? 1 : duration.inSeconds.toDouble();
+    final totalSeconds = duration.inSeconds == 0
+        ? 1
+        : duration.inSeconds.toDouble();
     final currentSeconds = position.inSeconds.toDouble();
     final sliderValue = (currentSeconds / totalSeconds).clamp(0.0, 1.0);
 
@@ -220,9 +232,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               iconSize: 40,
               color: kSecondaryColor,
               icon: Icon(
-                isPlaying
-                    ? Icons.pause_circle_filled
-                    : Icons.play_circle_fill,
+                isPlaying ? Icons.pause_circle_filled : Icons.play_circle_fill,
               ),
               onPressed: () {
                 setState(() {
@@ -250,5 +260,41 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
     final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
     return '$m:$s';
+  }
+}
+
+class _SupportingContentCard extends StatelessWidget {
+  const _SupportingContentCard({required this.supportingText});
+
+  final String supportingText;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(top: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: kQuaternaryColor,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: kBorderColor2),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MyText(
+            text: 'Supporting Content',
+            size: 14,
+            weight: FontWeight.bold,
+            paddingBottom: 6,
+          ),
+          MyText(
+            text: supportingText,
+            size: 12,
+            lineHeight: 1.5,
+            color: kTertiaryColor.withValues(alpha: 0.9),
+          ),
+        ],
+      ),
+    );
   }
 }

@@ -20,7 +20,9 @@ import '../courses/courses.dart';
 import '../courses/module_video_screen.dart';
 
 class LearningHub extends StatefulWidget {
-  const LearningHub({super.key});
+  const LearningHub({super.key, this.showBottomNav = false});
+
+  final bool showBottomNav;
 
   @override
   State<LearningHub> createState() => _LearningHubState();
@@ -132,8 +134,10 @@ class _LearningHubState extends State<LearningHub> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Learning Hub'),
-      bottomNavigationBar: const ChildScreenBottomNav(selectedIndex: 1),
+      appBar: simpleAppBar(title: 'Motorsport University'),
+      bottomNavigationBar: widget.showBottomNav
+          ? const ChildScreenBottomNav(selectedIndex: 1)
+          : null,
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _error != null
@@ -152,7 +156,7 @@ class _LearningHubState extends State<LearningHub> {
                 const SizedBox(height: 14),
                 MyText(
                   text:
-                      'Your one-stop destination for skill-building, expert resources, and self-paced learning — anytime, anywhere.',
+                      'Your dedicated learning space for courses, supporting content, and self-paced motorsport education.',
                   size: 12,
                   paddingBottom: 25,
                 ),
@@ -172,14 +176,14 @@ class _LearningHubState extends State<LearningHub> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       MyText(
-                        text: 'Elevate Your Race Craft!',
+                        text: 'Learn Inside Motorsport University',
                         size: 18,
                         weight: FontWeight.bold,
                         paddingBottom: 6,
                       ),
                       MyText(
                         text:
-                            'Unlock advanced techniques and optimize your vehicle\'s performance with our premium courses.',
+                            'Keep diagnostics in Chassis Doctor and use Motorsport University for paid learning, videos, and extra course material.',
                         size: 12,
                         lineHeight: 1.5,
                         color: kTertiaryColor,
@@ -255,8 +259,10 @@ class _LearningHubState extends State<LearningHub> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (_) =>
-                                    CourseDetailScreen(course: course),
+                                builder: (_) => CourseDetailScreen(
+                                  course: course,
+                                  initiallyEnrolled: true,
+                                ),
                               ),
                             );
                           },

@@ -114,11 +114,19 @@ class SavedSetupHistory extends StatelessWidget {
             pw.Text('Track Configuration', style: pw.TextStyle(fontSize: 16)),
             pw.Bullet(text: 'Track Type: ${track['track_type'] ?? 'Not set'}'),
             pw.Bullet(
+              text:
+                  'Circuit / Track Name: ${track['circuit_name'] ?? 'Not set'}',
+            ),
+            pw.Bullet(
               text: 'Surface Type: ${track['surface_type'] ?? 'Not set'}',
             ),
             pw.Bullet(
               text: 'Weather: ${track['weather_condition'] ?? 'Not set'}',
             ),
+            pw.Bullet(
+              text: 'Engine Position: ${track['engine_position'] ?? 'Not set'}',
+            ),
+            pw.Bullet(text: 'Aerofoils: ${track['aerofoils'] ?? 'Not set'}'),
             pw.SizedBox(height: 12),
             pw.Text('Selected Symptom', style: pw.TextStyle(fontSize: 16)),
             if (!session.hasSessionData)
@@ -264,7 +272,10 @@ class SavedSetupHistory extends StatelessWidget {
                       final track = session.trackSnapshot;
 
                       return SetupHistoryTile(
-                        trackType: track['track_type']?.toString() ?? 'Not set',
+                        trackType:
+                            track['circuit_name']?.toString().isNotEmpty == true
+                            ? track['circuit_name'].toString()
+                            : (track['track_type']?.toString() ?? 'Not set'),
                         surfaceType:
                             track['surface_type']?.toString() ?? 'Not set',
                         weather:

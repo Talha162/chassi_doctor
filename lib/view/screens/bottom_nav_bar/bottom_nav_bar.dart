@@ -1,11 +1,7 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
-import 'package:motorsport/view/screens/courses/courses.dart';
-import 'package:motorsport/view/screens/geometry/geometry.dart';
 import 'package:motorsport/view/screens/home/home.dart';
 import 'package:motorsport/view/screens/learning_hub/learning_hub.dart';
 import 'package:motorsport/controller/settings/saved_setup_history_controller.dart';
@@ -48,14 +44,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> items = [
       {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'Courses'},
+      {'icon': Assets.imagesCourses, 'label': 'University'},
       {'icon': Assets.imagesSave, 'label': 'History'},
       {'icon': Assets.imagesProfile, 'label': 'Profile'},
     ];
 
     final List<Widget> screens = [
       Home(),
-      Courses(),
+      LearningHub(),
       SavedSetupHistory(),
       Settings(),
     ];
@@ -75,7 +71,10 @@ class _BottomNavBarState extends State<BottomNavBar> {
         decoration: BoxDecoration(
           color: kPrimaryColor,
           border: Border(
-            top: BorderSide(color: kTertiaryColor.withOpacity(0.1), width: 1),
+            top: BorderSide(
+              color: kTertiaryColor.withValues(alpha: 0.1),
+              width: 1,
+            ),
           ),
         ),
         child: BottomNavigationBar(
@@ -83,7 +82,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           selectedItemColor: kSecondaryColor,
-          unselectedItemColor: kTertiaryColor.withOpacity(0.6),
+          unselectedItemColor: kTertiaryColor.withValues(alpha: 0.6),
           currentIndex: _currentIndex,
           onTap: _getCurrentIndex,
           items: List.generate(items.length, (index) {
@@ -114,7 +113,7 @@ class ChildScreenBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'Courses'},
+      {'icon': Assets.imagesCourses, 'label': 'University'},
       {'icon': Assets.imagesSave, 'label': 'History'},
       {'icon': Assets.imagesProfile, 'label': 'Profile'},
     ];
@@ -125,7 +124,10 @@ class ChildScreenBottomNav extends StatelessWidget {
         decoration: BoxDecoration(
           color: kPrimaryColor,
           border: Border(
-            top: BorderSide(color: kTertiaryColor.withOpacity(0.1), width: 1),
+            top: BorderSide(
+              color: kTertiaryColor.withValues(alpha: 0.1),
+              width: 1,
+            ),
           ),
         ),
         child: BottomNavigationBar(
@@ -133,7 +135,7 @@ class ChildScreenBottomNav extends StatelessWidget {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           selectedItemColor: kSecondaryColor,
-          unselectedItemColor: kTertiaryColor.withOpacity(0.6),
+          unselectedItemColor: kTertiaryColor.withValues(alpha: 0.6),
           currentIndex: selectedIndex,
           onTap: (index) {
             Get.offAll(() => BottomNavBar(initialIndex: index));

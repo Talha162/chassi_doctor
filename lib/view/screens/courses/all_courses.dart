@@ -77,17 +77,11 @@ class _AllCoursesState extends State<AllCourses> {
       setState(() {
         _courses = courses;
 
-        _ratings = {
-          for (final r in ratingsList) r.courseId: r,
-        };
+        _ratings = {for (final r in ratingsList) r.courseId: r};
 
-        _progress = {
-          for (final p in progressList) p.courseId: p,
-        };
+        _progress = {for (final p in progressList) p.courseId: p};
 
-        _enrolledCourseIds = {
-          for (final e in enrollments) e.courseId,
-        };
+        _enrolledCourseIds = {for (final e in enrollments) e.courseId};
       });
     } catch (e) {
       if (!mounted) return;
@@ -114,39 +108,18 @@ class _AllCoursesState extends State<AllCourses> {
     }).toList();
   }
 
-  Future<void> _handleGetCourseTap(Course course) async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to get the course')),
-      );
-      return;
-    }
-
-    try {
-      // ✅ Enroll in this course (upsert, safe if already enrolled)
-      await _service.enrollInCourse(
-        userId: userId,
-        courseId: course.id,
-      );
-
-      // ✅ Update local state so button disappears immediately
-      setState(() {
-        _enrolledCourseIds.add(course.id);
-      });
-
-      // ✅ Navigate to course detail
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CourseDetailScreen(course: course),
-        ),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to enroll: $e')),
-      );
-    }
+  Future<void> _openCourseDetail(
+    Course course, {
+    required bool isEnrolled,
+  }) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) =>
+            CourseDetailScreen(course: course, initiallyEnrolled: isEnrolled),
+      ),
+    );
+    _loadData();
   }
 
   @override
@@ -157,11 +130,7 @@ class _AllCoursesState extends State<AllCourses> {
 
     if (_error != null) {
       return Center(
-        child: MyText(
-          text: 'Error: $_error',
-          size: 14,
-          color: Colors.red,
-        ),
+        child: MyText(text: 'Error: $_error', size: 14, color: Colors.red),
       );
     }
 
@@ -174,7 +143,7 @@ class _AllCoursesState extends State<AllCourses> {
       children: [
         MyText(
           paddingLeft: 20,
-          text: 'All Available courses',
+          text: 'All Available Courses',
           size: 18,
           paddingBottom: 12,
           weight: FontWeight.bold,
@@ -220,10 +189,7 @@ class _AllCoursesState extends State<AllCourses> {
         if (visibleCourses.isEmpty)
           Padding(
             padding: AppSizes.HORIZONTAL,
-            child: MyText(
-              text: 'No courses found.',
-              size: 14,
-            ),
+            child: MyText(text: 'No courses found.', size: 14),
           )
         else
           ListView.builder(
@@ -236,8 +202,10 @@ class _AllCoursesState extends State<AllCourses> {
               final rating = _ratings[course.id];
               final progress = _progress[course.id];
 
-              final percent =
-              ((progress?.progressPercentage ?? 0) / 100).clamp(0.0, 1.0);
+              final percent = ((progress?.progressPercentage ?? 0) / 100).clamp(
+                0.0,
+                1.0,
+              );
               final completedText =
                   '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
 
@@ -257,18 +225,7 @@ class _AllCoursesState extends State<AllCourses> {
                   totalReviews: rating?.totalReviews,
                   isEnrolled: isEnrolled,
                   onTapPrimary: () {
-                    if (isEnrolled) {
-                      // Already enrolled → just open details
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CourseDetailScreen(course: course),
-                        ),
-                      );
-                    } else {
-                      // Not enrolled → enroll + open details
-                      _handleGetCourseTap(course);
-                    }
+                    _openCourseDetail(course, isEnrolled: isEnrolled);
                   },
                 ),
               );
@@ -332,10 +289,10 @@ class _LearningHubTile extends StatelessWidget {
             child: imageUrl != null && imageUrl!.isNotEmpty
                 ? Image.network(imageUrl!, height: 120, fit: BoxFit.cover)
                 : Image.asset(
-              Assets.imagesAdvanced, // fallback asset
-              height: 120,
-              fit: BoxFit.cover,
-            ),
+                    Assets.imagesAdvanced, // fallback asset
+                    height: 120,
+                    fit: BoxFit.cover,
+                  ),
           ),
           MyText(
             paddingTop: 6,
@@ -355,17 +312,13 @@ class _LearningHubTile extends StatelessWidget {
             children: [
               Image.asset(Assets.imagesStar, height: 14),
               const SizedBox(width: 4),
-              MyText(
-                text: displayRating,
-                size: 12,
-                weight: FontWeight.w500,
-              ),
+              MyText(text: displayRating, size: 12, weight: FontWeight.w500),
               if (totalReviews != null) ...[
                 const SizedBox(width: 4),
                 MyText(
                   text: '(${totalReviews.toString()})',
                   size: 11,
-                  color: kTertiaryColor.withOpacity(0.7),
+                  color: kTertiaryColor.withValues(alpha: 0.7),
                 ),
               ],
             ],
@@ -397,7 +350,7 @@ class _LearningHubTile extends StatelessWidget {
             height: 30,
             textSize: 12,
             radius: 50.0,
-            buttonText: isEnrolled ? 'View course' : 'Get the course',
+            buttonText: isEnrolled ? 'Open course' : 'View details',
             onTap: onTapPrimary,
           ),
         ],
