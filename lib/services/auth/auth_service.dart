@@ -1,6 +1,4 @@
-import 'dart:convert';
 import 'dart:io';
-import 'package:crypto/crypto.dart';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -27,25 +25,23 @@ class AuthService {
     required String password,
     required String fullName,
   }) async {
-
-
-
     var resp = await _supabase.auth.signUp(
       email: email,
       password: password,
       data: {'full_name': fullName},
     );
     await _supabase.from("users").insert({
-
       "full_name": fullName,
       "email": email,
-
     });
     return resp;
   }
 
   // --- OTP VERIFICATION ---
-  Future<AuthResponse> verifyOtp({required String email, required String token}) async {
+  Future<AuthResponse> verifyOtp({
+    required String email,
+    required String token,
+  }) async {
     return await _supabase.auth.verifyOTP(
       type: OtpType.signup,
       token: token,

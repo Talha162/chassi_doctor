@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/theme/dark_theme.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
-import 'package:motorsport/view/bindings/auth_bindings.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';

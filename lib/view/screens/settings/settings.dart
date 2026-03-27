@@ -13,7 +13,6 @@ import 'package:motorsport/view/screens/auth/login.dart';
 import 'package:motorsport/view/screens/demo_admin/demo_admin_recommendations_screen.dart';
 import 'package:motorsport/view/screens/settings/edit_profile.dart';
 import 'package:motorsport/view/screens/settings/privacy_policy.dart';
-import 'package:motorsport/view/screens/settings/saved_setup_history.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -376,7 +375,7 @@ class _SettingsState extends State<Settings> {
                   height: 120,
                   width: 120,
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.35),
+                    color: Colors.black.withValues(alpha: 0.35),
                     shape: BoxShape.circle,
                   ),
                   child: const Center(
@@ -420,12 +419,11 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
 
   const _SettingsTile({
-    Key? key,
     required this.imagePath,
     required this.title,
     this.onTap,
     this.trailing,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -446,7 +444,7 @@ class _SettingsTile extends StatelessWidget {
 }
 
 class _Divider extends StatelessWidget {
-  const _Divider({super.key});
+  const _Divider();
 
   @override
   Widget build(BuildContext context) {

@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants/app_colors.dart';
@@ -35,15 +34,12 @@ class _CourseReviewDialogState extends State<CourseReviewDialog> {
         userId: widget.userId,
         courseId: widget.courseId,
         rating: _rating,
-        reviewText: _reviewC.text.trim().isEmpty
-            ? null
-            : _reviewC.text.trim(),
+        reviewText: _reviewC.text.trim().isEmpty ? null : _reviewC.text.trim(),
       );
 
       widget.onSuccess();
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('$e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -64,7 +60,7 @@ class _CourseReviewDialogState extends State<CourseReviewDialog> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(
               5,
-                  (i) => IconButton(
+              (i) => IconButton(
                 onPressed: () => setState(() => _rating = i + 1),
                 icon: Icon(
                   i < _rating ? Icons.star : Icons.star_border,

@@ -74,90 +74,98 @@ class _EmailVerificationState extends State<EmailVerification> {
           ),
           Align(
             alignment: Alignment.bottomCenter,
-            child: Obx(() => Container(
-                  height: Get.height * 0.55,
-                  decoration: BoxDecoration(
-                    color: kQuaternaryColor,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            child: Obx(
+              () => Container(
+                height: Get.height * 0.55,
+                decoration: BoxDecoration(
+                  color: kQuaternaryColor,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
                   ),
-                  child: ListView(
-                    shrinkWrap: true,
-                    padding: AppSizes.DEFAULT,
-                    physics: const BouncingScrollPhysics(),
-                    children: [
+                ),
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: AppSizes.DEFAULT,
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    MyText(
+                      text: 'Verify it\'s you',
+                      paddingTop: 8,
+                      size: 24,
+                      weight: FontWeight.w600,
+                      paddingBottom: 8,
+                    ),
+                    MyText(
+                      text:
+                          'Enter the 6-digit code we sent to ${controller.email}',
+                      size: 16,
+                      lineHeight: 1.5,
+                      weight: FontWeight.w500,
+                      color: kTertiaryColor.withValues(alpha: 0.8),
+                      paddingBottom: 30,
+                    ),
+                    Pinput(
+                      keyboardType: TextInputType.number,
+                      length: 6, // Supabase default is usually 6 digits
+                      controller: controller.pinController,
+                      onChanged: controller.onPinChanged,
+                      pinContentAlignment: Alignment.center,
+                      defaultPinTheme: pinTheme,
+                      focusedPinTheme: pinTheme,
+                      submittedPinTheme: pinTheme,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      onCompleted: (val) => controller.verifyOtp(),
+                    ),
+                    if (controller.pinStatus.value == 'invalid')
                       MyText(
-                        text: 'Verify it\'s you',
-                        paddingTop: 8,
-                        size: 24,
-                        weight: FontWeight.w600,
-                        paddingBottom: 8,
-                      ),
-                      MyText(
-                        text: 'Enter the 6-digit code we sent to ${controller.email}',
+                        textAlign: TextAlign.end,
+                        text: 'Wrong Code, Try Again',
+                        color: const Color(0xFFF73434),
                         size: 16,
-                        lineHeight: 1.5,
-                        weight: FontWeight.w500,
-                        color: kTertiaryColor.withValues(alpha: 0.8),
-                        paddingBottom: 30,
+                        weight: FontWeight.w600,
+                        paddingTop: 10,
                       ),
-                      Pinput(
-                        keyboardType: TextInputType.number,
-                        length: 6, // Supabase default is usually 6 digits
-                        controller: controller.pinController,
-                        onChanged: controller.onPinChanged,
-                        pinContentAlignment: Alignment.center,
-                        defaultPinTheme: pinTheme,
-                        focusedPinTheme: pinTheme,
-                        submittedPinTheme: pinTheme,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        onCompleted: (val) => controller.verifyOtp(),
-                      ),
-                      if (controller.pinStatus.value == 'invalid')
-                        MyText(
-                          textAlign: TextAlign.end,
-                          text: 'Wrong Code, Try Again',
-                          color: const Color(0xFFF73434),
-                          size: 16,
-                          weight: FontWeight.w600,
-                          paddingTop: 10,
-                        ),
-                      const SizedBox(height: 50),
-                      controller.isLoading.value
-                          ? Center(
-                              child: CircularProgressIndicator(
-                                  color: kSecondaryColor))
-                          : MyButton(
-                              buttonText: 'Verify & Continue',
-                              onTap: controller.verifyOtp),
-                      const SizedBox(height: 30),
-                      Center(
-                        child: Wrap(
-                          children: [
-                            MyText(
-                              text: 'Didn’t receive the code? ',
-                              size: 16,
-                              weight: FontWeight.w500,
+                    const SizedBox(height: 50),
+                    controller.isLoading.value
+                        ? Center(
+                            child: CircularProgressIndicator(
+                              color: kSecondaryColor,
                             ),
-                            MyText(
-                              onTap: controller.resendSeconds.value > 0
-                                  ? null
-                                  : controller.resendCode,
-                              text: controller.resendSeconds.value > 0
-                                  ? 'Resend in ${controller.resendSeconds.value}s'
-                                  : 'Resend',
-                              weight: FontWeight.w600,
-                              color: controller.resendSeconds.value > 0
-                                  ? kTertiaryColor.withOpacity(0.5)
-                                  : kSecondaryColor,
-                              size: 16,
-                            ),
-                          ],
-                        ),
+                          )
+                        : MyButton(
+                            buttonText: 'Verify & Continue',
+                            onTap: controller.verifyOtp,
+                          ),
+                    const SizedBox(height: 30),
+                    Center(
+                      child: Wrap(
+                        children: [
+                          MyText(
+                            text: 'Didn’t receive the code? ',
+                            size: 16,
+                            weight: FontWeight.w500,
+                          ),
+                          MyText(
+                            onTap: controller.resendSeconds.value > 0
+                                ? null
+                                : controller.resendCode,
+                            text: controller.resendSeconds.value > 0
+                                ? 'Resend in ${controller.resendSeconds.value}s'
+                                : 'Resend',
+                            weight: FontWeight.w600,
+                            color: controller.resendSeconds.value > 0
+                                ? kTertiaryColor.withValues(alpha: 0.5)
+                                : kSecondaryColor,
+                            size: 16,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                )),
-          )
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
