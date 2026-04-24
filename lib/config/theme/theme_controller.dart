@@ -7,12 +7,12 @@ class ThemeController extends GetxController {
   static const String _prefKey = 'theme_mode';
   Rx<ThemeMode> themeMode = ThemeMode.light.obs;
 
-  final Rx<Color> currentPrimaryColor = Color(0xff231543).obs;
+  final Rx<Color> currentPrimaryColor = Color(0xff05174D).obs;
   final Rx<Color> currentSecondaryColor = Color(0xffE8C670).obs;
   final Rx<Color> currentTertiaryColor = Color(0xffDFDEDE).obs;
   final Rx<Color> currentWhiteColor = Color(0xffFFFFFF).obs;
   final Rx<Color> currentBorderColor = Color(0xffDEDEDE).obs;
-  final Rx<Color> currentBorderColor2 = Color(0xff634F91).obs;
+  final Rx<Color> currentBorderColor2 = Color(0xff405A9A).obs;
   final Rx<Color> currentFillColor = Color(0xffFCFCFC).obs;
   final Rx<Color> currentHintColor = Color(0xff767676).obs;
   final Rx<Color> currentGreyColor = Color(0xff767676).obs;
@@ -21,7 +21,7 @@ class ThemeController extends GetxController {
   final Rx<Color> currentLightGreyColor = Color(0xff9A9A9A).obs;
   final Rx<Color> currentRedColor = Color(0xffFF0000).obs;
   final Rx<Color> currentGreenColor = Color(0xff0E9B09).obs;
-  final Rx<Color> currentQuaternaryColor = Color(0xff392A5E).obs;
+  final Rx<Color> currentQuaternaryColor = Color(0xff23356C).obs;
 
   Future<void> loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
@@ -53,12 +53,12 @@ class ThemeController extends GetxController {
       currentGreenColor.value = Color(0xff1DB954);
       currentQuaternaryColor.value = Color(0xff111013);
     } else {
-      currentPrimaryColor.value = Color(0xff231543);
+      currentPrimaryColor.value = Color(0xff05174D);
       currentSecondaryColor.value = Color(0xffE8C670);
       currentTertiaryColor.value = Color(0xffDFDEDE);
       currentWhiteColor.value = Color(0xffFFFFFF);
       currentBorderColor.value = Color(0xffDEDEDE);
-      currentBorderColor2.value = Color(0xff634F91);
+      currentBorderColor2.value = Color(0xff405A9A);
       currentFillColor.value = Color(0xffFCFCFC);
       currentHintColor.value = Color(0xff767676);
       currentGreyColor.value = Color(0xff767676);
@@ -67,7 +67,7 @@ class ThemeController extends GetxController {
       currentLightGreyColor.value = Color(0xff9A9A9A);
       currentRedColor.value = Color(0xffFF0000);
       currentGreenColor.value = Color(0xff0E9B09);
-      currentQuaternaryColor.value = Color(0xff392A5E);
+      currentQuaternaryColor.value = Color(0xff23356C);
     }
   }
 

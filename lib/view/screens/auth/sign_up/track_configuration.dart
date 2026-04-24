@@ -298,7 +298,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
   InputDecoration _inputDecoration({required String hintText}) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: const TextStyle(color: Colors.grey),
+      hintStyle: TextStyle(color: kHintColor),
       filled: true,
       fillColor: kPrimaryColor,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -322,7 +322,6 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
     return Scaffold(
       appBar: simpleAppBar(
         title: 'Track / Car Configuration',
-        haveLeading: false,
       ),
       body: ListView(
         shrinkWrap: true,
@@ -356,6 +355,8 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
                 const SizedBox(height: 12),
                 TextField(
                   controller: _trackCircuitNameController,
+                  style: TextStyle(color: kWhiteColor),
+                  cursorColor: kWhiteColor,
                   decoration: _inputDecoration(
                     hintText: 'e.g. Mendips Raceway / Silverstone',
                   ),
@@ -398,6 +399,8 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
                   maxLines: 4,
                   minLines: 4,
                   textInputAction: TextInputAction.newline,
+                  style: TextStyle(color: kWhiteColor),
+                  cursorColor: kWhiteColor,
                   decoration: _inputDecoration(
                     hintText:
                         'Add notes about grip, balance, tyre feel, weather, or any setup observations...',

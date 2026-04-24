@@ -7,7 +7,6 @@ import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/chassis_symptom.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/screens/home/setup_recommendation.dart';
-import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 
 class IdentifyIssues extends StatefulWidget {
@@ -55,15 +54,49 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            InputDecoration dialogInputDecoration({
+              required String labelText,
+            }) {
+              return InputDecoration(
+                labelText: labelText,
+                labelStyle: TextStyle(color: kSecondaryColor),
+                counterStyle: TextStyle(color: kTertiaryColor),
+                filled: true,
+                fillColor: const Color(0xff16295C),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kBorderColor2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kSecondaryColor, width: 1.5),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kBorderColor2),
+                ),
+              );
+            }
+
             return AlertDialog(
               backgroundColor: kQuaternaryColor,
-              title: const Text('Report a New Symptom'),
+              title: Text(
+                'Report a New Symptom',
+                style: TextStyle(
+                  color: kWhiteColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: kWhiteColor),
+                      cursorColor: kWhiteColor,
+                      decoration: dialogInputDecoration(
                         labelText: 'Symptom title',
                       ),
                       maxLength: 60,
@@ -71,7 +104,9 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: descriptionController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: kWhiteColor),
+                      cursorColor: kWhiteColor,
+                      decoration: dialogInputDecoration(
                         labelText: 'Description',
                       ),
                       maxLines: 3,
@@ -83,7 +118,10 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
               actions: [
                 TextButton(
                   onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: kSecondaryColor),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isSaving
@@ -130,11 +168,18 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                             }
                           }
                         },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kSecondaryColor,
+                    foregroundColor: kPrimaryColor,
+                  ),
                   child: isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 16,
                           width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: kPrimaryColor,
+                          ),
                         )
                       : const Text('Save'),
                 ),
@@ -176,22 +221,53 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Chassis Doctor'),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: kPrimaryColor,
+        automaticallyImplyLeading: false,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 5),
+          child: GestureDetector(
+            onTap: () => Get.back(),
+            child: Center(
+              child: Image.asset(
+                Assets.imagesArrowBack,
+                height: 14,
+                color: kTertiaryColor,
+              ),
+            ),
+          ),
+        ),
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 34,
+              backgroundColor: kPrimaryColor,
+              child: ClipOval(
+                child: Image.asset(
+                  Assets.mainlogo,
+                  height: 68,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            MyText(
+              text: 'Chassis Doctor',
+              size: 18,
+              weight: FontWeight.w600,
+              color: kTertiaryColor,
+            ),
+          ],
+        ),
+      ),
       body: ListView(
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
         physics: BouncingScrollPhysics(),
         children: [
-          Center(
-            child: CircleAvatar(
-              radius: 30,
-              backgroundColor: kBorderColor2,
-              child: ClipOval(
-                child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
-              ),
-            ),
-          ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           MyText(
             text: 'What’s going on with the car?',
             size: 18,
@@ -242,15 +318,20 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                     decoration: BoxDecoration(
                       border: Border.all(color: kBorderColor2, width: 1),
                       color: kQuaternaryColor,
-                      image: DecorationImage(
-                        image: AssetImage(
-                          ThemeController.instance.isDarkMode
-                              ? Assets.imagesCardBg2Dark
-                              : Assets.imagesCardBg2,
-                        ),
-                        alignment: Alignment.bottomRight,
-                        fit: BoxFit.cover,
-                      ),
+                      gradient: ThemeController.instance.isDarkMode
+                          ? null
+                          : const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xff23356C), Color(0xff2B3F7B)],
+                            ),
+                      image: ThemeController.instance.isDarkMode
+                          ? const DecorationImage(
+                              image: AssetImage(Assets.imagesCardBg2Dark),
+                              alignment: Alignment.bottomRight,
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -296,24 +377,29 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
             child: Container(
               height: 200,
               width: Get.width,
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 border: Border.all(color: kBorderColor2, width: 1),
                 color: kQuaternaryColor,
-                image: DecorationImage(
-                  image: AssetImage(
-                    ThemeController.instance.isDarkMode
-                        ? Assets.imagesCardBg2Dark
-                        : Assets.imagesCardBg2,
-                  ),
-                  alignment: Alignment.bottomRight,
-                ),
+                gradient: ThemeController.instance.isDarkMode
+                    ? null
+                    : const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xff23356C), Color(0xff2B3F7B)],
+                      ),
+                image: ThemeController.instance.isDarkMode
+                    ? const DecorationImage(
+                        image: AssetImage(Assets.imagesCardBg2Dark),
+                        alignment: Alignment.bottomRight,
+                      )
+                    : null,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
+                  SizedBox(
                     height: 60,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

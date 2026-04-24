@@ -44,14 +44,14 @@ class _BottomNavBarState extends State<BottomNavBar> {
   Widget build(BuildContext context) {
     final List<Map<String, dynamic>> items = [
       {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'University'},
+      {'icon': Assets.imagesCourses, 'label': 'Learning'},
       {'icon': Assets.imagesSave, 'label': 'History'},
       {'icon': Assets.imagesProfile, 'label': 'Profile'},
     ];
 
     final List<Widget> screens = [
       Home(),
-      LearningHub(),
+      const LearningHub(showBackButton: false),
       SavedSetupHistory(),
       Settings(),
     ];
@@ -113,7 +113,7 @@ class ChildScreenBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = [
       {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'University'},
+      {'icon': Assets.imagesCourses, 'label': 'Learning'},
       {'icon': Assets.imagesSave, 'label': 'History'},
       {'icon': Assets.imagesProfile, 'label': 'Profile'},
     ];

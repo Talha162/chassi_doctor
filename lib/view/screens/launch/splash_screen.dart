@@ -41,7 +41,18 @@ class _SplashScreenState extends State<SplashScreen> {
     return Material(
       color: kPrimaryColor,
       child: Center(
-        child: Image.asset(Assets.imagesLogo, width: 150, height: 150),
+        child: CircleAvatar(
+          radius: 75,
+          backgroundColor: kPrimaryColor,
+          child: ClipOval(
+            child: Image.asset(
+              Assets.mainlogo,
+              width: 150,
+              height: 150,
+              fit: BoxFit.cover,
+            ),
+          ),
+        ),
       ),
     );
   }

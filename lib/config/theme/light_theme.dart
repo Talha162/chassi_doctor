@@ -3,7 +3,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_fonts.dart';
 
  ThemeData lightTheme = ThemeData(
-  scaffoldBackgroundColor: Color(0xff231543),
+  scaffoldBackgroundColor: Color(0xff05174D),
   fontFamily: AppFonts.ROBOTO,
   appBarTheme: AppBarTheme(elevation: 0, backgroundColor: kWhiteColor),
   splashColor: kWhiteColor.withValues(alpha: 0.1),

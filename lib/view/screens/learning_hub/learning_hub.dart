@@ -20,9 +20,14 @@ import '../courses/courses.dart';
 import '../courses/module_video_screen.dart';
 
 class LearningHub extends StatefulWidget {
-  const LearningHub({super.key, this.showBottomNav = false});
+  const LearningHub({
+    super.key,
+    this.showBottomNav = false,
+    this.showBackButton = true,
+  });
 
   final bool showBottomNav;
+  final bool showBackButton;
 
   @override
   State<LearningHub> createState() => _LearningHubState();
@@ -134,7 +139,10 @@ class _LearningHubState extends State<LearningHub> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Motorsport University'),
+      appBar: simpleAppBar(
+        title: 'Motorsport University',
+        haveLeading: widget.showBackButton,
+      ),
       bottomNavigationBar: widget.showBottomNav
           ? const ChildScreenBottomNav(selectedIndex: 1)
           : null,

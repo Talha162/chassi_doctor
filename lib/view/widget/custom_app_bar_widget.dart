@@ -9,6 +9,7 @@ AppBar simpleAppBar({
   bool centerTitle = true,
   String? title,
   Color? bgColor,
+  double? leadingWidth,
   final Widget? leading,
   List<Widget>? actions,
   VoidCallback? onLeadingTap,
@@ -18,6 +19,7 @@ AppBar simpleAppBar({
     backgroundColor: bgColor ?? kPrimaryColor,
     automaticallyImplyLeading: false,
     centerTitle: centerTitle,
+    leadingWidth: leadingWidth,
     leading: haveLeading
         ? leading ??
               Column(

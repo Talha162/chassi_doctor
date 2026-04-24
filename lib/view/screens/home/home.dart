@@ -136,11 +136,17 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     final List<Map<String, String>> cardData = [
-      {'subtitle': '', 'title': 'Chassis Doctor', 'image': Assets.mainlogo},
       {
         'subtitle': '',
-        'title': 'Motorsport University',
+        'title': 'Setup Help',
+        'image': Assets.mainlogo,
+        'route': 'setup_help',
+      },
+      {
+        'subtitle': '',
+        'title': 'Start Learning',
         'image': Assets.imagesLogo,
+        'route': 'start_learning',
       },
       // {
       //   'subtitle': 'Contact us',
@@ -157,9 +163,9 @@ class _HomeState extends State<Home> {
     final trackTypeText = _isLoadingConfig
         ? 'Loading...'
         : (_latestConfig?.trackType ?? 'Not set');
-    final trackCircuitText = _trackCircuitName.isNotEmpty
+    final trackNameText = _trackCircuitName.isNotEmpty
         ? _trackCircuitName
-        : trackTypeText;
+        : 'Not set';
     final surfaceTypeText = _isLoadingConfig
         ? 'Loading...'
         : (_latestConfig?.surfaceType ?? 'Not set');
@@ -171,6 +177,7 @@ class _HomeState extends State<Home> {
       appBar: simpleAppBar(
         title: 'Chassis Doctor',
         centerTitle: false,
+        leadingWidth: 88,
         // Profile avatar on the LEFT
         leading: GestureDetector(
           // onTap: () async {
@@ -217,10 +224,14 @@ class _HomeState extends State<Home> {
                 //     ),
                 //   ),
                 CircleAvatar(
-                  radius: 24,
-                  backgroundColor: kBorderColor2,
+                  radius: 34,
+                  backgroundColor: kPrimaryColor,
                   child: ClipOval(
-                    child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
+                    child: Image.asset(
+                      Assets.mainlogo,
+                      height: 68,
+                      fit: BoxFit.contain,
+                    ),
                   ),
                 ),
               ],
@@ -346,10 +357,10 @@ class _HomeState extends State<Home> {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
-                  final title = cardData[index]['title'];
-                  if (title == 'Chassis Doctor') {
+                  final route = cardData[index]['route'];
+                  if (route == 'setup_help') {
                     Get.to(() => const IdentifyIssues());
-                  } else if (title == 'Motorsport University') {
+                  } else if (route == 'start_learning') {
                     Get.to(() => LearningHub());
                   }
                 },
@@ -371,28 +382,30 @@ class _HomeState extends State<Home> {
                     ),
                     Container(
                       width: Get.width,
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CircleAvatar(
-                            radius: 24,
+                            radius: 34,
                             backgroundColor: kPrimaryColor,
                             child: ClipOval(
                               child: Image.asset(
                                 cardData[index]['image'] ?? '',
-                                height: 100,
+                                height: 68,
                                 fit: BoxFit.contain,
                               ),
                             ),
                           ),
-                          MyText(
-                            paddingTop: 8,
-                            text: cardData[index]['subtitle'] ?? '',
-                            size: 12,
-                            color: kSecondaryColor,
-                            paddingBottom: 4,
-                          ),
+                          if ((cardData[index]['subtitle'] ?? '').isNotEmpty)
+                            MyText(
+                              paddingTop: 8,
+                              text: cardData[index]['subtitle'] ?? '',
+                              size: 12,
+                              color: kSecondaryColor,
+                              paddingBottom: 4,
+                            ),
+                          const SizedBox(height: 8),
                           MyText(
                             text: cardData[index]['title'] ?? '',
                             size: 14,
@@ -442,8 +455,8 @@ class _HomeState extends State<Home> {
                   children: [
                     Expanded(
                       child: MyText(
-                        text: 'Current Track/Circuit',
-                        size: 14,
+                        text: 'Current Setup',
+                        size: 18,
                         weight: FontWeight.w700,
                       ),
                     ),
@@ -464,13 +477,32 @@ class _HomeState extends State<Home> {
                     Expanded(
                       child: MyText(
                         paddingLeft: 6,
-                        text: 'Current Track/Circuit:',
+                        text: 'Name:',
                         size: 14,
                         color: kSecondaryColor,
                       ),
                     ),
                     MyText(
-                      text: trackCircuitText,
+                      text: trackNameText,
+                      size: 14,
+                      weight: FontWeight.w500,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Image.asset(Assets.imagesTt, height: 20),
+                    Expanded(
+                      child: MyText(
+                        paddingLeft: 6,
+                        text: 'Track Type:',
+                        size: 14,
+                        color: kSecondaryColor,
+                      ),
+                    ),
+                    MyText(
+                      text: trackTypeText,
                       size: 14,
                       weight: FontWeight.w500,
                     ),
