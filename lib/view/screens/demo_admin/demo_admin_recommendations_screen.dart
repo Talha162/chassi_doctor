@@ -558,13 +558,15 @@ class _DemoAdminRecommendationsScreenState
                       const SizedBox(height: 12),
                       TextField(
                         controller: _setTitleController,
+                        style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelText: 'Set Title',
+                          labelStyle: const TextStyle(color: Colors.black54),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor: kQuaternaryColor,
+                          fillColor: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -708,25 +710,29 @@ class _DemoAdminRecommendationsScreenState
                       const SizedBox(height: 12),
                       TextField(
                         controller: _recTitleController,
+                        style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelText: 'Title',
+                          labelStyle: const TextStyle(color: Colors.black54),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor: kQuaternaryColor,
+                          fillColor: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 8),
                       TextField(
                         controller: _recDetailsController,
+                        style: const TextStyle(color: Colors.black87),
                         decoration: InputDecoration(
                           labelText: 'Details',
+                          labelStyle: const TextStyle(color: Colors.black54),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
                           filled: true,
-                          fillColor: kQuaternaryColor,
+                          fillColor: Colors.white,
                         ),
                         maxLines: 3,
                       ),
@@ -789,13 +795,15 @@ class _DemoAdminRecommendationsScreenState
                   TextField(
                     controller: _priorityController,
                     keyboardType: TextInputType.number,
+                    style: const TextStyle(color: Colors.black87),
                     decoration: InputDecoration(
                       labelText: 'Priority Order',
+                      labelStyle: const TextStyle(color: Colors.black54),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                       filled: true,
-                      fillColor: kQuaternaryColor,
+                      fillColor: Colors.white,
                     ),
                   ),
                   const SizedBox(height: 12),
