@@ -209,21 +209,21 @@ class _SocialBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 60,
-        width: 60,
+        height: 64,
+        width: 64,
         decoration: BoxDecoration(
-          color: kBorderColor2,
+          color: kWhiteColor.withValues(alpha: 0.96),
           shape: BoxShape.circle,
           border: Border.all(
-            color: kWhiteColor.withValues(alpha: 0.12),
+            color: kSecondaryColor.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
         child: Center(
           child: Image.asset(
             icon,
-            height: 30,
-            width: 30,
+            height: 32,
+            width: 32,
             fit: BoxFit.contain,
           ),
         ),
