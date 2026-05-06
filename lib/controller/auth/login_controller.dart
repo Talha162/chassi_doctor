@@ -52,6 +52,19 @@ class LoginController extends GetxController {
     }
   }
 
+  Future<void> _handleOAuthAction(Future<void> Function() authCall) async {
+    try {
+      isLoading.value = true;
+      await authCall();
+    } on AuthException catch (e) {
+      _showErrorDialog(e.message);
+    } catch (e) {
+      _showErrorDialog("An unexpected error occurred: ${e.toString()}");
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> loginWithEmail() async {
     if (emailController.text.isEmpty || passwordController.text.isEmpty) {
       _showErrorDialog("Please fill in all fields.");
@@ -63,7 +76,7 @@ class LoginController extends GetxController {
   }
 
   // --- SOCIAL LOGINS ---
-  Future<void> loginGoogle() async => await _handleAuthAction(() => _authService.signInWithGoogle());
+  Future<void> loginGoogle() async => await _handleOAuthAction(() => _authService.signInWithGoogle());
   Future<void> loginFacebook() async => await _handleAuthAction(() => _authService.signInWithFacebook());
 
   @override

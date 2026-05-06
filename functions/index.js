@@ -99,6 +99,31 @@ async function deleteInvalidTokens(supabase, tokens) {
   }
 }
 
+async function deleteAccountRelatedData(supabase, userId) {
+  const tables = [
+    ['device_tokens', 'user_id'],
+    ['track_configurations', 'user_id'],
+    ['history_notes', 'user_id'],
+    ['chassis_sessions', 'user_id'],
+    ['course_enrollments', 'user_id'],
+    ['user_notifications', 'user_id'],
+    ['users', 'id'],
+  ];
+
+  for (const [table, column] of tables) {
+    const { error } = await supabase.from(table).delete().eq(column, userId);
+    if (error) {
+      logger.error('Failed to delete account related rows', {
+        userId,
+        table,
+        column,
+        error,
+      });
+      throw error;
+    }
+  }
+}
+
 exports.handleLearningNotificationEvent = onRequest(
   {
     region: 'us-central1',
@@ -218,6 +243,62 @@ exports.handleLearningNotificationEvent = onRequest(
       res.status(500).json({
         ok: false,
         eventId,
+        error: error.message || String(error),
+      });
+    }
+  }
+);
+
+exports.deleteAccountSelfService = onRequest(
+  {
+    region: 'us-central1',
+    maxInstances: 5,
+    invoker: 'public',
+    cpu: 1,
+    secrets: [supabaseUrlSecret, supabaseServiceRoleKeySecret],
+  },
+  async (req, res) => {
+    if (req.method !== 'POST') {
+      res.status(405).send('Method Not Allowed');
+      return;
+    }
+
+    const authHeader = req.get('authorization') || req.get('Authorization');
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.status(401).json({ ok: false, error: 'missing_bearer_token' });
+      return;
+    }
+
+    const accessToken = authHeader.slice('Bearer '.length).trim();
+    const supabase = createSupabaseAdminClient();
+
+    try {
+      const { data: userData, error: userError } = await supabase.auth.getUser(
+        accessToken
+      );
+
+      if (userError || !userData || !userData.user) {
+        res.status(401).json({ ok: false, error: 'invalid_user_session' });
+        return;
+      }
+
+      const userId = userData.user.id;
+
+      await deleteAccountRelatedData(supabase, userId);
+
+      const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(
+        userId
+      );
+
+      if (deleteAuthError) {
+        throw deleteAuthError;
+      }
+
+      res.status(200).json({ ok: true, userId });
+    } catch (error) {
+      logger.error('Failed to delete account', { error });
+      res.status(500).json({
+        ok: false,
         error: error.message || String(error),
       });
     }

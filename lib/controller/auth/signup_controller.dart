@@ -69,13 +69,14 @@ class SignUpController extends GetxController {
     }
   }
 
-  Future<void> _socialAuth(Future<AuthResponse> Function() method) async {
+  Future<void> _socialAuth(Future<void> Function() method) async {
     try {
       isLoading.value = true;
-      final response = await method();
-      if (response.user != null) Get.offAllNamed(AppLinks.bottomNavBar);
+      await method();
     } on AuthException catch (e) {
       _showErrorDialog(e.message);
+    } catch (e) {
+      _showErrorDialog("An unexpected error occurred: ${e.toString()}");
     } finally {
       isLoading.value = false;
     }

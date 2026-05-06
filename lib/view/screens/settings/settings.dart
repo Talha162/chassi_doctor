@@ -36,6 +36,7 @@ class _SettingsState extends State<Settings> {
   bool _isLoadingUser = true;
   bool _notificationsEnabled = true;
   bool _isUpdatingNotificationPreference = false;
+  bool _isDeletingAccount = false;
 
   @override
   void initState() {
@@ -108,6 +109,35 @@ class _SettingsState extends State<Settings> {
     }
   }
 
+  Future<void> _deleteAccount() async {
+    if (_isDeletingAccount) return;
+
+    Navigator.of(context).pop();
+    setState(() => _isDeletingAccount = true);
+
+    try {
+      await _authService.deleteCurrentAccount();
+      if (!mounted) return;
+      Get.snackbar(
+        'Account Deleted',
+        'Your account has been deleted successfully.',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      Get.offAll(() => const Login());
+    } catch (e) {
+      if (!mounted) return;
+      Get.snackbar(
+        'Delete Failed',
+        'Failed to delete account: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isDeletingAccount = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeController = Get.find<ThemeController>();
@@ -177,7 +207,7 @@ class _SettingsState extends State<Settings> {
                   const _Divider(),
                   _SettingsTile(
                     imagePath: Assets.imagesData,
-                    title: 'Data and Privacy Setting',
+                    title: 'Data and Privacy',
                     onTap: () {
                       Get.to(() => const PrivacyPolicy());
                     },
@@ -186,8 +216,8 @@ class _SettingsState extends State<Settings> {
                   _SettingsTile(
                     imagePath: Assets.imagesTheme,
                     title: themeController.isDarkMode
-                        ? 'Switch to Light Mode'
-                        : 'Switch to Dark Mode',
+                        ? 'Switch to Blue Theme'
+                        : 'Switch to Dark Theme',
                     onTap: themeController.toggleTheme,
                     trailing: Transform.scale(
                       scale: 0.65,
@@ -342,8 +372,7 @@ class _SettingsState extends State<Settings> {
                                 ),
                                 isDestructiveAction: true,
                                 onPressed: () {
-                                  // TODO: implement delete account logic
-                                  Navigator.of(context).pop();
+                                  _deleteAccount();
                                 },
                               ),
                             ],
@@ -358,22 +387,22 @@ class _SettingsState extends State<Settings> {
 
             const SizedBox(height: 12),
 
-            // ---------- DEMO ADMIN CARD ----------
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Color(0xffE8618C).withAlpha(51),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Color(0xffE8618C), width: 1),
-              ),
-              child: _SettingsTile(
-                imagePath: Assets.imagesSettings,
-                title: 'Demo Admin (Recommendations)',
-                onTap: () {
-                  Get.to(() => const DemoAdminRecommendationsScreen());
-                },
-              ),
-            ),
+            // // ---------- DEMO ADMIN CARD ----------
+            // Container(
+            //   padding: const EdgeInsets.all(12),
+            //   decoration: BoxDecoration(
+            //     color: Color(0xffE8618C).withAlpha(51),
+            //     borderRadius: BorderRadius.circular(12),
+            //     border: Border.all(color: Color(0xffE8618C), width: 1),
+            //   ),
+            //   child: _SettingsTile(
+            //     imagePath: Assets.imagesSettings,
+            //     title: 'Demo Admin (Recommendations)',
+            //     onTap: () {
+            //       Get.to(() => const DemoAdminRecommendationsScreen());
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:motorsport/view/screens/auth/forgot_pass/create_new_pass.dart';
 import 'package:motorsport/view/screens/auth/login.dart';
 import 'package:motorsport/view/screens/auth/sign_up/email_verification.dart';
 import 'package:motorsport/view/screens/auth/sign_up/sign_up.dart';
@@ -12,6 +13,7 @@ class AppRoutes {
   static final List<GetPage> pages = [
     GetPage(name: AppLinks.splash_screen, page: () => const SplashScreen()),
     GetPage(name: AppLinks.login, page: () => const Login()),
+    GetPage(name: AppLinks.createNewPassword, page: () => const CreateNewPass()),
     GetPage(name: AppLinks.signUp, page: () => const SignUp()),
     GetPage(
         name: AppLinks.emailVerification,
@@ -28,6 +30,7 @@ class AppRoutes {
 class AppLinks {
   static const splash_screen = '/splash_screen';
   static const login = '/login';
+  static const createNewPassword = '/create_new_password';
   static const signUp = '/sign_up';
   static const emailVerification = '/email_verification';
   static const onboarding = '/onboarding';

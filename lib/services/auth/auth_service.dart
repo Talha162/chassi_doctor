@@ -1,12 +1,17 @@
-import 'dart:io';
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../notification_service.dart';
 
 class AuthService {
+  static const String _mobileGoogleRedirectUrl =
+      'com.chassisdoctor.app://login-callback/';
+  static const String _deleteAccountEndpoint =
+      'https://us-central1-chassis-doctor.cloudfunctions.net/deleteAccountSelfService';
+
   final SupabaseClient _supabase = Supabase.instance.client;
 
   // --- EMAIL LOGIN (Standard) ---
@@ -27,16 +32,11 @@ class AuthService {
     required String password,
     required String fullName,
   }) async {
-    var resp = await _supabase.auth.signUp(
+    return await _supabase.auth.signUp(
       email: email,
       password: password,
       data: {'full_name': fullName},
     );
-    await _supabase.from("users").insert({
-      "full_name": fullName,
-      "email": email,
-    });
-    return resp;
   }
 
   // --- OTP VERIFICATION ---
@@ -56,6 +56,19 @@ class AuthService {
     await _supabase.auth.resend(type: OtpType.signup, email: email);
   }
 
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await _supabase.auth.resetPasswordForEmail(
+      email,
+      redirectTo: _mobileGoogleRedirectUrl,
+    );
+  }
+
+  Future<void> updatePassword({required String newPassword}) async {
+    await _supabase.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
+
   // --- UTILS ---
   User? get currentUser => _supabase.auth.currentUser;
 
@@ -64,24 +77,56 @@ class AuthService {
     await _supabase.auth.signOut();
   }
 
+  Future<void> deleteCurrentAccount() async {
+    final session = _supabase.auth.currentSession;
+    if (session == null) {
+      throw const AuthException('User is not authenticated');
+    }
+
+    final response = await http.post(
+      Uri.parse(_deleteAccountEndpoint),
+      headers: {
+        'Authorization': 'Bearer ${session.accessToken}',
+        'Content-Type': 'application/json',
+      },
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw AuthException(
+        'Failed to delete account (${response.statusCode}).',
+      );
+    }
+
+    await NotificationService.instance.clearCurrentDeviceToken();
+    await _supabase.auth.signOut();
+  }
+
+  Future<void> ensurePublicUserProfile(User user) async {
+    final metadata = user.userMetadata ?? const <String, dynamic>{};
+    final fullName =
+        metadata['full_name'] as String? ??
+        metadata['name'] as String? ??
+        user.email?.split('@').first;
+
+    await _supabase.from('users').upsert({
+      'id': user.id,
+      'email': user.email,
+      'full_name': fullName,
+      'last_login_at': DateTime.now().toUtc().toIso8601String(),
+    }, onConflict: 'id');
+  }
+
   // --- SOCIAL (Reused) ---
-  Future<AuthResponse> signInWithGoogle() async {
-    const webClientId = 'YOUR_WEB_CLIENT_ID.apps.googleusercontent.com';
-    const iosClientId = 'YOUR_IOS_CLIENT_ID.apps.googleusercontent.com';
-
-    final GoogleSignIn googleSignIn = GoogleSignIn(
-      clientId: Platform.isIOS ? iosClientId : null,
-      serverClientId: webClientId,
+  Future<void> signInWithGoogle() async {
+    final launched = await _supabase.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: _mobileGoogleRedirectUrl,
+      authScreenLaunchMode: LaunchMode.externalApplication,
     );
-    final googleUser = await googleSignIn.signIn();
-    final googleAuth = await googleUser?.authentication;
-    if (googleAuth == null) throw const AuthException('Google Sign-In failed.');
 
-    return await _supabase.auth.signInWithIdToken(
-      provider: OAuthProvider.google,
-      idToken: googleAuth.idToken!,
-      accessToken: googleAuth.accessToken,
-    );
+    if (!launched) {
+      throw const AuthException('Unable to launch Google Sign-In.');
+    }
   }
 
   Future<AuthResponse> signInWithFacebook() async {

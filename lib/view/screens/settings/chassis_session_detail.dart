@@ -188,7 +188,7 @@ class _ChassisSessionDetailState extends State<ChassisSessionDetail> {
               );
             }),
           const SizedBox(height: 16),
-          _SectionTitle(title: 'AI Recommendations'),
+          _SectionTitle(title: 'Recommendations'),
           if (!widget.session.hasSessionData || recommendations.isEmpty)
             MyText(
               text: 'No recommendations generated.',

@@ -16,6 +16,17 @@
 	<string>motorsport</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.chassisdoctor.app.auth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.chassisdoctor.app</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleShortVersionString</key>
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>

@@ -112,7 +112,16 @@ class NotificationService {
   Future<void> clearCurrentDeviceToken({bool deleteLocalToken = true}) async {
     final token = await _messaging.getToken();
     if (token != null) {
-      await SupabaseService.instance.deleteDeviceToken(token: token);
+      try {
+        await SupabaseService.instance.deleteDeviceToken(token: token);
+      } on PostgrestException catch (e) {
+        final isSignedOutRlsFailure =
+            e.code == '42501' ||
+            e.message.toLowerCase().contains('row-level security');
+        if (!isSignedOutRlsFailure) {
+          rethrow;
+        }
+      }
     }
     if (deleteLocalToken) {
       await _messaging.deleteToken();

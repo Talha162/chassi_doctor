@@ -149,7 +149,7 @@ class SavedSetupHistory extends StatelessWidget {
                 );
               }),
             pw.SizedBox(height: 12),
-            pw.Text('AI Recommendations', style: pw.TextStyle(fontSize: 16)),
+            pw.Text('Recommendations', style: pw.TextStyle(fontSize: 16)),
             if (!session.hasSessionData || recommendations.isEmpty)
               pw.Text('No recommendations generated.')
             else

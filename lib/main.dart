@@ -12,6 +12,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'firebase_options.dart';
 import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';
+import 'services/auth/auth_service.dart';
 import 'services/notification_service.dart';
 
 StreamSubscription<AuthState>? _authStateSubscription;
@@ -43,19 +44,36 @@ Future<void> main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtaHNtc2tqeHl3cXRreWhkdmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNzYwMDgsImV4cCI6MjA3Nzg1MjAwOH0.XnYxiYdzpfGsJxAnccRj8SqQkOKwo693YI8AaInL9Tg',
   );
 
+  final authService = AuthService();
   final currentUser = Supabase.instance.client.auth.currentUser;
   if (currentUser != null) {
+    await authService.ensurePublicUserProfile(currentUser);
     await NotificationService.instance.init(userId: currentUser.id);
   }
 
   _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
     data,
   ) async {
+    final event = data.event;
     final session = data.session;
     if (session?.user != null) {
+      await authService.ensurePublicUserProfile(session!.user);
       await NotificationService.instance.init(userId: session!.user.id);
+      if (event == AuthChangeEvent.passwordRecovery) {
+        Get.offAllNamed(AppLinks.createNewPassword);
+        return;
+      }
+      if (event == AuthChangeEvent.signedIn &&
+          Get.currentRoute != AppLinks.bottomNavBar) {
+        Get.offAllNamed(AppLinks.bottomNavBar);
+      }
     } else {
       await NotificationService.instance.clearCurrentDeviceToken();
+      if (event == AuthChangeEvent.signedOut &&
+          Get.currentRoute != AppLinks.login &&
+          Get.currentRoute != AppLinks.splash_screen) {
+        Get.offAllNamed(AppLinks.login);
+      }
     }
   });
 
