@@ -132,6 +132,17 @@ class SupabaseService {
         .toList();
   }
 
+  Future<CourseModule?> getModuleById(String moduleId) async {
+    final res = await _client
+        .from('course_modules')
+        .select()
+        .eq('id', moduleId)
+        .maybeSingle();
+
+    if (res == null) return null;
+    return CourseModule.fromJson(res as Map<String, dynamic>);
+  }
+
   Future<List<ModuleVideo>> getVideosForModule(String moduleId) async {
     final res = await _client
         .from('module_videos')

@@ -4,6 +4,7 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/app_notification.dart';
+import 'package:motorsport/services/notification_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -100,6 +101,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _service.markNotificationRead(notification.id);
       await _loadNotifications();
     }
+
+    await NotificationService.instance.handleNotificationData(notification.data);
   }
 
   Future<void> _deleteNotification(AppNotification notification) async {

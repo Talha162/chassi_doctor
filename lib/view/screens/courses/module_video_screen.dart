@@ -15,11 +15,13 @@ import '../../../services/supabase/supabase_client_service.dart';
 class ModuleVideosScreen extends StatefulWidget {
   final Course course;
   final CourseModule module;
+  final String? initialVideoId;
 
   const ModuleVideosScreen({
     super.key,
     required this.course,
     required this.module,
+    this.initialVideoId,
   });
 
   @override
@@ -31,6 +33,7 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
 
   bool _isLoading = true;
   String? _error;
+  bool _handledInitialVideo = false;
 
   List<ModuleVideo> _videos = [];
   Map<String, VideoProgress> _videoProgress = {};
@@ -68,6 +71,8 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
         _videos = videos;
         _videoProgress = progressMap;
       });
+
+      await _openInitialVideoIfNeeded();
     } catch (e) {
       setState(() {
         _error = e.toString();
@@ -79,6 +84,40 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
         });
       }
     }
+  }
+
+  Future<void> _openInitialVideoIfNeeded() async {
+    if (_handledInitialVideo || widget.initialVideoId == null || !mounted) {
+      return;
+    }
+
+    final initialVideo = _videos.where((video) => video.id == widget.initialVideoId);
+    if (initialVideo.isEmpty) {
+      _handledInitialVideo = true;
+      return;
+    }
+
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    if (userId == null) {
+      _handledInitialVideo = true;
+      return;
+    }
+
+    _handledInitialVideo = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => VideoPlayerScreen(
+            video: initialVideo.first,
+            userId: userId,
+          ),
+        ),
+      ).then((_) {
+        _loadData();
+      });
+    });
   }
 
   @override

@@ -8,6 +8,7 @@ import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/main.dart';
 import 'package:motorsport/models/app_user.dart';
 import 'package:motorsport/services/auth/auth_service.dart';
+import 'package:motorsport/services/notification_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/screens/auth/login.dart';
 import 'package:motorsport/view/screens/demo_admin/demo_admin_recommendations_screen.dart';
@@ -16,6 +17,7 @@ import 'package:motorsport/view/screens/settings/privacy_policy.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key, this.showBackButton = false});
@@ -32,11 +34,14 @@ class _SettingsState extends State<Settings> {
 
   AppUser? _user;
   bool _isLoadingUser = true;
+  bool _notificationsEnabled = true;
+  bool _isUpdatingNotificationPreference = false;
 
   @override
   void initState() {
     super.initState();
     _loadUser();
+    _loadNotificationPreference();
   }
 
   Future<void> _loadUser() async {
@@ -51,6 +56,41 @@ class _SettingsState extends State<Settings> {
     } finally {
       if (mounted) {
         setState(() => _isLoadingUser = false);
+      }
+    }
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final enabled = await NotificationService.instance.areNotificationsEnabled();
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = enabled;
+    });
+  }
+
+  Future<void> _setNotificationsEnabled(bool value) async {
+    final userId = Supabase.instance.client.auth.currentUser?.id;
+    setState(() => _isUpdatingNotificationPreference = true);
+
+    try {
+      await NotificationService.instance.setNotificationsEnabled(
+        value,
+        userId: userId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _notificationsEnabled = value;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      Get.snackbar(
+        'Notification Error',
+        'Failed to update notification preference: $e',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingNotificationPreference = false);
       }
     }
   }
@@ -120,16 +160,18 @@ class _SettingsState extends State<Settings> {
                         height: 20 / 0.65,
                         width: 20 / 0.65,
                         child: CupertinoSwitch(
-                          value: true,
+                          value: _notificationsEnabled,
                           thumbColor: kPrimaryColor,
                           activeTrackColor: kSecondaryColor,
-                          onChanged: (bool value) {
-                            // TODO: persist notification preferences if needed
-                          },
+                          onChanged: _isUpdatingNotificationPreference
+                              ? null
+                              : _setNotificationsEnabled,
                         ),
                       ),
                     ),
-                    onTap: () {},
+                    onTap: _isUpdatingNotificationPreference
+                        ? null
+                        : () => _setNotificationsEnabled(!_notificationsEnabled),
                   ),
 
                   const _Divider(),
@@ -146,7 +188,7 @@ class _SettingsState extends State<Settings> {
                     title: themeController.isDarkMode
                         ? 'Switch to Light Mode'
                         : 'Switch to Dark Mode',
-                    onTap: () {},
+                    onTap: themeController.toggleTheme,
                     trailing: Transform.scale(
                       scale: 0.65,
                       alignment: Alignment.centerRight,
