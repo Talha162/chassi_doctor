@@ -27,6 +27,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   static const String _trackCircuitNameKey = 'track_circuit_name';
   static const String _enginePositionKey = 'engine_position';
   static const String _aerofoilsKey = 'aerofoils';
+  static const String _driveTypeKey = 'drive_type';
 
   final SupabaseService _supabaseService = SupabaseService.instance;
   final GeminiService _geminiService = GeminiService();
@@ -37,7 +38,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   Set<String> _selectedIssueIds = {};
   TrackConfiguration? _trackConfiguration;
   List<AdjustmentRecommendation> _recommendations = [];
-  static const Set<String> _understeerStages = {
+  static const Set<String> _stageIssues = {
     'corner entry',
     'mid corner',
     'corner exit',
@@ -76,9 +77,32 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       final latest = await _supabaseService.getLatestTrackConfigurationForUser(
         userId,
       );
+      final prefs = await SharedPreferences.getInstance();
+      final merged = latest == null
+          ? null
+          : TrackConfiguration(
+              id: latest.id,
+              userId: latest.userId,
+              createdAt: latest.createdAt,
+              trackType: latest.trackType,
+              circuitName:
+                  latest.circuitName ??
+                  prefs.getString(_trackCircuitNameKey)?.trim(),
+              surfaceType: latest.surfaceType,
+              weatherCondition: latest.weatherCondition,
+              enginePosition:
+                  latest.enginePosition ??
+                  prefs.getString(_enginePositionKey)?.trim(),
+              aerofoils:
+                  latest.aerofoils ?? prefs.getString(_aerofoilsKey)?.trim(),
+              driveType:
+                  latest.driveType ?? prefs.getString(_driveTypeKey)?.trim(),
+              presetId: latest.presetId,
+              extraSetup: latest.extraSetup,
+            );
       if (!mounted) return;
       setState(() {
-        _trackConfiguration = latest;
+        _trackConfiguration = merged;
       });
     } catch (e) {
       debugPrint('Failed to load track configuration: $e');
@@ -198,13 +222,14 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   }
 
   List<ChassisIssueOption> get _visibleIssues {
-    if (widget.symptom.title.trim().toLowerCase() != 'understeer') {
+    final symptom = widget.symptom.title.trim().toLowerCase();
+    if (symptom != 'understeer' && symptom != 'oversteer') {
       return _issues;
     }
 
     final filtered = _issues.where((issue) {
       final normalized = issue.title.trim().toLowerCase();
-      return _understeerStages.contains(normalized);
+      return _stageIssues.contains(normalized);
     }).toList();
 
     return filtered;
@@ -256,6 +281,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         symptomId: widget.symptom.id,
         issueIds: List<String>.from(selectedIssueIds),
         presetId: _trackConfiguration?.presetId,
+        trackConfiguration: _trackConfiguration,
       );
 
       if (!mounted) return;
@@ -380,11 +406,13 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         'weather_condition': trackConfig?.weatherCondition,
         'engine_position': trackConfig?.enginePosition,
         'aerofoils': trackConfig?.aerofoils,
+        'drive_type': trackConfig?.driveType,
       };
       final prefs = await SharedPreferences.getInstance();
       final savedCircuitName = prefs.getString(_trackCircuitNameKey)?.trim();
       final savedEnginePosition = prefs.getString(_enginePositionKey)?.trim();
       final savedAerofoils = prefs.getString(_aerofoilsKey)?.trim();
+      final savedDriveType = prefs.getString(_driveTypeKey)?.trim();
 
       if ((trackSnapshot['circuit_name'] == null ||
               trackSnapshot['circuit_name'].toString().isEmpty) &&
@@ -403,6 +431,12 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
           savedAerofoils != null &&
           savedAerofoils.isNotEmpty) {
         trackSnapshot['aerofoils'] = savedAerofoils;
+      }
+      if ((trackSnapshot['drive_type'] == null ||
+              trackSnapshot['drive_type'].toString().isEmpty) &&
+          savedDriveType != null &&
+          savedDriveType.isNotEmpty) {
+        trackSnapshot['drive_type'] = savedDriveType;
       }
 
       final symptomSnapshot = {

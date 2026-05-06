@@ -1,0 +1,341 @@
+{
+  "combo_count": 64,
+  "symptom_count": 2,
+  "issue_count": 3,
+  "recommendation_count": 109,
+  "set_count": 384,
+  "first_sets": [
+    {
+      "title": "CFG:Cir_Tar_Fro_Aer_Dry_RWD | Understeer | Corner Entry",
+      "symptom": "Understeer",
+      "issue": "Corner Entry",
+      "preset": {
+        "track_type": "Circuit/Road Course",
+        "surface_type": "Tarmac/Paved",
+        "weather_condition": "Dry"
+      },
+      "links": [
+        {
+          "recommendation_key": [
+            "Soften front ARB one step",
+            "Reduces front roll resistance, allows more front grip on turn-in",
+            "Secondary"
+          ],
+          "priority_order": 2999
+        },
+        {
+          "recommendation_key": [
+            "Add 0.5° negative camber to front outside wheel",
+            "Increases front tyre contact patch on entry",
+            "Secondary"
+          ],
+          "priority_order": 2998
+        },
+        {
+          "recommendation_key": [
+            "Add 1–2 clicks front wing angle",
+            "More front downforce directly improves entry grip",
+            "Secondary"
+          ],
+          "priority_order": 2993
+        },
+        {
+          "recommendation_key": [
+            "Lower front roll centre height",
+            "Lower RC = more front grip; check upright extension geometry",
+            "Primary"
+          ],
+          "priority_order": 2992
+        },
+        {
+          "recommendation_key": [
+            "Review Ackermann geometry for turn-in",
+            "More Ackermann aids initial turn-in response at low speed",
+            "Primary"
+          ],
+          "priority_order": 2991
+        },
+        {
+          "recommendation_key": [
+            "Reduce front tyre pressure by 2 psi",
+            "Increases front contact patch area on corner entry",
+            "Secondary"
+          ],
+          "priority_order": 1997
+        },
+        {
+          "recommendation_key": [
+            "Reduce front damper bump by 2 clicks",
+            "Allows weight to transfer to front tyres faster on entry",
+            "Secondary"
+          ],
+          "priority_order": 1996
+        },
+        {
+          "recommendation_key": [
+            "Increase rear damper bump by 2 clicks",
+            "Slows rear weight transfer, loads front earlier",
+            "Secondary"
+          ],
+          "priority_order": 1995
+        },
+        {
+          "recommendation_key": [
+            "Check anti-dive geometry; reduce if excessive",
+            "High anti-dive resists weight transfer to front on braking/entry",
+            "Primary"
+          ],
+          "priority_order": 1990
+        },
+        {
+          "recommendation_key": [
+            "Recheck bump steer neutrality at entry ride height",
+            "Bump steer causes inconsistent steering feel at corner entry",
+            "Primary"
+          ],
+          "priority_order": 1989
+        },
+        {
+          "recommendation_key": [
+            "Add 1mm toe-out at front",
+            "Increases front yaw response on initial turn-in",
+            "Secondary"
+          ],
+          "priority_order": 994
+        },
+        {
+          "recommendation_key": [
+            "Increase front wheel rate (motion ratio review)",
+            "Stiffer effective wheel rate improves front response on entry",
+            "Primary"
+          ],
+          "priority_order": 988
+        }
+      ]
+    },
+    {
+      "title": "CFG:Cir_Tar_Fro_Aer_Dry_RWD | Oversteer | Corner Entry",
+      "symptom": "Oversteer",
+      "issue": "Corner Entry",
+      "preset": {
+        "track_type": "Circuit/Road Course",
+        "surface_type": "Tarmac/Paved",
+        "weather_condition": "Dry"
+      },
+      "links": [
+        {
+          "recommendation_key": [
+            "Harden rear ARB one step",
+            "Reduces rear roll on entry, stabilises rear end",
+            "Secondary"
+          ],
+          "priority_order": 2987
+        },
+        {
+          "recommendation_key": [
+            "Reduce rear damper bump 2 clicks",
+            "Allows rear to settle more gently on entry",
+            "Secondary"
+          ],
+          "priority_order": 2986
+        },
+        {
+          "recommendation_key": [
+            "Raise rear roll centre height",
+            "Higher rear RC = less rear roll = more stable entry",
+            "Primary"
+          ],
+          "priority_order": 2980
+        },
+        {
+          "recommendation_key": [
+            "Increase rear anti-squat geometry",
+            "More anti-squat resists rear squat on entry, stabilises",
+            "Primary"
+          ],
+          "priority_order": 2979
+        },
+        {
+          "recommendation_key": [
+            "Check rear bump steer for toe-out on bump",
+            "Rear toe-out on bump causes oversteer snap at entry",
+            "Primary"
+          ],
+          "priority_order": 2976
+        },
+        {
+          "recommendation_key": [
+            "Increase rear tyre pressures 2 psi",
+            "Stiffens rear tyre sidewall, reduces sudden rotation",
+            "Secondary"
+          ],
+          "priority_order": 1985
+        },
+        {
+          "recommendation_key": [
+            "Reduce front damper bump 2 clicks",
+            "Slows weight transfer away from rear on turn-in",
+            "Secondary"
+          ],
+          "priority_order": 1984
+        },
+        {
+          "recommendation_key": [
+            "Add 1° positive castor to front",
+            "Increases front self-centering, stabilises entry",
+            "Secondary"
+          ],
+          "priority_order": 1983
+        },
+        {
+          "recommendation_key": [
+            "Reduce rear wing angle 1 click",
+            "Less rear downforce bias frees rear load at entry",
+            "Secondary"
+          ],
+          "priority_order": 1981
+        },
+        {
+          "recommendation_key": [
+            "Review wheelbase; lengthen if possible",
+            "Longer wheelbase inherently improves directional stability",
+            "Primary"
+          ],
+          "priority_order": 1978
+        },
+        {
+          "recommendation_key": [
+            "Raise centre of gravity or redistribute rearward",
+            "Lower/rearward CofG reduces rear lift tendency on entry",
+            "Primary"
+          ],
+          "priority_order": 1977
+        },
+        {
+          "recommendation_key": [
+            "Reduce front toe-out by 1mm",
+            "Less front yaw response reduces snap rotation at entry",
+            "Secondary"
+          ],
+          "priority_order": 982
+        }
+      ]
+    },
+    {
+      "title": "CFG:Cir_Tar_Fro_Aer_Dry_RWD | Understeer | Mid Corner",
+      "symptom": "Understeer",
+      "issue": "Mid Corner",
+      "preset": {
+        "track_type": "Circuit/Road Course",
+        "surface_type": "Tarmac/Paved",
+        "weather_condition": "Dry"
+      },
+      "links": [
+        {
+          "recommendation_key": [
+            "Soften front ARB one step",
+            "Reduces mid-corner front roll stiffness, adds grip",
+            "Secondary"
+          ],
+          "priority_order": 2975
+        },
+        {
+          "recommendation_key": [
+            "Add negative camber front 0.5°",
+            "Compensates for camber loss in mid-corner roll",
+            "Secondary"
+          ],
+          "priority_order": 2974
+        },
+        {
+          "recommendation_key": [
+            "Add front wing angle 1–2 clicks",
+            "Direct mid-corner downforce gain on front axle",
+            "Secondary"
+          ],
+          "priority_order": 2969
+        },
+        {
+          "recommendation_key": [
+            "Lower front roll centre towards 90mm",
+            "More mid-corner grip; maintain front lower than rear",
+            "Primary"
+          ],
+          "priority_order": 2967
+        },
+        {
+          "recommendation_key": [
+            "Review IRC length on front suspension drawing",
+            "Shorter IRC = more camber change in roll; helps mid-corner",
+            "Primary"
+          ],
+          "priority_order": 2966
+        },
+        {
+          "recommendation_key": [
+            "Reduce front spring rate one step",
+            "Softer front spring allows more front grip mid-corner",
+            "Secondary"
+          ],
+          "priority_order": 1973
+        },
+        {
+          "recommendation_key": [
+            "Increase rear spring rate one step",
+            "Stiffer rear transfers more load to front mid-corner",
+            "Secondary"
+          ],
+          "priority_order": 1972
+        },
+        {
+          "recommendation_key": [
+            "Reduce front tyre pressure 1–2 psi",
+            "Improves contact patch in sustained cornering load",
+            "Secondary"
+          ],
+          "priority_order": 1971
+        },
+        {
+          "recommendation_key": [
+            "Reduce rear wing angle 1 click",
+            "Shifting aero balance forward aids mid-corner neutral",
+            "Secondary"
+          ],
+          "priority_order": 1968
+        },
+        {
+          "recommendation_key": [
+            "Increase front wheel rate via motion ratio",
+            "Higher effective spring rate at wheel improves mid-corner grip",
+            "Primary"
+          ],
+          "priority_order": 1965
+        },
+        {
+          "recommendation_key": [
+            "Check centre of gravity height; lower if possible",
+            "Lower CofG reduces roll moment, improves grip balance",
+            "Primary"
+          ],
+          "priority_order": 1964
+        },
+        {
+          "recommendation_key": [
+            "Increase rear tyre pressure 1 psi",
+            "Reduces rear grip slightly to balance with front",
+            "Secondary"
+          ],
+          "priority_order": 970
+        },
+        {
+          "recommendation_key": [
+            "Review Ackermann for mid-corner phase",
+            "Ackermann should match tyre slip angles in sustained cornering",
+            "Primary"
+          ],
+          "priority_order": 963
+        }
+      ]
+    }
+  ]
+}

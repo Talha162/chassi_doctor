@@ -323,6 +323,7 @@ class SupabaseService {
     required String symptomId,
     required List<String> issueIds,
     String? presetId,
+    TrackConfiguration? trackConfiguration,
   }) async {
     // Return empty if no issues provided
     if (issueIds.isEmpty) {
@@ -338,6 +339,7 @@ class SupabaseService {
       symptomId: symptomId,
       issueIds: issueIds,
       presetId: presetId,
+      trackConfiguration: trackConfiguration,
     );
   }
 
@@ -347,11 +349,15 @@ class SupabaseService {
     required String symptomId,
     required List<String> issueIds,
     String? presetId,
+    TrackConfiguration? trackConfiguration,
   }) async {
     try {
       debugPrint(
         '[SUPABASE] Using direct query approach for symptomId=$symptomId',
       );
+
+      final fullComboCode = _buildWorkbookComboCode(trackConfiguration);
+      debugPrint('[SUPABASE] Full combo code filter: $fullComboCode');
 
       // Query chassis_adjustment_sets with related data
       final setsRes = await _client
@@ -371,6 +377,11 @@ class SupabaseService {
 
       for (final setData in sets) {
         final setId = setData['id'] as String;
+        final setTitle = (setData['title'] as String?) ?? '';
+
+        if (!_matchesWorkbookCombination(setTitle, fullComboCode)) {
+          continue;
+        }
 
         // Check if this set has all required issue options
         final issueRes = await _client
@@ -443,6 +454,73 @@ class SupabaseService {
       debugPrint('[SUPABASE] Direct query failed: $e');
       return [];
     }
+  }
+
+  bool _matchesWorkbookCombination(String setTitle, String? fullComboCode) {
+    const prefix = 'CFG:';
+    if (!setTitle.startsWith(prefix)) {
+      return fullComboCode == null;
+    }
+
+    if (fullComboCode == null) {
+      return false;
+    }
+
+    final encoded = setTitle.substring(prefix.length).split('|').first.trim();
+    return encoded == fullComboCode;
+  }
+
+  String? _buildWorkbookComboCode(TrackConfiguration? config) {
+    if (config == null) return null;
+
+    final track = switch ((config.trackType ?? '').trim().toLowerCase()) {
+      'oval' => 'Ova',
+      'circuit/road course' => 'Cir',
+      'circuit' => 'Cir',
+      _ => null,
+    };
+
+    final surface = switch ((config.surfaceType ?? '').trim().toLowerCase()) {
+      'tarmac/paved' => 'Tar',
+      'tarmac' => 'Tar',
+      'shale/dirt/grass' => 'Dir',
+      'dirt' => 'Dir',
+      'grass' => 'Dir',
+      _ => null,
+    };
+
+    final engine = switch ((config.enginePosition ?? '').trim().toLowerCase()) {
+      'front' => 'Fro',
+      'mid' => 'Mid',
+      'rear' => null,
+      _ => null,
+    };
+
+    final aero = switch ((config.aerofoils ?? '').trim().toLowerCase()) {
+      'yes' => 'Aer',
+      'true' => 'Aer',
+      'no' => 'NoA',
+      'false' => 'NoA',
+      _ => null,
+    };
+
+    final weather = switch ((config.weatherCondition ?? '').trim().toLowerCase()) {
+      'dry' => 'Dry',
+      'wet' => 'Wet',
+      _ => null,
+    };
+
+    final drive = switch ((config.driveType ?? '').trim().toUpperCase()) {
+      'RWD' => 'RWD',
+      'FWD' => 'FWD',
+      _ => null,
+    };
+
+    if ([track, surface, engine, aero, weather, drive].any((value) => value == null)) {
+      return null;
+    }
+
+    return '$track\_$surface\_$engine\_$aero\_$weather\_$drive';
   }
 
   Future<ChassisSession> createChassisSession({

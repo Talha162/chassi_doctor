@@ -46,6 +46,10 @@ class TrackConfiguration extends StatefulWidget {
       {'title': 'Yes', 'image': Assets.imagesAdvanced},
       {'title': 'No', 'image': Assets.imagesAdvanced},
     ],
+    'Drive Type': [
+      {'title': 'RWD', 'image': Assets.imagesCar},
+      {'title': 'FWD', 'image': Assets.imagesCar},
+    ],
   };
 
   @override
@@ -59,6 +63,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
   static const String _trackCircuitNameKey = 'track_circuit_name';
   static const String _enginePositionKey = 'engine_position';
   static const String _aerofoilsKey = 'aerofoils';
+  static const String _driveTypeKey = 'drive_type';
 
   bool _isLoading = false;
 
@@ -72,6 +77,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
     'Weather Condition': 0,
     'Engine Position': 0,
     'Aerofoils': 0,
+    'Drive Type': 0,
   };
 
   Future<void> _saveConfiguration() async {
@@ -92,6 +98,8 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
           .trackSections['Engine Position']![selectedIndexes['Engine Position']!]['title']!;
       final aerofoils = widget
           .trackSections['Aerofoils']![selectedIndexes['Aerofoils']!]['title']!;
+      final driveType = widget
+          .trackSections['Drive Type']![selectedIndexes['Drive Type']!]['title']!;
 
       final nickname = _trackCircuitNameController.text.trim();
       final notes = _notesController.text.trim();
@@ -103,6 +111,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
         circuitName: nickname.isEmpty ? trackType : nickname,
         enginePosition: enginePosition,
         aerofoils: aerofoils,
+        driveType: driveType,
       );
 
       final userId = Supabase.instance.client.auth.currentUser?.id;
@@ -135,6 +144,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
       );
       await prefs.setString(_enginePositionKey, enginePosition);
       await prefs.setString(_aerofoilsKey, aerofoils);
+      await prefs.setString(_driveTypeKey, driveType);
 
       Get.offAllNamed(AppLinks.bottomNavBar);
     } catch (e) {
@@ -215,6 +225,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
     final nickname = prefs.getString(_trackCircuitNameKey);
     final enginePosition = prefs.getString(_enginePositionKey);
     final aerofoils = prefs.getString(_aerofoilsKey);
+    final driveType = prefs.getString(_driveTypeKey);
 
     if (!mounted) return;
 
@@ -230,6 +241,9 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
       }
       if (aerofoils != null) {
         selectedIndexes['Aerofoils'] = _indexFor('Aerofoils', aerofoils);
+      }
+      if (driveType != null) {
+        selectedIndexes['Drive Type'] = _indexFor('Drive Type', driveType);
       }
     });
   }
@@ -262,6 +276,18 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
         selectedIndexes['Weather Condition'] = _indexFor(
           'Weather Condition',
           latest.weatherCondition,
+        );
+        selectedIndexes['Engine Position'] = _indexFor(
+          'Engine Position',
+          latest.enginePosition,
+        );
+        selectedIndexes['Aerofoils'] = _indexFor(
+          'Aerofoils',
+          latest.aerofoils,
+        );
+        selectedIndexes['Drive Type'] = _indexFor(
+          'Drive Type',
+          latest.driveType,
         );
       });
     } catch (e) {

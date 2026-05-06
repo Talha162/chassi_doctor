@@ -11,6 +11,7 @@ class ProfileService {
     String? circuitName,
     String? enginePosition,
     String? aerofoils,
+    String? driveType,
   }) async {
     final userId = _supabase.auth.currentUser?.id;
     if (userId == null) {
@@ -26,6 +27,7 @@ class ProfileService {
       if (circuitName != null) 'circuit_name': circuitName,
       if (enginePosition != null) 'engine_position': enginePosition,
       if (aerofoils != null) 'aerofoils': aerofoils,
+      if (driveType != null) 'extra_setup': {'drive_type': driveType},
     };
 
     List<dynamic> updated = const [];
@@ -49,6 +51,7 @@ class ProfileService {
         'track_type': trackType,
         'surface_type': surfaceType,
         'weather_condition': weatherCondition,
+        if (driveType != null) 'extra_setup': {'drive_type': driveType},
       };
 
       updated = await _supabase
@@ -78,6 +81,7 @@ class ProfileService {
         'track_type': trackType,
         'surface_type': surfaceType,
         'weather_condition': weatherCondition,
+        if (driveType != null) 'extra_setup': {'drive_type': driveType},
       });
     }
   }
