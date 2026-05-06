@@ -1,0 +1,27 @@
+{
+  "functions": [
+    {
+      "source": "functions"
+    }
+  ],
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "chassis-doctor",
+          "appId": "1:352917095423:android:7811b0d61bd0a69ed59dca",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "chassis-doctor",
+          "configurations": {
+            "android": "1:352917095423:android:7811b0d61bd0a69ed59dca",
+            "ios": "1:352917095423:ios:2692cf3d709d7538d59dca"
+          }
+        }
+      }
+    }
+  }
+}

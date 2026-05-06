@@ -152,25 +152,13 @@ class _SignUpState extends State<SignUp> {
 
                   // SOCIAL
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _SocialBtn(
                         icon: Get.isDarkMode
                             ? Assets.imagesDarkGoogle
                             : Assets.imagesGoogle,
                         onTap: controller.signUpGoogle,
-                      ),
-                      _SocialBtn(
-                        icon: Get.isDarkMode
-                            ? Assets.imagesDarkApple
-                            : Assets.imagesApple,
-                        onTap: controller.signUpGoogle,
-                      ),
-                      _SocialBtn(
-                        icon: Get.isDarkMode
-                            ? Assets.imagesDarkFacebooj
-                            : Assets.imagesFacebook,
-                        onTap: controller.signUpFacebook,
                       ),
                     ],
                   ),

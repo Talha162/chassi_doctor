@@ -36,6 +36,9 @@ dependencies:
   crypto: ^3.0.3
   image_picker: ^1.0.7  # or latest
   intl:
+  firebase_core: ^4.7.0
+  firebase_messaging: ^16.2.0
+  flutter_local_notifications: ^21.0.0
 
 
 

@@ -43,6 +43,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/functions/node_modules/
+firebase-debug.log
 # API Keys and Secrets - NEVER commit these files
 lib/config/api_keys.dart
 .env

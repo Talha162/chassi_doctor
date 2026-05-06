@@ -20,6 +20,7 @@ import '../../models/app_notification.dart';
 import '../../models/history_note.dart';
 import '../../models/track_configuration.dart';
 import '../../models/video_progress.dart';
+import '../../models/device_token.dart';
 import 'package:path/path.dart' as p; // 👈 ADD THIS
 
 
@@ -642,6 +643,32 @@ class SupabaseService {
     final user = _client.auth.currentUser;
     if (user == null) return null;
     return getUserById(user.id);
+  }
+
+  // ───────────────── DEVICE TOKENS ─────────────────
+
+  Future<void> upsertDeviceToken({
+    required String userId,
+    required String token,
+    String? platform,
+  }) async {
+    await _client.from('device_tokens').upsert({
+      'user_id': userId,
+      'token': token,
+      'platform': platform,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'token');
+  }
+
+  Future<void> deleteDeviceToken({required String token}) async {
+    await _client.from('device_tokens').delete().eq('token', token);
+  }
+
+  Future<List<DeviceToken>> getDeviceTokensForUser(String userId) async {
+    final res = await _client.from('device_tokens').select().eq('user_id', userId);
+    return (res as List)
+        .map((json) => DeviceToken.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   Future<AppUser> updateUserProfile({

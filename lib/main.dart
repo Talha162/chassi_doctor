@@ -1,14 +1,39 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/theme/dark_theme.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
+import 'firebase_options.dart';
 import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';
+import 'services/notification_service.dart';
 
-void main() async {
+StreamSubscription<AuthState>? _authStateSubscription;
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  print('Background notification: ${message.messageId}');
+}
+
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
   final themeController = Get.put(ThemeController());
   await themeController.loadTheme();
 
@@ -17,6 +42,22 @@ void main() async {
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtaHNtc2tqeHl3cXRreWhkdmdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyNzYwMDgsImV4cCI6MjA3Nzg1MjAwOH0.XnYxiYdzpfGsJxAnccRj8SqQkOKwo693YI8AaInL9Tg',
   );
+
+  final currentUser = Supabase.instance.client.auth.currentUser;
+  if (currentUser != null) {
+    await NotificationService.instance.init(userId: currentUser.id);
+  }
+
+  _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+    data,
+  ) async {
+    final session = data.session;
+    if (session?.user != null) {
+      await NotificationService.instance.init(userId: session!.user.id);
+    } else {
+      await NotificationService.instance.clearCurrentDeviceToken();
+    }
+  });
 
   runApp(MyApp());
 }

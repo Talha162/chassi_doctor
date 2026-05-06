@@ -148,25 +148,13 @@ class _LoginState extends State<Login> {
                   // --- SOCIAL LOGIN SECTION ---
                   const SizedBox(height: 20),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       _SocialButton(
                         icon: Get.isDarkMode
                             ? Assets.imagesDarkGoogle
                             : Assets.imagesGoogle,
                         onTap: controller.loginGoogle,
-                      ),
-                      _SocialButton(
-                        icon: Get.isDarkMode
-                            ? Assets.imagesDarkApple
-                            : Assets.imagesApple,
-                        onTap: controller.loginGoogle,
-                      ),
-                      _SocialButton(
-                        icon: Get.isDarkMode
-                            ? Assets.imagesDarkFacebooj
-                            : Assets.imagesFacebook,
-                        onTap: controller.loginFacebook,
                       ),
                     ],
                   ),

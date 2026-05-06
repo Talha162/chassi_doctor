@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "352917095423",
+    "project_id": "chassis-doctor",
+    "storage_bucket": "chassis-doctor.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:352917095423:android:7811b0d61bd0a69ed59dca",
+        "android_client_info": {
+          "package_name": "com.chassisdoctor.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIIb3HZ1g8nn9lq60XdExxOujtxA7wqsE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
