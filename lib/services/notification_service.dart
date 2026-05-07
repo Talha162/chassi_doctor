@@ -41,7 +41,25 @@ class NotificationService {
     await _messaging.setAutoInitEnabled(true);
 
     // Request permissions where the platform requires runtime approval.
-    await _messaging.requestPermission(alert: true, badge: true, sound: true);
+    final settings = await _messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+    if (settings.authorizationStatus == AuthorizationStatus.denied) {
+      debugPrint('Push notification permission denied on this device.');
+      _initializedForUserId = userId;
+      return;
+    }
+
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      await _waitForApnsToken();
+    }
 
     final token = await _messaging.getToken();
     if (token != null) {
@@ -186,5 +204,19 @@ class NotificationService {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(handleNotificationData(data));
     });
+  }
+
+  Future<void> _waitForApnsToken() async {
+    for (var attempt = 0; attempt < 10; attempt++) {
+      final apnsToken = await _messaging.getAPNSToken();
+      if (apnsToken != null && apnsToken.isNotEmpty) {
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+    }
+
+    debugPrint(
+      'APNs token was not available yet; FCM token fetch may need a retry.',
+    );
   }
 }

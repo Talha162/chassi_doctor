@@ -1,6 +1,5 @@
 import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -107,11 +106,21 @@ class AuthService {
         metadata['full_name'] as String? ??
         metadata['name'] as String? ??
         user.email?.split('@').first;
+    final providerAvatarUrl =
+        metadata['avatar_url'] as String? ??
+        metadata['picture'] as String? ??
+        metadata['photo_url'] as String?;
+
+    final existingProfile =
+        await _supabase.from('users').select('avatar_url').eq('id', user.id).maybeSingle();
+    final existingAvatarUrl =
+        existingProfile != null ? existingProfile['avatar_url'] as String? : null;
 
     await _supabase.from('users').upsert({
       'id': user.id,
       'email': user.email,
       'full_name': fullName,
+      'avatar_url': existingAvatarUrl ?? providerAvatarUrl,
       'last_login_at': DateTime.now().toUtc().toIso8601String(),
     }, onConflict: 'id');
   }
