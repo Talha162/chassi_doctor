@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
@@ -16,26 +17,36 @@ class Courses extends StatelessWidget {
     return Scaffold(
       appBar: simpleAppBar(
         title: 'Motorsport University',
-        // haveLeading: showBackButton,
-        leading: GestureDetector(
-          // onTap: () async {
-          //   final _ = await Get.to(() => const Settings(showBackButton: true));
-          //   _loadUser(); // refresh after returning
-          // },
-          child: Padding(
-            padding: const EdgeInsets.only(left: 16),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                CircleAvatar(
+        leadingWidth: showBackButton ? 96 : 72,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (showBackButton)
+                GestureDetector(
+                  onTap: () => Get.back(),
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Image.asset(
+                      Assets.imagesArrowBack,
+                      height: 14,
+                      color: kTertiaryColor,
+                    ),
+                  ),
+                ),
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: CircleAvatar(
                   radius: 24,
                   backgroundColor: kBorderColor2,
                   child: ClipOval(
                     child: Image.asset(Assets.mainlogo, fit: BoxFit.contain),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

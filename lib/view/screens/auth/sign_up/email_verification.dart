@@ -4,7 +4,6 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_fonts.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
-import 'package:motorsport/view/screens/auth/sign_up/sign_up.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -56,7 +55,7 @@ class _EmailVerificationState extends State<EmailVerification> {
     return Scaffold(
       appBar: simpleAppBar(
         title: 'Verification',
-        onLeadingTap: () => Get.offAll(() => const SignUp()),
+        onLeadingTap: () => Get.back(),
       ),
       body: Stack(
         children: [
