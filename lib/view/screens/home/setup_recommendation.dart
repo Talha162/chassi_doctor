@@ -300,23 +300,20 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         return;
       }
 
-      // Step B: Decide ranking strategy
-      List<AdjustmentRecommendation> finalRecommendations;
-
       debugPrint(
         '\n[SETUP] Supabase fetched ${candidates.length} candidate(s).',
       );
 
-      if (candidates.length <= 4) {
-        // Use candidates as-is (already sorted by priority)
+      List<AdjustmentRecommendation> finalRecommendations;
+
+      if (candidates.length <= 12) {
         debugPrint(
-          '[SETUP] ✓ Candidates count (${candidates.length}) <= 4, using directly from Supabase.',
+          '[SETUP] ✓ Candidates count (${candidates.length}) <= 12, using directly from Supabase.',
         );
         finalRecommendations = candidates;
       } else {
-        // Call Gemini to rank and select top 3-4
         debugPrint(
-          '[SETUP] Candidates count (${candidates.length}) > 4, calling Gemini to rank...',
+          '[SETUP] Candidates count (${candidates.length}) > 12, calling Gemini to rank...',
         );
         try {
           finalRecommendations = await _geminiService.rankRecommendations(
@@ -324,12 +321,11 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
             issues: selectedIssues,
             trackConfiguration: _trackConfiguration,
             candidates: candidates,
-            topK: 4,
+            topK: 12,
           );
         } catch (e) {
-          // Fallback to top 4 by priority if ranking fails
           debugPrint('[SETUP] ❌ Gemini ranking failed: $e, using fallback.');
-          finalRecommendations = candidates.take(4).toList();
+          finalRecommendations = candidates.take(12).toList();
         }
       }
 
