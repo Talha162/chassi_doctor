@@ -306,7 +306,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                         .length, // used to handle temporarily from frontend as no backend access
               itemBuilder: (context, index) {
                 final issue = _symptoms[index];
-                final imagePath = _issueImageForTitle(issue.title);
+                final fallbackAsset = _issueImageForTitle(issue.title);
 
                 return GestureDetector(
                   onTap: () {
@@ -341,7 +341,30 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                           height: 60,
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: [Image.asset(imagePath, height: 50)],
+                            children: [
+                              if (issue.imageUrl != null)
+                                Image.network(
+                                  issue.imageUrl!,
+                                  height: 50,
+                                  errorBuilder: (_, __, ___) =>
+                                      Image.asset(fallbackAsset, height: 50),
+                                  loadingBuilder: (context, child, progress) {
+                                    if (progress == null) return child;
+                                    return SizedBox(
+                                      height: 50,
+                                      width: 50,
+                                      child: Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: kSecondaryColor,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                )
+                              else
+                                Image.asset(fallbackAsset, height: 50),
+                            ],
                           ),
                         ),
                         MyText(

@@ -620,10 +620,33 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Image.asset(
-                                    _issueImageForTitle(issue.title),
-                                    height: 60,
-                                  ),
+                                  if (issue.imageUrl != null)
+                                    Image.network(
+                                      issue.imageUrl!,
+                                      height: 60,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        _issueImageForTitle(issue.title),
+                                        height: 60,
+                                      ),
+                                      loadingBuilder: (context, child, progress) {
+                                        if (progress == null) return child;
+                                        return SizedBox(
+                                          height: 60,
+                                          width: 60,
+                                          child: Center(
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: kSecondaryColor,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    )
+                                  else
+                                    Image.asset(
+                                      _issueImageForTitle(issue.title),
+                                      height: 60,
+                                    ),
                                 ],
                               ),
                             ),
