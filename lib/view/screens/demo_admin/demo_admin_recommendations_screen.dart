@@ -436,6 +436,17 @@ class _DemoAdminRecommendationsScreenState
     }
   }
 
+  String _presetLabel(Map<String, dynamic> preset) {
+    final name = (preset['name'] as String?)?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    final parts = <String>[
+      (preset['track_type'] as String?)?.trim() ?? '',
+      (preset['surface_type'] as String?)?.trim() ?? '',
+      (preset['weather_condition'] as String?)?.trim() ?? '',
+    ].where((p) => p.isNotEmpty).toList();
+    return parts.isEmpty ? 'Preset' : parts.join(' / ');
+  }
+
   Future<void> _savePresets() async {
     if (_selectedSet == null) return;
 
@@ -898,7 +909,7 @@ class _DemoAdminRecommendationsScreenState
                         .map(
                           (preset) => FilterChip(
                             selected: _selectedPresetIds.contains(preset['id']),
-                            label: Text(preset['name'] ?? 'Preset'),
+                            label: Text(_presetLabel(preset)),
                             onSelected: (selected) {
                               setState(() {
                                 if (selected) {
