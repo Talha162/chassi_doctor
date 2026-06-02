@@ -13,7 +13,8 @@ class ModuleProgressSummary {
     return ModuleProgressSummary(
       moduleId: json['module_id'] as String,
       userId: json['user_id'] as String,
-      progressPercentage: (json['progress_percentage'] as num).toDouble(),
+      progressPercentage:
+          (json['progress_percentage'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

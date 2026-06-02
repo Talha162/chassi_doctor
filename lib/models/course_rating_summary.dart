@@ -12,8 +12,8 @@ class CourseRatingSummary {
   factory CourseRatingSummary.fromJson(Map<String, dynamic> json) {
     return CourseRatingSummary(
       courseId: json['course_id'] as String,
-      totalReviews: json['total_reviews'] as int,
-      avgRating: (json['avg_rating'] as num).toDouble(),
+      totalReviews: (json['total_reviews'] as num?)?.toInt() ?? 0,
+      avgRating: (json['avg_rating'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }
