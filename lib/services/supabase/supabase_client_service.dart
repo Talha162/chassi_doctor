@@ -264,22 +264,22 @@ class SupabaseService {
         .toList();
   }
 
-  Future<ChassisSymptom> createChassisSymptom({
+  /// Submit a user-reported symptom suggestion for admin review.
+  /// The row lands in `user_symptom_reports` with status='pending' and does
+  /// NOT appear in the live symptom list until an admin approves it.
+  Future<void> createSymptomReport({
     required String title,
     required String description,
   }) async {
     final userId = _client.auth.currentUser?.id;
-    final res = await _client
-        .from('chassis_symptoms')
-        .insert({
+    if (userId == null) {
+      throw StateError('You must be signed in to report a symptom.');
+    }
+    await _client.from('user_symptom_reports').insert({
+      'user_id': userId,
       'title': title,
       'description': description,
-      'created_by': userId,
-    })
-        .select()
-        .single();
-
-    return ChassisSymptom.fromJson(res as Map<String, dynamic>);
+    });
   }
 
   Future<List<ChassisIssueOption>> getIssueOptionsForSymptom(
@@ -296,24 +296,24 @@ class SupabaseService {
         .toList();
   }
 
-  Future<ChassisIssueOption> createIssueOption({
+  /// Submit a user-reported issue suggestion (scoped to a symptom) for admin
+  /// review. The row lands in `user_issue_reports` with status='pending' and
+  /// does NOT appear in the live issue list until an admin approves it.
+  Future<void> createIssueReport({
     required String symptomId,
     required String title,
     required String description,
   }) async {
     final userId = _client.auth.currentUser?.id;
-    final res = await _client
-        .from('chassis_issue_options')
-        .insert({
+    if (userId == null) {
+      throw StateError('You must be signed in to report an issue.');
+    }
+    await _client.from('user_issue_reports').insert({
+      'user_id': userId,
       'symptom_id': symptomId,
       'title': title,
       'description': description,
-      'created_by': userId,
-    })
-        .select()
-        .single();
-
-    return ChassisIssueOption.fromJson(res as Map<String, dynamic>);
+    });
   }
 
   /// Fetch rankable recommendations from Supabase based on symptom and issues.

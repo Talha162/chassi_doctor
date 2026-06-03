@@ -140,16 +140,18 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
 
                           setDialogState(() => isSaving = true);
                           try {
-                            final created = await _supabaseService
-                                .createChassisSymptom(
-                                  title: title,
-                                  description: description,
-                                );
+                            await _supabaseService.createSymptomReport(
+                              title: title,
+                              description: description,
+                            );
                             if (mounted) {
                               Navigator.pop(context);
-                              _loadSymptoms();
-                              Get.to(
-                                () => SetupRecommendation(symptom: created),
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Thanks — your symptom has been submitted for review.',
+                                  ),
+                                ),
                               );
                             }
                           } catch (e) {
@@ -157,7 +159,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to save symptom: ${e.toString()}',
+                                    'Failed to submit report: ${e.toString()}',
                                   ),
                                 ),
                               );
@@ -440,7 +442,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                   ),
                   MyText(
                     text:
-                        'Lack of grip during acceleration, braking, or cornering, leading to wheel spin or slides.',
+                        "Don't see your symptom above? Tap to submit it for admin review.",
                     size: 10,
                     lineHeight: 1.5,
                     color: kSecondaryColor,

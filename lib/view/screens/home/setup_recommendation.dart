@@ -121,7 +121,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
           builder: (context, setDialogState) {
             return AlertDialog(
               backgroundColor: kQuaternaryColor,
-              title: Text('Add Issue for ${widget.symptom.title}'),
+              title: Text('Report a New Issue for ${widget.symptom.title}'),
               content: SingleChildScrollView(
                 child: Column(
                   children: [
@@ -136,7 +136,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                     TextField(
                       controller: descriptionController,
                       decoration: const InputDecoration(
-                        labelText: 'Description',
+                        labelText: 'Describe what you are experiencing',
                       ),
                       maxLines: 3,
                       maxLength: 200,
@@ -166,25 +166,27 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
 
                           setDialogState(() => isSaving = true);
                           try {
-                            final created = await _supabaseService
-                                .createIssueOption(
-                                  symptomId: widget.symptom.id,
-                                  title: title,
-                                  description: description,
-                                );
+                            await _supabaseService.createIssueReport(
+                              symptomId: widget.symptom.id,
+                              title: title,
+                              description: description,
+                            );
                             if (mounted) {
                               Navigator.pop(context);
-                              setState(() {
-                                _issues.insert(0, created);
-                                _selectedIssueIds.add(created.id);
-                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Thanks — your issue has been submitted for review.',
+                                  ),
+                                ),
+                              );
                             }
                           } catch (e) {
                             if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Failed to save issue: ${e.toString()}',
+                                    'Failed to submit report: ${e.toString()}',
                                   ),
                                 ),
                               );
@@ -201,7 +203,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                           width: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('Save'),
+                      : const Text('Submit'),
                 ),
               ],
             );
