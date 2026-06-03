@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData)",
+      "Bash(rm -rf ~/Library/Caches/CocoaPods)",
+      "Bash(flutter clean *)",
+      "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData/* ~/Library/Developer/Xcode/DerivedData/.??*)"
+    ]
+  }
+}

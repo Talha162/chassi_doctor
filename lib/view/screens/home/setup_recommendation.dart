@@ -119,15 +119,47 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
+            InputDecoration dialogInputDecoration({required String labelText}) {
+              return InputDecoration(
+                labelText: labelText,
+                labelStyle: TextStyle(color: kSecondaryColor),
+                counterStyle: TextStyle(color: kTertiaryColor),
+                filled: true,
+                fillColor: const Color(0xff16295C),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kBorderColor2),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kSecondaryColor, width: 1.5),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: kBorderColor2),
+                ),
+              );
+            }
+
             return AlertDialog(
               backgroundColor: kQuaternaryColor,
-              title: Text('Report a New Issue for ${widget.symptom.title}'),
+              title: Text(
+                'Report a New Issue for ${widget.symptom.title}',
+                style: TextStyle(
+                  color: kWhiteColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
               content: SingleChildScrollView(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     TextField(
                       controller: titleController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: kWhiteColor),
+                      cursorColor: kWhiteColor,
+                      decoration: dialogInputDecoration(
                         labelText: 'Issue title',
                       ),
                       maxLength: 60,
@@ -135,7 +167,9 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: descriptionController,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: kWhiteColor),
+                      cursorColor: kWhiteColor,
+                      decoration: dialogInputDecoration(
                         labelText: 'Describe what you are experiencing',
                       ),
                       maxLines: 3,
@@ -147,7 +181,10 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
               actions: [
                 TextButton(
                   onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: const Text('Cancel'),
+                  child: Text(
+                    'Cancel',
+                    style: TextStyle(color: kSecondaryColor),
+                  ),
                 ),
                 ElevatedButton(
                   onPressed: isSaving
@@ -197,11 +234,18 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                             }
                           }
                         },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kSecondaryColor,
+                    foregroundColor: kPrimaryColor,
+                  ),
                   child: isSaving
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 16,
                           width: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: kPrimaryColor,
+                          ),
                         )
                       : const Text('Submit'),
                 ),
