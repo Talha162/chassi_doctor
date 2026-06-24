@@ -523,6 +523,203 @@ class SupabaseService {
     return '$track\_$surface\_$engine\_$aero\_$weather\_$drive';
   }
 
+  /// Fetches setup advice from `chassis_combination_advice`, matched on the
+  /// 6 car/track config columns + the symptom string built from
+  /// (selected issue title) + (symptom title).
+  ///
+  /// Returns rows mapped onto [AdjustmentRecommendation]:
+  ///   adjustment   -> title
+  ///   reason       -> details
+  ///   setup_level  -> category   (Primary | Secondary)
+  ///   priority     -> priorityOrder   (H=0, M=1, L=2 — lower = higher priority)
+  ///
+  /// Sorted by setup_level (Primary first) then priority (H, M, L).
+  Future<List<AdjustmentRecommendation>> getCombinationAdvice({
+    required String symptomTitle,
+    required List<String> issueTitles,
+    required TrackConfiguration? trackConfiguration,
+  }) async {
+    if (trackConfiguration == null) {
+      debugPrint('[SUPABASE] No track configuration — cannot match advice.');
+      return [];
+    }
+
+    final filters = _buildCombinationFilters(trackConfiguration);
+    if (filters == null) {
+      debugPrint(
+        '[SUPABASE] Track configuration has unsupported/missing values '
+        '(e.g. Rear engine) — no advice available.',
+      );
+      return [];
+    }
+
+    debugPrint(
+      '[SUPABASE] Querying chassis_combination_advice with filters: $filters',
+    );
+
+    try {
+      final rows = await _client
+          .from('chassis_combination_advice')
+          .select()
+          .eq('track_type', filters['track_type'] as String)
+          .eq('surface', filters['surface'] as String)
+          .eq('engine_position', filters['engine_position'] as String)
+          .eq('has_aero', filters['has_aero'] as bool)
+          .eq('weather', filters['weather'] as String)
+          .eq('drive_type', filters['drive_type'] as String);
+
+      final allRows = (rows as List).cast<Map<String, dynamic>>();
+      debugPrint(
+        '[SUPABASE] chassis_combination_advice returned ${allRows.length} '
+        'row(s) for this configuration (pre-symptom filter).',
+      );
+
+      if (allRows.isEmpty) return [];
+
+      final symptomCandidates = _buildSymptomCandidates(
+        symptomTitle: symptomTitle,
+        issueTitles: issueTitles,
+      );
+      debugPrint('[SUPABASE] Symptom candidate strings: $symptomCandidates');
+
+      final matched = allRows.where((row) {
+        final s = (row['symptom'] as String?)?.trim().toLowerCase();
+        if (s == null || s.isEmpty) return false;
+        return symptomCandidates.contains(s);
+      }).toList();
+
+      debugPrint(
+        '[SUPABASE] ${matched.length} row(s) matched symptom candidates.',
+      );
+
+      const levelOrder = {'primary': 0, 'secondary': 1};
+      const priorityOrder = {'h': 0, 'm': 1, 'l': 2};
+
+      final recommendations = matched.map((row) {
+        final priorityLetter =
+            (row['priority'] as String?)?.trim().toUpperCase() ?? 'M';
+        final order = priorityOrder[priorityLetter.toLowerCase()] ?? 1;
+        return AdjustmentRecommendation.fromJson({
+          'id': row['id'],
+          'title': row['adjustment'],
+          'details': row['reason'],
+          'category': row['setup_level'],
+          'priority_order': order,
+        });
+      }).toList();
+
+      recommendations.sort((a, b) {
+        final aLevel =
+            levelOrder[(a.category ?? '').trim().toLowerCase()] ?? 99;
+        final bLevel =
+            levelOrder[(b.category ?? '').trim().toLowerCase()] ?? 99;
+        if (aLevel != bLevel) return aLevel.compareTo(bLevel);
+        final aPriority = a.priorityOrder ?? 99;
+        final bPriority = b.priorityOrder ?? 99;
+        return aPriority.compareTo(bPriority);
+      });
+
+      for (final rec in recommendations) {
+        debugPrint(
+          '  - [${rec.category} | P${rec.priorityOrder}] ${rec.title}',
+        );
+      }
+      return recommendations;
+    } catch (e) {
+      debugPrint('[SUPABASE] chassis_combination_advice query failed: $e');
+      return [];
+    }
+  }
+
+  /// Maps the app's [TrackConfiguration] onto the column values used by
+  /// `chassis_combination_advice`. Returns null if any required dimension
+  /// is missing or unsupported (e.g. Rear engine, which the spreadsheet
+  /// does not cover).
+  Map<String, Object>? _buildCombinationFilters(TrackConfiguration config) {
+    final track = switch ((config.trackType ?? '').trim().toLowerCase()) {
+      'oval' => 'Oval',
+      'circuit' || 'circuit/road course' => 'Circuit',
+      _ => null,
+    };
+
+    final surface = switch ((config.surfaceType ?? '').trim().toLowerCase()) {
+      'tarmac' || 'tarmac/paved' => 'Tarmac',
+      'dirt' || 'shale/dirt/grass' || 'grass' => 'Dirt',
+      _ => null,
+    };
+
+    final engine = switch ((config.enginePosition ?? '').trim().toLowerCase()) {
+      'front' => 'Front',
+      'mid' => 'Mid',
+      _ => null, // 'rear' falls through — spreadsheet has no Rear coverage
+    };
+
+    final aero = switch ((config.aerofoils ?? '').trim().toLowerCase()) {
+      'yes' || 'true' => true,
+      'no' || 'false' => false,
+      _ => null,
+    };
+
+    final weather = switch ((config.weatherCondition ?? '').trim().toLowerCase()) {
+      'dry' => 'Dry',
+      'wet' => 'Wet',
+      _ => null,
+    };
+
+    final drive = switch ((config.driveType ?? '').trim().toUpperCase()) {
+      'RWD' => 'RWD',
+      'FWD' => 'FWD',
+      _ => null,
+    };
+
+    if (track == null ||
+        surface == null ||
+        engine == null ||
+        aero == null ||
+        weather == null ||
+        drive == null) {
+      return null;
+    }
+
+    return {
+      'track_type': track,
+      'surface': surface,
+      'engine_position': engine,
+      'has_aero': aero,
+      'weather': weather,
+      'drive_type': drive,
+    };
+  }
+
+  /// Builds the lowercase set of symptom strings to match against the
+  /// `symptom` column. Covers both observed naming conventions in the
+  /// spreadsheet, e.g. "Corner Entry Understeer" AND the shorter
+  /// "Entry Understeer" / "Exit Oversteer" forms.
+  Set<String> _buildSymptomCandidates({
+    required String symptomTitle,
+    required List<String> issueTitles,
+  }) {
+    final candidates = <String>{};
+    final symptom = symptomTitle.trim();
+    if (symptom.isEmpty) return candidates;
+
+    candidates.add(symptom.toLowerCase());
+
+    for (final raw in issueTitles) {
+      final issue = raw.trim();
+      if (issue.isEmpty) continue;
+      candidates.add('$issue $symptom'.toLowerCase());
+      final withoutCorner = issue
+          .replaceAll(RegExp(r'\bcorner\b', caseSensitive: false), '')
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+      if (withoutCorner.isNotEmpty && withoutCorner != issue) {
+        candidates.add('$withoutCorner $symptom'.toLowerCase());
+      }
+    }
+    return candidates;
+  }
+
   Future<ChassisSession> createChassisSession({
     required String userId,
     required Map<String, dynamic> trackSnapshot,

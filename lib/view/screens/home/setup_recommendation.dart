@@ -7,7 +7,6 @@ import 'package:motorsport/models/adjustment_recommendation.dart';
 import 'package:motorsport/models/chassis_issue_option.dart';
 import 'package:motorsport/models/chassis_symptom.dart';
 import 'package:motorsport/models/track_configuration.dart';
-import 'package:motorsport/services/gemini_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -30,7 +29,6 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   static const String _driveTypeKey = 'drive_type';
 
   final SupabaseService _supabaseService = SupabaseService.instance;
-  final GeminiService _geminiService = GeminiService();
 
   bool _isLoadingIssues = true;
   bool _isRequesting = false;
@@ -322,23 +320,20 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         '═══════════════════════════════════════════════════════════\n',
       );
 
-      // Step A: Fetch candidates from Supabase
-      final candidates = await _supabaseService.getRankableRecommendations(
-        symptomId: widget.symptom.id,
-        issueIds: List<String>.from(selectedIssueIds),
-        presetId: _trackConfiguration?.presetId,
+      final candidates = await _supabaseService.getCombinationAdvice(
+        symptomTitle: widget.symptom.title,
+        issueTitles: selectedIssues.map((i) => i.title).toList(),
         trackConfiguration: _trackConfiguration,
       );
 
       if (!mounted) return;
 
-      // If no candidates found, show message and return
       if (candidates.isEmpty) {
-        debugPrint('[SETUP] ❌ No recommendations found in Supabase!');
+        debugPrint('[SETUP] ❌ No advice found in chassis_combination_advice.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-              'No preset recommendations found for these selections.',
+              'No advice available for this configuration yet.',
             ),
           ),
         );
@@ -347,33 +342,10 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       }
 
       debugPrint(
-        '\n[SETUP] Supabase fetched ${candidates.length} candidate(s).',
+        '\n[SETUP] Loaded ${candidates.length} advice row(s) from chassis_combination_advice.',
       );
 
-      List<AdjustmentRecommendation> finalRecommendations;
-
-      if (candidates.length <= 12) {
-        debugPrint(
-          '[SETUP] ✓ Candidates count (${candidates.length}) <= 12, using directly from Supabase.',
-        );
-        finalRecommendations = candidates;
-      } else {
-        debugPrint(
-          '[SETUP] Candidates count (${candidates.length}) > 12, calling Gemini to rank...',
-        );
-        try {
-          finalRecommendations = await _geminiService.rankRecommendations(
-            symptom: widget.symptom,
-            issues: selectedIssues,
-            trackConfiguration: _trackConfiguration,
-            candidates: candidates,
-            topK: 12,
-          );
-        } catch (e) {
-          debugPrint('[SETUP] ❌ Gemini ranking failed: $e, using fallback.');
-          finalRecommendations = candidates.take(12).toList();
-        }
-      }
+      final finalRecommendations = candidates;
 
       if (!mounted) return;
 

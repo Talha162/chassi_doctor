@@ -2,7 +2,7 @@ name: motorsport
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: ^3.8.1
@@ -44,8 +44,15 @@ dependencies:
 
 dev_dependencies:
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.1
   flutter_test:
     sdk: flutter
+
+flutter_launcher_icons:
+  ios: true
+  android: false
+  image_path: "assets/images/chassisdrmainlogo.jpeg"
+  remove_alpha_ios: true
 
 flutter:
 

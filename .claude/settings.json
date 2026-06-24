@@ -4,7 +4,17 @@
       "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData)",
       "Bash(rm -rf ~/Library/Caches/CocoaPods)",
       "Bash(flutter clean *)",
-      "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData/* ~/Library/Developer/Xcode/DerivedData/.??*)"
+      "Bash(rm -rf ~/Library/Developer/Xcode/DerivedData/* ~/Library/Developer/Xcode/DerivedData/.??*)",
+      "Bash(flutter analyze *)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/talha/chassi_doctor/assets/images/chassisdrmainlogo.jpeg /Users/talha/chassi_doctor/assets/images/logo.png)",
+      "Bash(dart run *)",
+      "Bash(md5 /Users/talha/chassi_doctor/ios/Runner/Assets.xcassets/AppIcon.appiconset/Icon-App-1024x1024@1x.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight /Users/talha/chassi_doctor/ios/Runner/Assets.xcassets/LaunchImage.imageset/*.png)",
+      "Bash(sips -s format png -z 200 200 /Users/talha/chassi_doctor/assets/images/chassisdrmainlogo.jpeg --out LaunchImage.png)",
+      "Bash(sips -s format png -z 400 400 /Users/talha/chassi_doctor/assets/images/chassisdrmainlogo.jpeg --out LaunchImage@2x.png)",
+      "Bash(sips -s format png -z 600 600 /Users/talha/chassi_doctor/assets/images/chassisdrmainlogo.jpeg --out LaunchImage@3x.png)",
+      "Bash(sips -g pixelWidth -g pixelHeight LaunchImage.png LaunchImage@2x.png LaunchImage@3x.png)",
+      "Bash(grep -iE \"\\\\.\\(png|jpg|jpeg|heic\\)$\")"
     ]
   }
 }
