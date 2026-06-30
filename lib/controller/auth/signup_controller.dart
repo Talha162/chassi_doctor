@@ -83,7 +83,7 @@ class SignUpController extends GetxController {
   }
 
   Future<void> signUpGoogle() => _socialAuth(() => _authService.signInWithGoogle());
-  Future<void> signUpFacebook() => _socialAuth(() => _authService.signInWithFacebook());
+  Future<void> signUpApple() => _socialAuth(() => _authService.signInWithApple());
 
   @override
   void onClose() {

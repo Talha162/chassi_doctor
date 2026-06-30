@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/routes/routes.dart';
@@ -160,6 +162,14 @@ class _SignUpState extends State<SignUp> {
                             : Assets.imagesGoogle,
                         onTap: controller.signUpGoogle,
                       ),
+                      // Sign up with Apple — required by App Store on iOS
+                      if (Platform.isIOS) ...[
+                        const SizedBox(width: 20),
+                        _SocialBtn(
+                          iconData: Icons.apple,
+                          onTap: controller.signUpApple,
+                        ),
+                      ],
                     ],
                   ),
 
@@ -189,9 +199,10 @@ class _SignUpState extends State<SignUp> {
 }
 
 class _SocialBtn extends StatelessWidget {
-  final String icon;
+  final String? icon;
+  final IconData? iconData;
   final VoidCallback onTap;
-  const _SocialBtn({required this.icon, required this.onTap});
+  const _SocialBtn({this.icon, this.iconData, required this.onTap});
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -208,12 +219,14 @@ class _SocialBtn extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Image.asset(
-            icon,
-            height: 30,
-            width: 30,
-            fit: BoxFit.contain,
-          ),
+          child: iconData != null
+              ? Icon(iconData, size: 32, color: kWhiteColor)
+              : Image.asset(
+                  icon!,
+                  height: 30,
+                  width: 30,
+                  fit: BoxFit.contain,
+                ),
         ),
       ),
     );

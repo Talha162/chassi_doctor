@@ -63,5 +63,9 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Chassis Doctor needs access to your camera so you can take a photo for your profile picture.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Chassis Doctor needs access to your photo library so you can choose a profile picture.</string>
 </dict>
 </plist>

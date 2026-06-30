@@ -77,7 +77,7 @@ class LoginController extends GetxController {
 
   // --- SOCIAL LOGINS ---
   Future<void> loginGoogle() async => await _handleOAuthAction(() => _authService.signInWithGoogle());
-  Future<void> loginFacebook() async => await _handleAuthAction(() => _authService.signInWithFacebook());
+  Future<void> loginApple() async => await _handleAuthAction(() => _authService.signInWithApple());
 
   @override
   void onClose() {

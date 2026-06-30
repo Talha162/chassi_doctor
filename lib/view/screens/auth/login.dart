@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/routes/routes.dart';
@@ -156,6 +158,14 @@ class _LoginState extends State<Login> {
                             : Assets.imagesGoogle,
                         onTap: controller.loginGoogle,
                       ),
+                      // Sign in with Apple — required by App Store on iOS
+                      if (Platform.isIOS) ...[
+                        const SizedBox(width: 20),
+                        _SocialButton(
+                          iconData: Icons.apple,
+                          onTap: controller.loginApple,
+                        ),
+                      ],
                     ],
                   ),
 
@@ -186,10 +196,11 @@ class _LoginState extends State<Login> {
 
 // Helper widget for cleaner code
 class _SocialButton extends StatelessWidget {
-  final String icon;
+  final String? icon;
+  final IconData? iconData;
   final VoidCallback onTap;
 
-  const _SocialButton({required this.icon, required this.onTap});
+  const _SocialButton({this.icon, this.iconData, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -207,12 +218,14 @@ class _SocialButton extends StatelessWidget {
           ),
         ),
         child: Center(
-          child: Image.asset(
-            icon,
-            height: 30,
-            width: 30,
-            fit: BoxFit.contain,
-          ),
+          child: iconData != null
+              ? Icon(iconData, size: 32, color: kWhiteColor)
+              : Image.asset(
+                  icon!,
+                  height: 30,
+                  width: 30,
+                  fit: BoxFit.contain,
+                ),
         ),
       ),
     );

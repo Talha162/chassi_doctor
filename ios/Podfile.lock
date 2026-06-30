@@ -1,14 +1,6 @@
 PODS:
   - app_links (6.4.1):
     - Flutter
-  - FBAEMKit (17.0.3):
-    - FBSDKCoreKit_Basics (= 17.0.3)
-  - FBSDKCoreKit (17.0.3):
-    - FBAEMKit (= 17.0.3)
-    - FBSDKCoreKit_Basics (= 17.0.3)
-  - FBSDKCoreKit_Basics (17.0.3)
-  - FBSDKLoginKit (17.0.3):
-    - FBSDKCoreKit (= 17.0.3)
   - Firebase/CoreOnly (12.12.0):
     - FirebaseCore (~> 12.12.0)
   - Firebase/Messaging (12.12.0):
@@ -42,12 +34,7 @@ PODS:
     - GoogleUtilities/UserDefaults (~> 8.1)
     - nanopb (~> 3.30910.0)
   - Flutter (1.0.0)
-  - flutter_facebook_auth (6.2.0):
-    - FBSDKLoginKit (~> 17.0.0)
-    - Flutter
   - flutter_local_notifications (0.0.1):
-    - Flutter
-  - flutter_secure_storage (6.0.0):
     - Flutter
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
@@ -92,6 +79,8 @@ PODS:
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
+  - sign_in_with_apple (0.0.1):
+    - Flutter
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
@@ -106,23 +95,18 @@ DEPENDENCIES:
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_messaging (from `.symlinks/plugins/firebase_messaging/ios`)
   - Flutter (from `Flutter`)
-  - flutter_facebook_auth (from `.symlinks/plugins/flutter_facebook_auth/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
-  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
+  - sign_in_with_apple (from `.symlinks/plugins/sign_in_with_apple/ios`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
   - video_player_avfoundation (from `.symlinks/plugins/video_player_avfoundation/darwin`)
 
 SPEC REPOS:
   trunk:
-    - FBAEMKit
-    - FBSDKCoreKit
-    - FBSDKCoreKit_Basics
-    - FBSDKLoginKit
     - Firebase
     - FirebaseCore
     - FirebaseCoreInternal
@@ -142,12 +126,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/firebase_messaging/ios"
   Flutter:
     :path: Flutter
-  flutter_facebook_auth:
-    :path: ".symlinks/plugins/flutter_facebook_auth/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
-  flutter_secure_storage:
-    :path: ".symlinks/plugins/flutter_secure_storage/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   path_provider_foundation:
@@ -156,6 +136,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/share_plus/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
+  sign_in_with_apple:
+    :path: ".symlinks/plugins/sign_in_with_apple/ios"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
   url_launcher_ios:
@@ -165,10 +147,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   app_links: 3dbc685f76b1693c66a6d9dd1e9ab6f73d97dc0a
-  FBAEMKit: 9900b2edd99a2d21629a6277e6166f14c6215799
-  FBSDKCoreKit: 0791f8f68a8630931a4c12aa23a56cc021551596
-  FBSDKCoreKit_Basics: 46d6b472c0dd0a5a7e972c025033d1c567f54eb4
-  FBSDKLoginKit: b4a4eba1d62eb452544411824f41689adabd5bd2
   Firebase: aa154fee4e9b8eac17aa42344988865b3e857d33
   firebase_core: 9156a152117c843440b0b990c785aa0259bc5447
   firebase_messaging: 0d962ab44ff24ed36deb8fa2ee043c4671858269
@@ -177,9 +155,7 @@ SPEC CHECKSUMS:
   FirebaseInstallations: 4e6e162aa4abaaeeeb01dd00179dfc5ad9c2194e
   FirebaseMessaging: 341004946fa7ffc741344b20f1b667514fc93e31
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_facebook_auth: 2f28c889d5727b4538ed8d25be3367092b2cbef7
   flutter_local_notifications: 643a3eda1ce1c0599413ca31672536d423dee214
-  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: e0ece4aa2a75771a7de3fa735d26d90817041326
@@ -188,6 +164,7 @@ SPEC CHECKSUMS:
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   share_plus: 50da8cb520a8f0f65671c6c6a99b3617ed10a58a
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
+  sign_in_with_apple: c5dcc141574c8c54d5ac99dd2163c0c72ad22418
   sqflite_darwin: 20b2a3a3b70e43edae938624ce550a3cbf66a3d0
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   video_player_avfoundation: dd410b52df6d2466a42d28550e33e4146928280a
