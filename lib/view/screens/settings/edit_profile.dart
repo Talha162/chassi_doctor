@@ -7,6 +7,7 @@ import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/main.dart';
 import 'package:motorsport/models/app_user.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
+import 'package:motorsport/utils/image_picker_helper.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
@@ -33,7 +34,7 @@ class _EditProfileState extends State<EditProfile> {
   final _locationC = TextEditingController();
   final _phoneC = TextEditingController();
 
-  XFile? _pickedImage;
+  File? _pickedImage;
   String? _avatarUrl;
 
   @override
@@ -158,13 +159,7 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final picker = ImagePicker();
-      final result = await picker.pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
+      final result = await ImagePickerHelper.pickAndCropAvatar(source);
       if (!mounted) return;
       if (result != null) {
         setState(() {
@@ -231,7 +226,7 @@ class _EditProfileState extends State<EditProfile> {
 
       // upload avatar if changed
       if (_pickedImage != null) {
-        final file = File(_pickedImage!.path);
+        final file = _pickedImage!;
         avatarUrl = await _service.uploadProfileImage(
           userId: _user!.id,
           file: file,
@@ -325,13 +320,14 @@ class _EditProfileState extends State<EditProfile> {
                     width: 120,
                     child: _pickedImage != null
                         ? Image.file(
-                      File(_pickedImage!.path),
+                      _pickedImage!,
                       fit: BoxFit.cover,
                     )
                         : CommonImageView(
                       height: 120,
                       width: 120,
                       radius: 100,
+                      fit: BoxFit.cover,
                       url: _avatarUrl ?? dummyImg,
                     ),
                   ),

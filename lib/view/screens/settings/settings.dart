@@ -436,6 +436,7 @@ class _SettingsState extends State<Settings> {
                       height: 120,
                       width: 120,
                       radius: 100,
+                      fit: BoxFit.cover,
                       url: avatarUrl,
                     ),
                   ),

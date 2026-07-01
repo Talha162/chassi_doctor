@@ -592,7 +592,9 @@ class SupabaseService {
         '[SUPABASE] ${matched.length} row(s) matched symptom candidates.',
       );
 
-      const levelOrder = {'primary': 0, 'secondary': 1};
+      // Secondary (simpler, quick trackside tweaks) is shown first, then
+      // Primary (bigger setup changes). Users try the easy adjustments first.
+      const levelOrder = {'secondary': 0, 'primary': 1};
       const priorityOrder = {'h': 0, 'm': 1, 'l': 2};
 
       final recommendations = matched.map((row) {

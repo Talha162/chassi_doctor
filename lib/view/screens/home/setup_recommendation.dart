@@ -746,7 +746,10 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                   child: _AdjustmentTile(
                     title: recommendation.title,
                     subtitle: recommendation.details,
-                    trailing: recommendation.category,
+                    trailing: (recommendation.category == null ||
+                            recommendation.category!.trim().isEmpty)
+                        ? null
+                        : '${recommendation.category!.trim()} Setup',
                   ),
                 );
               },
