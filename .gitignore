@@ -51,3 +51,8 @@ lib/config/api_keys.dart
 .env.local
 *.key
 *.pem
+
+# Release signing (keep secret, never commit)
+android/key.properties
+android/app/upload-keystore.jks
+*.jks
