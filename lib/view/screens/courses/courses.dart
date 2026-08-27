@@ -3,9 +3,12 @@ import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
+import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/courses/all_courses.dart';
 import 'package:motorsport/view/screens/courses/my_courses.dart';
+import 'package:motorsport/view/screens/subscriptions/paywall_screen.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
+import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 
 class Courses extends StatelessWidget {
@@ -50,50 +53,74 @@ class Courses extends StatelessWidget {
           ),
         ),
       ),
-      body: ListView(
-        shrinkWrap: true,
-        padding: AppSizes.ZERO,
-        physics: BouncingScrollPhysics(),
-        children: [
-          Container(
-            margin: AppSizes.HORIZONTAL,
-            decoration: BoxDecoration(
-              image: DecorationImage(
-                image: AssetImage(Assets.imagesCoursesBg),
-                fit: BoxFit.cover,
+      body: ValueListenableBuilder(
+        valueListenable: SubscriptionService.instance.state,
+        builder: (context, state, _) => ListView(
+          shrinkWrap: true,
+          padding: AppSizes.ZERO,
+          physics: BouncingScrollPhysics(),
+          children: [
+            Container(
+              margin: AppSizes.HORIZONTAL,
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: AssetImage(Assets.imagesCoursesBg),
+                  fit: BoxFit.cover,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                color: kQuaternaryColor,
               ),
-              borderRadius: BorderRadius.circular(12),
-              color: kQuaternaryColor,
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  MyText(
+                    text: 'Motorsport University',
+                    size: 18,
+                    weight: FontWeight.bold,
+                    paddingBottom: 6,
+                  ),
+                  MyText(
+                    text: state.hasActiveSubscription
+                        ? 'Your All Access subscription is active. Every published course is ready below.'
+                        : 'Start a 3-day free trial, then unlock every current course with one monthly or yearly subscription.',
+                    size: 12,
+                    lineHeight: 1.5,
+                    color: kTertiaryColor,
+                    paddingBottom: 16,
+                  ),
+                  if (!state.hasActiveSubscription)
+                    SizedBox(
+                      width: 190,
+                      child: MyButton(
+                        buttonText: 'View All Access Plans',
+                        height: 42,
+                        textSize: 13,
+                        bgColor: kSecondaryColor,
+                        textColor: kPrimaryColor,
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const PaywallScreen(
+                                sourceLabel: 'Courses Overview',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
             ),
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                MyText(
-                  text: 'Motorsport University',
-                  size: 18,
-                  weight: FontWeight.bold,
-                  paddingBottom: 6,
-                ),
-                MyText(
-                  text:
-                      'Browse one-time paid racing education, keep diagnostics under Chassis Doctor, and manage your learning separately here.',
-                  size: 12,
-                  lineHeight: 1.5,
-                  color: kTertiaryColor,
-                  paddingBottom: 16,
-                ),
-              ],
+            CustomTabBar(
+              tabs: ['All Courses', 'My Learning'],
+              tabContents: [AllCourses(), MyCourses()],
             ),
-          ),
-          CustomTabBar(
-            tabs: ['All Courses', 'Purchased Courses'],
-            tabContents: [AllCourses(), MyCourses()],
-          ),
-          const SizedBox(height: 16),
-          // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),
-          const SizedBox(height: 16),
-        ],
+            const SizedBox(height: 16),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }

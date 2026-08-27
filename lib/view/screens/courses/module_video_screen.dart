@@ -74,9 +74,12 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
 
       await _openInitialVideoIfNeeded();
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      debugPrint('Failed to load module videos: $e');
+      if (mounted) {
+        setState(() {
+          _error = 'This module could not be loaded. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -91,7 +94,9 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
       return;
     }
 
-    final initialVideo = _videos.where((video) => video.id == widget.initialVideoId);
+    final initialVideo = _videos.where(
+      (video) => video.id == widget.initialVideoId,
+    );
     if (initialVideo.isEmpty) {
       _handledInitialVideo = true;
       return;
@@ -109,10 +114,8 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => VideoPlayerScreen(
-            video: initialVideo.first,
-            userId: userId,
-          ),
+          builder: (_) =>
+              VideoPlayerScreen(video: initialVideo.first, userId: userId),
         ),
       ).then((_) {
         _loadData();
@@ -136,11 +139,7 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(
-              child: MyText(
-                text: 'Error: $_error',
-                size: 14,
-                color: Colors.red,
-              ),
+              child: MyText(text: _error!, size: 14, color: Colors.red),
             )
           : ListView(
               padding: AppSizes.DEFAULT,

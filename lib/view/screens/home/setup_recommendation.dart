@@ -332,9 +332,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         debugPrint('[SETUP] ❌ No advice found in chassis_combination_advice.');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text(
-              'No advice available for this configuration yet.',
-            ),
+            content: Text('No advice available for this configuration yet.'),
           ),
         );
         setState(() => _isRequesting = false);
@@ -537,6 +535,41 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
     }
   }
 
+  IconData? _stageIconForTitle(String title) {
+    switch (title.trim().toLowerCase()) {
+      case 'corner entry':
+        return Icons.login_rounded;
+      case 'mid corner':
+        return Icons.rotate_right_rounded;
+      case 'corner exit':
+        return Icons.logout_rounded;
+      default:
+        return null;
+    }
+  }
+
+  Widget _issueVisual(ChassisIssueOption issue) {
+    final stageIcon = _stageIconForTitle(issue.title);
+    if (stageIcon != null) {
+      return Icon(stageIcon, size: 54, color: kSecondaryColor);
+    }
+
+    final fallback = Image.asset(_issueImageForTitle(issue.title), height: 60);
+    if (issue.imageUrl == null || issue.imageUrl!.trim().isEmpty) {
+      return fallback;
+    }
+
+    return Image.network(
+      issue.imageUrl!,
+      height: 60,
+      errorBuilder: (_, __, ___) => fallback,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) return child;
+        return fallback;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final visibleIssueIds = _visibleIssues.map((issue) => issue.id).toSet();
@@ -637,35 +670,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                               height: 60,
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  if (issue.imageUrl != null)
-                                    Image.network(
-                                      issue.imageUrl!,
-                                      height: 60,
-                                      errorBuilder: (_, __, ___) => Image.asset(
-                                        _issueImageForTitle(issue.title),
-                                        height: 60,
-                                      ),
-                                      loadingBuilder: (context, child, progress) {
-                                        if (progress == null) return child;
-                                        return SizedBox(
-                                          height: 60,
-                                          width: 60,
-                                          child: Center(
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              color: kSecondaryColor,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    )
-                                  else
-                                    Image.asset(
-                                      _issueImageForTitle(issue.title),
-                                      height: 60,
-                                    ),
-                                ],
+                                children: [_issueVisual(issue)],
                               ),
                             ),
                             MyText(
@@ -746,7 +751,8 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                   child: _AdjustmentTile(
                     title: recommendation.title,
                     subtitle: recommendation.details,
-                    trailing: (recommendation.category == null ||
+                    trailing:
+                        (recommendation.category == null ||
                             recommendation.category!.trim().isEmpty)
                         ? null
                         : '${recommendation.category!.trim()} Setup',

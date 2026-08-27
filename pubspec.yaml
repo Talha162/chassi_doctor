@@ -2,7 +2,7 @@ name: motorsport
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.2+4
+version: 1.0.4+8
 
 environment:
   sdk: ^3.8.1
@@ -39,6 +39,7 @@ dependencies:
   firebase_core: ^4.7.0
   firebase_messaging: ^16.2.0
   flutter_local_notifications: ^21.0.0
+  purchases_flutter: ^10.9.1
 
 
 

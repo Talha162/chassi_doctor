@@ -3,10 +3,10 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/course.dart';
-import 'package:motorsport/models/course_enrollment.dart';
 import 'package:motorsport/models/course_module.dart';
 import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/module_progress_summary.dart';
+import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
@@ -18,6 +18,7 @@ import '../../../services/supabase/supabase_client_service.dart';
 import '../courses/course_detail_screen.dart';
 import '../courses/courses.dart';
 import '../courses/module_video_screen.dart';
+import '../subscriptions/paywall_screen.dart';
 
 class LearningHub extends StatefulWidget {
   const LearningHub({
@@ -68,7 +69,9 @@ class _LearningHubState extends State<LearningHub> {
       });
 
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
+      final hasSubscription =
+          SubscriptionService.instance.hasActiveSubscription;
+      if (userId == null || !hasSubscription) {
         setState(() {
           _enrolledCourses = [];
           _selectedCourseId = null;
@@ -76,21 +79,14 @@ class _LearningHubState extends State<LearningHub> {
         return;
       }
 
-      // 1) Enrollments
-      final List<CourseEnrollment> enrollments = await _service
-          .getEnrollmentsForUser(userId);
-
-      if (enrollments.isEmpty) {
+      final courses = await _service.getPublishedCourses();
+      if (courses.isEmpty) {
         setState(() {
           _enrolledCourses = [];
           _selectedCourseId = null;
         });
         return;
       }
-
-      // 2) Courses for enrollments
-      final courseIds = enrollments.map((e) => e.courseId).toList();
-      final courses = await _service.getCoursesByIds(courseIds);
 
       // 3) Course-level progress
       final courseProgressList = await _service.getCourseProgressForUser(
@@ -124,9 +120,12 @@ class _LearningHubState extends State<LearningHub> {
         _selectedCourseId = courses.isNotEmpty ? courses.first.id : null;
       });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      debugPrint('Failed to load Learning Hub: $e');
+      if (mounted) {
+        setState(() {
+          _error = 'Learning Hub could not be loaded. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -150,11 +149,7 @@ class _LearningHubState extends State<LearningHub> {
           ? const Center(child: CircularProgressIndicator())
           : _error != null
           ? Center(
-              child: MyText(
-                text: 'Error: $_error',
-                size: 14,
-                color: Colors.red,
-              ),
+              child: MyText(text: _error!, size: 14, color: Colors.red),
             )
           : ListView(
               shrinkWrap: true,
@@ -190,8 +185,9 @@ class _LearningHubState extends State<LearningHub> {
                         paddingBottom: 6,
                       ),
                       MyText(
-                        text:
-                            'Keep diagnostics in Chassis Doctor and use Motorsport University for paid learning, videos, and extra course material.',
+                        text: SubscriptionService.instance.hasActiveSubscription
+                            ? 'Your All Access subscription is active, so every current course and module is ready to use here.'
+                            : 'Start a 3-day free trial to unlock every current course, video lesson, and supporting learning material.',
                         size: 12,
                         lineHeight: 1.5,
                         color: kTertiaryColor,
@@ -200,7 +196,10 @@ class _LearningHubState extends State<LearningHub> {
                       SizedBox(
                         width: 170,
                         child: MyButton(
-                          buttonText: 'Explore Courses Now',
+                          buttonText:
+                              SubscriptionService.instance.hasActiveSubscription
+                              ? 'Explore Courses'
+                              : 'Start Free Trial',
                           height: 30,
                           textSize: 12,
                           textColor: kTertiaryColor,
@@ -211,9 +210,15 @@ class _LearningHubState extends State<LearningHub> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) =>
-                                    const Courses(showBackButton: true),
+                                    SubscriptionService
+                                        .instance
+                                        .hasActiveSubscription
+                                    ? const Courses(showBackButton: true)
+                                    : const PaywallScreen(
+                                        sourceLabel: 'Learning Hub Hero',
+                                      ),
                               ),
-                            );
+                            ).then((_) => _loadData());
                           },
                         ),
                       ),
@@ -230,10 +235,33 @@ class _LearningHubState extends State<LearningHub> {
                   weight: FontWeight.bold,
                 ),
                 if (_enrolledCourses.isEmpty)
-                  MyText(
-                    text:
-                        'You are not enrolled in any course yet. Start by exploring the courses.',
-                    size: 14,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      MyText(
+                        text:
+                            'Start your All Access subscription to unlock every current course here.',
+                        size: 14,
+                        lineHeight: 1.5,
+                        paddingBottom: 12,
+                      ),
+                      SizedBox(
+                        width: 180,
+                        child: MyButton(
+                          buttonText: 'See Subscription Plans',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PaywallScreen(
+                                  sourceLabel: 'Learning Hub',
+                                ),
+                              ),
+                            ).then((_) => _loadData());
+                          },
+                        ),
+                      ),
+                    ],
                   )
                 else
                   ListView.builder(

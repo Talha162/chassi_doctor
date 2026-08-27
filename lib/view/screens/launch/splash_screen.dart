@@ -21,8 +21,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _redirect() async {
-    // Wait for a short duration to show splash screen
-    await Future.delayed(const Duration(seconds: 2));
+    // Keep splash visible briefly without making startup feel blocked.
+    await Future.delayed(const Duration(milliseconds: 800));
 
     if (!mounted) return;
 

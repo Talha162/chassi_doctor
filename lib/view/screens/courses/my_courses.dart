@@ -3,8 +3,10 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/course.dart';
-import 'package:motorsport/models/course_enrollment.dart';
 import 'package:motorsport/models/course_progress_summary.dart';
+import 'package:motorsport/services/subscription_service.dart';
+import 'package:motorsport/view/screens/subscriptions/paywall_screen.dart';
+import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -42,26 +44,15 @@ class _MyCoursesState extends State<MyCourses> {
       });
 
       final userId = Supabase.instance.client.auth.currentUser?.id;
-      if (userId == null) {
+      if (userId == null ||
+          !SubscriptionService.instance.hasActiveSubscription) {
         setState(() {
           _courses = [];
         });
         return;
       }
 
-      final List<CourseEnrollment> enrollments = await _service
-          .getEnrollmentsForUser(userId);
-
-      if (enrollments.isEmpty) {
-        setState(() {
-          _courses = [];
-        });
-        return;
-      }
-
-      final courseIds = enrollments.map((e) => e.courseId).toList();
-      final courses = await _service.getCoursesByIds(courseIds);
-
+      final courses = await _service.getPublishedCourses();
       final progressList = await _service.getCourseProgressForUser(userId);
 
       setState(() {
@@ -69,9 +60,12 @@ class _MyCoursesState extends State<MyCourses> {
         _progress = {for (final p in progressList) p.courseId: p};
       });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-      });
+      debugPrint('Failed to load subscribed courses: $e');
+      if (mounted) {
+        setState(() {
+          _error = 'Your courses could not be loaded. Please try again.';
+        });
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -83,13 +77,50 @@ class _MyCoursesState extends State<MyCourses> {
 
   @override
   Widget build(BuildContext context) {
+    final hasSubscription = SubscriptionService.instance.hasActiveSubscription;
+
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
 
     if (_error != null) {
       return Center(
-        child: MyText(text: 'Error: $_error', size: 14, color: Colors.red),
+        child: MyText(text: _error!, size: 14, color: Colors.red),
+      );
+    }
+
+    if (!hasSubscription) {
+      return ListView(
+        shrinkWrap: true,
+        padding: AppSizes.DEFAULT,
+        physics: const BouncingScrollPhysics(),
+        children: [
+          MyText(
+            text: 'My Learning',
+            size: 18,
+            paddingBottom: 12,
+            weight: FontWeight.bold,
+          ),
+          MyText(
+            text:
+                'Start your 3-day free trial to unlock every current course and track your progress here.',
+            size: 14,
+            lineHeight: 1.5,
+            paddingBottom: 14,
+          ),
+          MyButton(
+            buttonText: 'See All Access Plans',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) =>
+                      const PaywallScreen(sourceLabel: 'My Learning'),
+                ),
+              ).then((_) => _loadData());
+            },
+          ),
+        ],
       );
     }
 
@@ -100,12 +131,12 @@ class _MyCoursesState extends State<MyCourses> {
         physics: const BouncingScrollPhysics(),
         children: [
           MyText(
-            text: 'My Courses',
+            text: 'My Learning',
             size: 18,
             paddingBottom: 12,
             weight: FontWeight.bold,
           ),
-          MyText(text: 'You are not enrolled in any course yet.', size: 14),
+          MyText(text: 'No published courses are available yet.', size: 14),
         ],
       );
     }
@@ -116,7 +147,7 @@ class _MyCoursesState extends State<MyCourses> {
       physics: const BouncingScrollPhysics(),
       children: [
         MyText(
-          text: 'My Courses',
+          text: 'My Learning',
           size: 18,
           paddingBottom: 12,
           weight: FontWeight.bold,
@@ -178,22 +209,21 @@ class _MyCoursesState extends State<MyCourses> {
 }
 
 class _LearningHubTile extends StatelessWidget {
-  final String title;
-  final String duration;
-  final String? imageUrl;
-  final double percent;
-  final String completedText;
-  final VoidCallback onTap;
-
   const _LearningHubTile({
-    Key? key,
     required this.title,
     required this.duration,
     required this.imageUrl,
     required this.percent,
     required this.completedText,
     required this.onTap,
-  }) : super(key: key);
+  });
+
+  final String title;
+  final String duration;
+  final String? imageUrl;
+  final double percent;
+  final String completedText;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {

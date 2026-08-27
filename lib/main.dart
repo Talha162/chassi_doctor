@@ -14,14 +14,15 @@ import 'config/routes/routes.dart';
 import 'config/theme/light_theme.dart';
 import 'services/auth/auth_service.dart';
 import 'services/notification_service.dart';
+import 'services/subscription_service.dart';
 
-StreamSubscription<AuthState>? _authStateSubscription;
+String? _bootstrappedUserId;
+String? _bootstrappingUserId;
+Future<void>? _bootstrapFuture;
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   print('Background notification: ${message.messageId}');
 }
@@ -29,9 +30,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
@@ -45,39 +44,86 @@ Future<void> main() async {
   );
 
   final authService = AuthService();
+  final subscriptionService = SubscriptionService.instance;
   final currentUser = Supabase.instance.client.auth.currentUser;
-  if (currentUser != null) {
-    await authService.ensurePublicUserProfile(currentUser);
-    await NotificationService.instance.init(userId: currentUser.id);
-  }
 
-  _authStateSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-    data,
-  ) async {
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) async {
     final event = data.event;
     final session = data.session;
     if (session?.user != null) {
-      await authService.ensurePublicUserProfile(session!.user);
-      await NotificationService.instance.init(userId: session!.user.id);
       if (event == AuthChangeEvent.passwordRecovery) {
         Get.offAllNamed(AppLinks.createNewPassword);
+        unawaited(
+          _scheduleSignedInBootstrap(
+            user: session!.user,
+            authService: authService,
+            subscriptionService: subscriptionService,
+          ),
+        );
         return;
       }
       if (event == AuthChangeEvent.signedIn &&
           Get.currentRoute != AppLinks.bottomNavBar) {
         Get.offAllNamed(AppLinks.bottomNavBar);
       }
+      unawaited(
+        _scheduleSignedInBootstrap(
+          user: session!.user,
+          authService: authService,
+          subscriptionService: subscriptionService,
+        ),
+      );
     } else {
-      await NotificationService.instance.clearCurrentDeviceToken();
       if (event == AuthChangeEvent.signedOut &&
           Get.currentRoute != AppLinks.login &&
           Get.currentRoute != AppLinks.splash_screen) {
         Get.offAllNamed(AppLinks.login);
       }
+      _bootstrappedUserId = null;
+      unawaited(_bootstrapSignedOutUser(subscriptionService));
     }
   });
 
   runApp(MyApp());
+
+  unawaited(subscriptionService.initialize(appUserId: currentUser?.id));
+  if (currentUser != null) {
+    unawaited(
+      _scheduleSignedInBootstrap(
+        user: currentUser,
+        authService: authService,
+        subscriptionService: subscriptionService,
+      ),
+    );
+  }
+}
+
+Future<void> _scheduleSignedInBootstrap({
+  required User user,
+  required AuthService authService,
+  required SubscriptionService subscriptionService,
+}) {
+  if (_bootstrappedUserId == user.id) {
+    return Future.value();
+  }
+  if (_bootstrappingUserId == user.id && _bootstrapFuture != null) {
+    return _bootstrapFuture!;
+  }
+
+  _bootstrappingUserId = user.id;
+  final future = _bootstrapSignedInUser(
+    user: user,
+    authService: authService,
+    subscriptionService: subscriptionService,
+  );
+  _bootstrapFuture = future;
+  return future.whenComplete(() {
+    if (_bootstrappingUserId == user.id) {
+      _bootstrappedUserId = user.id;
+      _bootstrappingUserId = null;
+      _bootstrapFuture = null;
+    }
+  });
 }
 
 String dummyImg =
@@ -106,5 +152,54 @@ class MyApp extends StatelessWidget {
         defaultTransition: Transition.fadeIn,
       ),
     );
+  }
+}
+
+Future<void> _bootstrapSignedInUser({
+  required User user,
+  required AuthService authService,
+  required SubscriptionService subscriptionService,
+}) async {
+  try {
+    await authService
+        .ensurePublicUserProfile(user)
+        .timeout(const Duration(seconds: 12));
+  } catch (e) {
+    debugPrint('Profile bootstrap failed: $e');
+  }
+
+  try {
+    await subscriptionService
+        .initialize(appUserId: user.id)
+        .timeout(const Duration(seconds: 15));
+    await subscriptionService
+        .logIn(user.id)
+        .timeout(const Duration(seconds: 15));
+  } catch (e) {
+    debugPrint('Subscription bootstrap failed: $e');
+  }
+
+  try {
+    await NotificationService.instance
+        .init(userId: user.id)
+        .timeout(const Duration(seconds: 12));
+  } catch (e) {
+    debugPrint('Notification bootstrap failed: $e');
+  }
+}
+
+Future<void> _bootstrapSignedOutUser(
+  SubscriptionService subscriptionService,
+) async {
+  try {
+    await NotificationService.instance.clearCurrentDeviceToken();
+  } catch (e) {
+    debugPrint('Notification cleanup failed: $e');
+  }
+
+  try {
+    await subscriptionService.logOut();
+  } catch (e) {
+    debugPrint('Subscription cleanup failed: $e');
   }
 }

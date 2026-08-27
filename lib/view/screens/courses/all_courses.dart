@@ -5,7 +5,7 @@ import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/course.dart';
 import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/course_rating_summary.dart';
-import 'package:motorsport/models/course_enrollment.dart';
+import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/courses/course_detail_screen.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -39,9 +39,6 @@ class _AllCoursesState extends State<AllCourses> {
   Map<String, CourseRatingSummary> _ratings = {};
   Map<String, CourseProgressSummary> _progress = {};
 
-  /// ✅ Which courses the current user is enrolled in
-  Set<String> _enrolledCourseIds = {};
-
   @override
   void initState() {
     super.initState();
@@ -57,36 +54,25 @@ class _AllCoursesState extends State<AllCourses> {
       });
 
       final userId = Supabase.instance.client.auth.currentUser?.id;
-
-      // All published courses
       final courses = await _service.getPublishedCourses();
-
-      // Rating summaries
       final ratingsList = await _service.getCourseRatings();
 
-      // Progress + enrollments
       List<CourseProgressSummary> progressList = [];
-      List<CourseEnrollment> enrollments = [];
-
       if (userId != null) {
         progressList = await _service.getCourseProgressForUser(userId);
-        enrollments = await _service.getEnrollmentsForUser(userId);
       }
 
       if (!mounted) return;
       setState(() {
         _courses = courses;
-
         _ratings = {for (final r in ratingsList) r.courseId: r};
-
         _progress = {for (final p in progressList) p.courseId: p};
-
-        _enrolledCourseIds = {for (final e in enrollments) e.courseId};
       });
     } catch (e) {
+      debugPrint('Failed to load courses: $e');
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = 'Courses could not be loaded. Please try again.';
       });
     } finally {
       if (mounted) {
@@ -98,7 +84,7 @@ class _AllCoursesState extends State<AllCourses> {
   }
 
   List<Course> get _filteredCourses {
-    if (_selectedFilterIndex == 0) return _courses; // "All"
+    if (_selectedFilterIndex == 0) return _courses;
 
     final filter = _filters[_selectedFilterIndex].toLowerCase();
     return _courses.where((c) {
@@ -108,15 +94,14 @@ class _AllCoursesState extends State<AllCourses> {
     }).toList();
   }
 
-  Future<void> _openCourseDetail(
-    Course course, {
-    required bool isEnrolled,
-  }) async {
+  Future<void> _openCourseDetail(Course course) async {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) =>
-            CourseDetailScreen(course: course, initiallyEnrolled: isEnrolled),
+        builder: (_) => CourseDetailScreen(
+          course: course,
+          initiallyEnrolled: SubscriptionService.instance.hasActiveSubscription,
+        ),
       ),
     );
     _loadData();
@@ -130,7 +115,7 @@ class _AllCoursesState extends State<AllCourses> {
 
     if (_error != null) {
       return Center(
-        child: MyText(text: 'Error: $_error', size: 14, color: Colors.red),
+        child: MyText(text: _error!, size: 14, color: Colors.red),
       );
     }
 
@@ -209,8 +194,6 @@ class _AllCoursesState extends State<AllCourses> {
               final completedText =
                   '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
 
-              final isEnrolled = _enrolledCourseIds.contains(course.id);
-
               return Padding(
                 padding: EdgeInsets.only(
                   bottom: index < visibleCourses.length - 1 ? 12 : 0,
@@ -223,10 +206,7 @@ class _AllCoursesState extends State<AllCourses> {
                   completedText: completedText,
                   rating: rating?.avgRating,
                   totalReviews: rating?.totalReviews,
-                  isEnrolled: isEnrolled,
-                  onTapPrimary: () {
-                    _openCourseDetail(course, isEnrolled: isEnrolled);
-                  },
+                  onTapPrimary: () => _openCourseDetail(course),
                 ),
               );
             },
@@ -247,28 +227,25 @@ class _AllCoursesState extends State<AllCourses> {
 }
 
 class _LearningHubTile extends StatelessWidget {
-  final String title;
-  final String duration;
-  final String? imageUrl; // from Supabase
-  final double percent;
-  final String completedText;
-  final double? rating;
-  final int? totalReviews;
-  final bool isEnrolled;
-  final VoidCallback onTapPrimary;
-
   const _LearningHubTile({
-    Key? key,
     required this.title,
     required this.duration,
     required this.imageUrl,
     required this.percent,
     required this.completedText,
     required this.onTapPrimary,
-    required this.isEnrolled,
     this.rating,
     this.totalReviews,
-  }) : super(key: key);
+  });
+
+  final String title;
+  final String duration;
+  final String? imageUrl;
+  final double percent;
+  final String completedText;
+  final double? rating;
+  final int? totalReviews;
+  final VoidCallback onTapPrimary;
 
   @override
   Widget build(BuildContext context) {
@@ -289,7 +266,7 @@ class _LearningHubTile extends StatelessWidget {
             child: imageUrl != null && imageUrl!.isNotEmpty
                 ? Image.network(imageUrl!, height: 120, fit: BoxFit.cover)
                 : Image.asset(
-                    Assets.imagesAdvanced, // fallback asset
+                    Assets.imagesAdvanced,
                     height: 120,
                     fit: BoxFit.cover,
                   ),
@@ -350,8 +327,19 @@ class _LearningHubTile extends StatelessWidget {
             height: 30,
             textSize: 12,
             radius: 50.0,
-            buttonText: isEnrolled ? 'Open course' : 'View details',
+            buttonText: 'View details',
             onTap: onTapPrimary,
+          ),
+          const SizedBox(height: 8),
+          ValueListenableBuilder(
+            valueListenable: SubscriptionService.instance.state,
+            builder: (context, state, _) => MyText(
+              text: state.hasActiveSubscription
+                  ? 'Included in your All Access subscription'
+                  : 'Included with All Access subscription',
+              size: 11,
+              color: kTertiaryColor.withValues(alpha: 0.85),
+            ),
           ),
         ],
       ),

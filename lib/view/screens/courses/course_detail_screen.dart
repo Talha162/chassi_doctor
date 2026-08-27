@@ -4,6 +4,7 @@ import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/course.dart';
 import 'package:motorsport/models/course_module.dart';
 import 'package:motorsport/models/module_progress_summary.dart';
+import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,6 +12,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../services/supabase/supabase_client_service.dart';
 import '../../widget/course_review_dialog.dart';
 import 'module_video_screen.dart';
+import '../subscriptions/paywall_screen.dart';
 
 class CourseDetailScreen extends StatefulWidget {
   final Course course;
@@ -28,10 +30,10 @@ class CourseDetailScreen extends StatefulWidget {
 
 class _CourseDetailScreenState extends State<CourseDetailScreen> {
   final _service = SupabaseService.instance;
+  final _subscriptionService = SubscriptionService.instance;
 
   bool _isLoading = true;
-  bool _isPurchasing = false;
-  bool _isEnrolled = false;
+  bool _hasAccess = false;
   String? _error;
 
   List<CourseModule> _modules = [];
@@ -40,8 +42,24 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _isEnrolled = widget.initiallyEnrolled;
+    _hasAccess =
+        widget.initiallyEnrolled ||
+        SubscriptionService.instance.hasActiveSubscription;
+    _subscriptionService.state.addListener(_handleSubscriptionUpdate);
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    _subscriptionService.state.removeListener(_handleSubscriptionUpdate);
+    super.dispose();
+  }
+
+  void _handleSubscriptionUpdate() {
+    if (!mounted) return;
+    setState(() {
+      _hasAccess = _subscriptionService.hasActiveSubscription;
+    });
   }
 
   Future<void> _loadData() async {
@@ -55,11 +73,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       final modules = await _service.getModulesForCourse(widget.course.id);
 
       Map<String, ModuleProgressSummary> progressMap = {};
-      var enrolled = _isEnrolled;
+      final hasAccess =
+          _subscriptionService.hasActiveSubscription || _hasAccess;
 
       if (userId != null) {
-        final enrollments = await _service.getEnrollmentsForUser(userId);
-        enrolled = enrollments.any((e) => e.courseId == widget.course.id);
         final allModuleProgress = await _service.getModuleProgressForUser(
           userId,
         );
@@ -76,48 +93,46 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       setState(() {
         _modules = modules;
         _moduleProgress = progressMap;
-        _isEnrolled = enrolled;
+        _hasAccess = hasAccess;
       });
     } catch (e) {
-      setState(() => _error = e.toString());
+      debugPrint('Failed to load course details: $e');
+      if (mounted) {
+        setState(() {
+          _error = 'Course details could not be loaded. Please try again.';
+        });
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _unlockCourse() async {
+  Future<void> _openPaywall() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please log in to unlock this course.')),
+        const SnackBar(
+          content: Text('Please log in before starting your free trial.'),
+        ),
       );
       return;
     }
 
-    try {
-      setState(() => _isPurchasing = true);
-      await _service.enrollInCourse(userId: userId, courseId: widget.course.id);
-      if (!mounted) return;
-      setState(() => _isEnrolled = true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Course unlocked successfully.')),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to unlock course: $e')));
-    } finally {
-      if (mounted) {
-        setState(() => _isPurchasing = false);
-      }
+    final unlocked = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => PaywallScreen(sourceLabel: widget.course.title),
+      ),
+    );
+    if (unlocked == true && mounted) {
+      await _loadData();
     }
   }
 
   // ✅ REVIEW BUTTON HANDLER
   void _openReviewDialog() {
     final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null || !_isEnrolled) return;
+    if (userId == null || !_hasAccess) return;
 
     showDialog(
       context: context,
@@ -149,7 +164,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.rate_review),
-            onPressed: _isEnrolled ? _openReviewDialog : null,
+            onPressed: _hasAccess ? _openReviewDialog : null,
           ),
         ],
       ),
@@ -182,23 +197,23 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     paddingBottom: 8,
                   ),
                 _PurchaseStatusCard(
-                  title: _isEnrolled ? 'Purchased Course' : 'Before Purchase',
-                  body: _isEnrolled
+                  title: _hasAccess
+                      ? 'All Access Active'
+                      : 'Subscription Required',
+                  body: _hasAccess
                       ? (course.postPurchaseText?.trim().isNotEmpty ?? false)
                             ? course.postPurchaseText!.trim()
-                            : 'You have unlocked this course. Videos and any supporting text shown below are now available to this user.'
+                            : 'Your subscription is active. Videos and any supporting text shown below are available on this account.'
                       : (course.prePurchaseText?.trim().isNotEmpty ?? false)
                       ? course.prePurchaseText!.trim()
-                      : 'This course is part of Motorsport University. Unlock it to access the full video lessons and any post-purchase supporting content.',
-                  accentColor: _isEnrolled ? kGreenColor : kSecondaryColor,
+                      : 'This course is included with Chassis Doctor All Access. Start the 3-day free trial to watch every lesson and unlock the supporting content.',
+                  accentColor: _hasAccess ? kGreenColor : kSecondaryColor,
                 ),
                 const SizedBox(height: 12),
-                if (!_isEnrolled)
+                if (!_hasAccess)
                   MyButton(
-                    buttonText: _isPurchasing
-                        ? 'Unlocking...'
-                        : 'Unlock Course',
-                    onTap: _isPurchasing ? null : _unlockCourse,
+                    buttonText: 'Start 3-day free trial',
+                    onTap: _openPaywall,
                   ),
 
                 const SizedBox(height: 16),
@@ -240,7 +255,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                               ),
                             ),
                             const SizedBox(width: 10),
-                            if (_isEnrolled)
+                            if (_hasAccess)
                               MyText(
                                 text: progressText,
                                 size: 11,
@@ -250,11 +265,11 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                             SizedBox(
                               width: 92,
                               child: MyButton(
-                                buttonText: _isEnrolled ? 'View' : 'Locked',
+                                buttonText: _hasAccess ? 'View' : 'Locked',
                                 height: 36,
                                 textSize: 12,
                                 radius: 50,
-                                onTap: !_isEnrolled
+                                onTap: !_hasAccess
                                     ? null
                                     : () {
                                         Navigator.push(
