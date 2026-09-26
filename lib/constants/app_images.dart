@@ -396,6 +396,26 @@ class Assets {
   /// assets/images/notifications.png
   static const String imagesNotifications = "assets/images/notifications.png";
 
+  /// Assets for imagesOnboardingWelcome
+  /// assets/images/onboarding_welcome.png
+  static const String imagesOnboardingWelcome = "assets/images/onboarding_welcome.png";
+
+  /// Assets for imagesOnboardingSetupAdvice
+  /// assets/images/onboarding_setup_advice.png
+  static const String imagesOnboardingSetupAdvice = "assets/images/onboarding_setup_advice.png";
+
+  /// Assets for imagesOnboardingCalculate
+  /// assets/images/onboarding_calculate.png
+  static const String imagesOnboardingCalculate = "assets/images/onboarding_calculate.png";
+
+  /// Assets for imagesOnboardingUniversity
+  /// assets/images/onboarding_university.png
+  static const String imagesOnboardingUniversity = "assets/images/onboarding_university.png";
+
+  /// Assets for imagesOnboardingFreeStart
+  /// assets/images/onboarding_free_start.png
+  static const String imagesOnboardingFreeStart = "assets/images/onboarding_free_start.png";
+
   /// Assets for imagesOn1
   /// assets/images/on1.png
   static const String imagesOn1 = "assets/images/on1.png";
