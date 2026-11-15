@@ -748,6 +748,8 @@ class SupabaseService {
     required Map<String, dynamic> symptomSnapshot,
     required List<Map<String, dynamic>> issuesSnapshot,
     required List<Map<String, dynamic>> recommendations,
+    String? sessionName,
+    DateTime? eventDate,
   }) async {
     try {
       debugPrint('[SUPABASE] 💾 Creating new chassis session...');
@@ -763,6 +765,13 @@ class SupabaseService {
             'symptom_snapshot': symptomSnapshot,
             'issues_snapshot': issuesSnapshot,
             'recommendations': recommendations,
+            if (sessionName != null && sessionName.trim().isNotEmpty)
+              'session_name': sessionName.trim(),
+            if (eventDate != null)
+              'event_date':
+                  '${eventDate.year.toString().padLeft(4, '0')}-'
+                  '${eventDate.month.toString().padLeft(2, '0')}-'
+                  '${eventDate.day.toString().padLeft(2, '0')}',
           })
           .select()
           .single();

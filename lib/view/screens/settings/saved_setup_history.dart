@@ -33,9 +33,9 @@ class SavedSetupHistory extends StatelessWidget {
     final symptom = session.symptomSnapshot;
     final issues = session.issuesSnapshot;
     final recommendations = session.recommendations;
-    final formattedDate = DateFormat(
-      'yyyy-MM-dd HH:mm',
-    ).format(session.createdAt.toLocal());
+    final formattedDate = session.eventDate != null
+        ? DateFormat('d MMM yyyy').format(session.eventDate!)
+        : DateFormat('yyyy-MM-dd HH:mm').format(session.createdAt.toLocal());
     final userId = Supabase.instance.client.auth.currentUser?.id;
     final sourceType = session.hasSessionData ? 'session' : 'track';
     final note = userId == null
@@ -108,7 +108,10 @@ class SavedSetupHistory extends StatelessWidget {
       pw.MultiPage(
         build: (pw.Context context) {
           return [
-            pw.Text('Session Details', style: pw.TextStyle(fontSize: 20)),
+            pw.Text(
+              session.sessionName ?? 'Session Details',
+              style: pw.TextStyle(fontSize: 20),
+            ),
             pw.SizedBox(height: 6),
             pw.Text(formattedDate, style: pw.TextStyle(fontSize: 11)),
             pw.SizedBox(height: 12),
@@ -261,7 +264,7 @@ class SavedSetupHistory extends StatelessWidget {
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 2,
-                          mainAxisExtent: 180,
+                          mainAxisExtent: 196,
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 16,
                         ),
@@ -271,17 +274,18 @@ class SavedSetupHistory extends StatelessWidget {
                         builder: (context) {
                           final session = controller.entries[index];
                           final formattedDate = DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(session.createdAt);
+                            'd MMM yyyy',
+                          ).format(session.displayDate);
                           final track = session.trackSnapshot;
+                          final trackName =
+                              track['circuit_name']?.toString().isNotEmpty ==
+                                  true
+                              ? track['circuit_name'].toString()
+                              : (track['track_type']?.toString() ?? 'Not set');
 
                           return SetupHistoryTile(
-                            trackType:
-                                track['circuit_name']?.toString().isNotEmpty ==
-                                    true
-                                ? track['circuit_name'].toString()
-                                : (track['track_type']?.toString() ??
-                                      'Not set'),
+                            sessionName: session.sessionName,
+                            trackType: trackName,
                             surfaceType:
                                 track['surface_type']?.toString() ?? 'Not set',
                             weather:
@@ -313,6 +317,8 @@ class SavedSetupHistory extends StatelessWidget {
 
 // CORRECTED WIDGET
 class SetupHistoryTile extends StatelessWidget {
+  /// Name from "Save to session"; older entries don't have one.
+  final String? sessionName;
   final String trackType;
   final String surfaceType;
   final String weather;
@@ -322,6 +328,7 @@ class SetupHistoryTile extends StatelessWidget {
 
   const SetupHistoryTile({
     super.key,
+    this.sessionName,
     required this.trackType,
     required this.surfaceType,
     required this.weather,
@@ -342,13 +349,23 @@ class SetupHistoryTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           MyText(
-            text: trackType, // Use trackType as the title
+            text: sessionName ?? trackType,
             size: 16,
             weight: FontWeight.bold,
-            paddingBottom: 16,
+            paddingBottom: sessionName == null ? 16 : 2,
             maxLines: 1,
             textOverflow: TextOverflow.ellipsis,
           ),
+          if (sessionName != null)
+            MyText(
+              text: trackType,
+              size: 12,
+              color: kSecondaryColor,
+              weight: FontWeight.w600,
+              paddingBottom: 12,
+              maxLines: 1,
+              textOverflow: TextOverflow.ellipsis,
+            ),
           _buildInfoRow(Assets.imagesSurfaceType, surfaceType),
           const SizedBox(height: 12),
           _buildInfoRow(Assets.imagesWeather, weather),

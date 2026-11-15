@@ -58,6 +58,8 @@ class SavedSetupHistoryController extends GetxController {
             issuesSnapshot: session.issuesSnapshot,
             recommendations: session.recommendations,
             hasSessionData: true,
+            sessionName: session.sessionName,
+            eventDate: session.eventDate,
           );
         }),
         ...configs.map((config) {

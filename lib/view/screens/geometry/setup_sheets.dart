@@ -28,7 +28,7 @@ String? setupSubtitle(SavedSetup s) {
   return parts.isEmpty ? null : parts.join(' · ');
 }
 
-Widget _sheetFrame(BuildContext context, {required Widget child}) {
+Widget appSheetFrame(BuildContext context, {required Widget child}) {
   return Container(
     decoration: BoxDecoration(
       color: kQuaternaryColor,
@@ -58,7 +58,7 @@ Widget _sheetFrame(BuildContext context, {required Widget child}) {
   );
 }
 
-InputDecoration _decoration(String label, {String? hint}) {
+InputDecoration appSheetDecoration(String label, {String? hint}) {
   OutlineInputBorder border(Color c, [double w = 1]) => OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide(color: c, width: w),
@@ -98,7 +98,7 @@ Future<SavedSetup?> showSaveSetupSheet(
     backgroundColor: Colors.transparent,
     builder: (ctx) => Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(ctx).bottom),
-      child: _sheetFrame(
+      child: appSheetFrame(
         ctx,
         child: _SaveSetupForm(tool: tool, data: data, existing: existing),
       ),
@@ -245,7 +245,7 @@ class _SaveSetupFormState extends State<_SaveSetupForm> {
               textInputAction: TextInputAction.next,
               style: TextStyle(color: kWhiteColor),
               cursorColor: gold,
-              decoration: _decoration('Setup name', hint: 'e.g. Qualifying, softer front'),
+              decoration: appSheetDecoration('Setup name', hint: 'e.g. Qualifying, softer front'),
               validator: AppValidators.requiredText(label: 'a name', max: 80),
             ),
             const SizedBox(height: 8),
@@ -257,7 +257,7 @@ class _SaveSetupFormState extends State<_SaveSetupForm> {
               textInputAction: TextInputAction.next,
               style: TextStyle(color: kWhiteColor),
               cursorColor: gold,
-              decoration: _decoration('Track (optional)', hint: 'e.g. Brands Hatch'),
+              decoration: appSheetDecoration('Track (optional)', hint: 'e.g. Brands Hatch'),
               validator: AppValidators.optionalMax(80, label: 'Track'),
             ),
             const SizedBox(height: 8),
@@ -265,7 +265,7 @@ class _SaveSetupFormState extends State<_SaveSetupForm> {
               borderRadius: BorderRadius.circular(12),
               onTap: _saving ? null : _pickDate,
               child: InputDecorator(
-                decoration: _decoration('Race date (optional)').copyWith(
+                decoration: appSheetDecoration('Race date (optional)').copyWith(
                   suffixIcon: _date == null
                       ? Icon(Icons.calendar_today_rounded,
                           color: kTertiaryColor.withValues(alpha: 0.6), size: 20)
@@ -297,7 +297,7 @@ class _SaveSetupFormState extends State<_SaveSetupForm> {
               textCapitalization: TextCapitalization.sentences,
               style: TextStyle(color: kWhiteColor),
               cursorColor: gold,
-              decoration: _decoration(
+              decoration: appSheetDecoration(
                 'Notes (optional)',
                 hint: 'Weather, tyres, how the car felt…',
               ),
@@ -374,7 +374,7 @@ Future<SavedSetup?> showSetupListSheet(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(ctx).height * 0.82,
       ),
-      child: _sheetFrame(
+      child: appSheetFrame(
         ctx,
         child: _SetupList(tool: tool, readCurrentState: readCurrentState),
       ),

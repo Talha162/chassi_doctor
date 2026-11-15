@@ -48,6 +48,7 @@ const _onboardingOnly = bool.fromEnvironment('TOUR_ONBOARDING_ONLY');
 const _validationOnly = bool.fromEnvironment('TOUR_VALIDATION_ONLY');
 const _geometryStep = String.fromEnvironment('TOUR_GEOMETRY');
 const _demo = bool.fromEnvironment('TOUR_DEMO');
+const _sessionTheme = String.fromEnvironment('TOUR_SESSION');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -63,6 +64,12 @@ void main() {
 
     if (_demo) {
       await _demoWalkthrough(tester);
+      print('TOUR_DONE');
+      return;
+    }
+
+    if (_sessionTheme.isNotEmpty) {
+      await _sessionFlow(tester, _sessionTheme);
       print('TOUR_DONE');
       return;
     }
@@ -407,14 +414,22 @@ Future<void> _demoWalkthrough(WidgetTester t) async {
     await scroll(-650, ms: 1800);
     await pause(1200);
   }
-  await tap(find.byType(AppBackButton), after: 1500);
-  await tap(find.byType(AppBackButton), after: 2200);
+  // Save to session, then straight to History.
+  if (find.text('Save to session').evaluate().isEmpty) {
+    await scroll(-500, ms: 1200);
+  }
+  await tap(find.text('Save to session'), after: 1600);
+  final sessionFields = find.byType(TextFormField);
+  await tap(find.text('Qualifying'), after: 900);
+  await typeSlowly(sessionFields.at(2), 'Rear ARB one step softer. Car rotates mid-corner.');
+  await pause(900);
+  await tap(find.text('Save session'), after: 3600);
+  await tap(find.text('View in History'), after: 3400);
 
   // ── 6. Tabs: Learning, History (+ session), Profile ──
   await tap(navTab(1), after: 3000);
   await scroll(-450, ms: 1300);
   await scroll(450, ms: 900);
-  await tap(navTab(2), after: 3200);
   await tap(button('View'), after: 3200);
   await scroll(-500, ms: 1400);
   await pause(800);
@@ -648,4 +663,65 @@ Future<void> _wait(WidgetTester t, int ms) async {
   while (DateTime.now().isBefore(end)) {
     await t.pump(const Duration(milliseconds: 50));
   }
+}
+
+
+/// Setup Help → recommendations → leave prompt → Save to session → History.
+Future<void> _sessionFlow(WidgetTester t, String theme) async {
+  ThemeController.instance.setTheme(
+    theme == 'black' ? ThemeMode.dark : ThemeMode.light,
+  );
+  final auth = Supabase.instance.client.auth;
+  if (auth.currentSession == null) {
+    await auth.signInWithPassword(email: _email, password: _password);
+  }
+  Get.offAll(() => const BottomNavBar());
+  await _wait(t, 3500);
+
+  Future<void> tap(Finder f, {int after = 1800}) async {
+    await t.ensureVisible(f.first);
+    await _wait(t, 300);
+    await t.tap(f.first, warnIfMissed: false);
+    await _wait(t, after);
+  }
+
+  await tap(find.text('Setup Help'), after: 3000);
+  await tap(find.text('Oversteer'), after: 3500);
+  await tap(find.text('Corner Entry'), after: 900);
+  await tap(find.text('Mid Corner'), after: 900);
+  await tap(find.text('Recommend Adjustments'), after: 4500);
+  await t.scrollUntilVisible(
+    find.text('Save to session'),
+    300,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await _wait(t, 600);
+  await t.ensureVisible(find.text('Save to session').first);
+  await _wait(t, 1200);
+  await _shot(t, theme, 'sess_1_panel');
+
+  // Back without saving → prompt.
+  await tap(find.byType(AppBackButton), after: 1500);
+  await _shot(t, theme, 'sess_2_leave_prompt');
+  await tap(find.text('Save to session').last, after: 1800);
+  await _shot(t, theme, 'sess_3_sheet');
+
+  // Empty name → validation.
+  await tap(find.text('Save session'), after: 1200);
+  await _shot(t, theme, 'sess_4_validation');
+
+  await tap(find.text('Race 1'), after: 600);
+  await t.enterText(find.byType(TextFormField).at(2), 'Rear ARB one step softer. Better rotation mid-corner.');
+  await _wait(t, 600);
+  FocusManager.instance.primaryFocus?.unfocus();
+  await _wait(t, 800);
+  await _shot(t, theme, 'sess_5_filled');
+  await tap(find.text('Save session'), after: 3500);
+  await _shot(t, theme, 'sess_6_saved');
+
+  await tap(find.text('View in History'), after: 3800);
+  await _shot(t, theme, 'sess_7_history');
+  final view = find.descendant(of: find.byType(MyButton), matching: find.text('View'));
+  await tap(view, after: 3200);
+  await _shot(t, theme, 'sess_8_detail');
 }

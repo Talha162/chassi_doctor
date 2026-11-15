@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/history_entry.dart';
+import 'package:motorsport/view/screens/geometry/setup_sheets.dart' show formatSetupDate;
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -133,6 +134,17 @@ class _ChassisSessionDetailState extends State<ChassisSessionDetail> {
       body: ListView(
         padding: AppSizes.DEFAULT,
         children: [
+          if (widget.session.sessionName != null) ...[
+            _SectionTitle(title: 'Session'),
+            _InfoRow(label: 'Name', value: widget.session.sessionName!),
+            _InfoRow(
+              label: 'Date',
+              value: formatSetupDate(widget.session.displayDate),
+            ),
+            if (_note != null && _note!.trim().isNotEmpty)
+              _InfoRow(label: 'Notes', value: _note!),
+            const SizedBox(height: 16),
+          ],
           _SectionTitle(title: 'Track Configuration'),
           _InfoRow(
             label: 'Track Type',

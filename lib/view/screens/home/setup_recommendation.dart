@@ -8,7 +8,14 @@ import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/adjustment_recommendation.dart';
+import 'package:motorsport/controller/settings/saved_setup_history_controller.dart';
 import 'package:motorsport/models/chassis_issue_option.dart';
+import 'package:motorsport/models/chassis_session.dart';
+import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
+import 'package:motorsport/view/screens/home/save_session_sheet.dart';
+import 'package:motorsport/view/widget/app_dialog.dart';
+import 'package:motorsport/config/theme/theme_controller.dart';
+import 'package:motorsport/view/screens/geometry/setup_sheets.dart' show formatSetupDate;
 import 'package:motorsport/models/chassis_symptom.dart';
 import 'package:motorsport/models/track_configuration.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
@@ -40,6 +47,8 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   Set<String> _selectedIssueIds = {};
   TrackConfiguration? _trackConfiguration;
   List<AdjustmentRecommendation> _recommendations = [];
+  List<ChassisIssueOption> _lastIssues = [];
+  ChassisSession? _savedSession;
   static const Set<String> _stageIssues = {
     'corner entry',
     'mid corner',
@@ -261,10 +270,12 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       );
 
       // Step C: Update UI and save session
+      // Nothing is saved yet: the driver chooses "Save to session" below.
       setState(() {
         _recommendations = finalRecommendations;
+        _lastIssues = selectedIssues;
+        _savedSession = null;
       });
-      await _saveSession(selectedIssues, finalRecommendations);
     } catch (e) {
       if (mounted) {
         showErrorSnackbar(
@@ -279,135 +290,169 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
     }
   }
 
-  Future<void> _saveSession(
-    List<ChassisIssueOption> selectedIssues,
-    List<AdjustmentRecommendation> recommendations,
-  ) async {
+  /// Builds the session snapshot from what's on screen and saves it with the
+  /// name, track, date and notes from the "Save to session" sheet.
+  Future<ChassisSession> _createSession(SessionDetails details) async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      debugPrint('[SETUP] ⚠️ Cannot save history: user not authenticated');
-      if (mounted) {
-        showInfoSnackbar('Log in to save this session to your history.');
+      throw const AuthException('Your session has expired. Please log in again.');
+    }
+
+    final trackConfig = _trackConfiguration ??
+        await _supabaseService.getLatestTrackConfigurationForUser(userId);
+    final prefs = await SharedPreferences.getInstance();
+    String? orSaved(String? value, String key) {
+      if (value != null && value.trim().isNotEmpty) return value;
+      final saved = prefs.getString(key)?.trim();
+      return (saved == null || saved.isEmpty) ? value : saved;
+    }
+
+    final trackSnapshot = <String, dynamic>{
+      'track_type': trackConfig?.trackType,
+      'circuit_name': details.trackName.isNotEmpty
+          ? details.trackName
+          : orSaved(trackConfig?.circuitName, _trackCircuitNameKey),
+      'surface_type': trackConfig?.surfaceType,
+      'weather_condition': trackConfig?.weatherCondition,
+      'engine_position': orSaved(trackConfig?.enginePosition, _enginePositionKey),
+      'aerofoils': orSaved(trackConfig?.aerofoils, _aerofoilsKey),
+      'drive_type': orSaved(trackConfig?.driveType, _driveTypeKey),
+    };
+
+    final symptomSnapshot = {
+      'id': widget.symptom.id,
+      'title': widget.symptom.title,
+      'description': widget.symptom.description,
+    };
+
+    final issuesSnapshot = _lastIssues
+        .map(
+          (issue) => {
+            'id': issue.id,
+            'title': issue.title,
+            'description': issue.description,
+          },
+        )
+        .toList();
+
+    final recommendationsSnapshot = _recommendations
+        .map(
+          (rec) => {
+            'title': rec.title,
+            'details': rec.details,
+            'category': rec.category,
+            'id': rec.id,
+            'priority_order': rec.priorityOrder,
+          },
+        )
+        .toList();
+
+    final session = await _supabaseService.createChassisSession(
+      userId: userId,
+      trackSnapshot: trackSnapshot,
+      symptomSnapshot: symptomSnapshot,
+      issuesSnapshot: issuesSnapshot,
+      recommendations: recommendationsSnapshot,
+      sessionName: details.name,
+      eventDate: details.eventDate,
+    );
+
+    if (details.notes.isNotEmpty) {
+      try {
+        await _supabaseService.upsertHistoryNote(
+          userId: userId,
+          sourceType: 'session',
+          sourceId: session.id,
+          note: details.notes,
+        );
+      } catch (e) {
+        // The session itself is saved; the note can be added from History.
+        debugPrint('[SETUP] Note not saved: $e');
       }
+    }
+    debugPrint('[SETUP] Session saved: ${session.id} (${details.name})');
+    return session;
+  }
+
+  Future<void> _openSaveSheet() async {
+    if (_recommendations.isEmpty || _savedSession != null) return;
+    if (Supabase.instance.client.auth.currentUser == null) {
+      showInfoSnackbar('Log in to save this session to your history.');
       return;
     }
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    // Only prefill a real track name, not the track type ("Circuit/Road Course").
+    final trackType = _trackConfiguration?.trackType?.trim().toLowerCase();
+    String? usable(String? v) {
+      final t = v?.trim();
+      if (t == null || t.isEmpty || t.toLowerCase() == trackType) return null;
+      return t;
+    }
+    final initialTrack = usable(_trackConfiguration?.circuitName) ??
+        usable(prefs.getString(_trackCircuitNameKey));
+    const stageOrder = ['corner entry', 'mid corner', 'corner exit'];
+    int rank(ChassisIssueOption i) {
+      final r = stageOrder.indexOf(i.title.trim().toLowerCase());
+      return r < 0 ? stageOrder.length : r;
+    }
+    final stages = ([..._lastIssues]..sort((a, b) => rank(a).compareTo(rank(b))))
+        .map((i) => i.title)
+        .join(', ');
+    final count = _recommendations.length;
+    final summary = [
+      widget.symptom.title,
+      if (stages.isNotEmpty) stages,
+      '$count adjustment${count == 1 ? '' : 's'}',
+    ].join(' · ');
 
-    try {
-      debugPrint('[SETUP] 📋 Starting session save for user: $userId');
-      var trackConfig = _trackConfiguration;
-      if (trackConfig == null) {
-        debugPrint(
-          '[SETUP] 🔍 Fetching latest track configuration from Supabase...',
-        );
-        trackConfig = await _supabaseService.getLatestTrackConfigurationForUser(
-          userId,
-        );
-        debugPrint(
-          '[SETUP] ✅ Fetched track config: ${trackConfig?.trackType ?? 'N/A'}',
-        );
-      } else {
-        debugPrint(
-          '[SETUP] ✅ Using current track config: ${trackConfig.trackType}',
-        );
-      }
+    final saved = await showSaveSessionSheet(
+      context,
+      initialTrack: initialTrack,
+      summary: summary,
+      onSave: _createSession,
+    );
+    if (saved == null || !mounted) return;
+    setState(() => _savedSession = saved);
+    if (Get.isRegistered<SavedSetupHistoryController>()) {
+      Get.find<SavedSetupHistoryController>().fetchSavedSetups();
+    }
+    showSuccessSnackbar(
+      'Find it any time in the History tab.',
+      title: 'Saved “${saved.sessionName ?? 'session'}”',
+    );
+  }
 
-      final trackSnapshot = {
-        'track_type': trackConfig?.trackType,
-        'circuit_name': trackConfig?.circuitName,
-        'surface_type': trackConfig?.surfaceType,
-        'weather_condition': trackConfig?.weatherCondition,
-        'engine_position': trackConfig?.enginePosition,
-        'aerofoils': trackConfig?.aerofoils,
-        'drive_type': trackConfig?.driveType,
-      };
-      final prefs = await SharedPreferences.getInstance();
-      final savedCircuitName = prefs.getString(_trackCircuitNameKey)?.trim();
-      final savedEnginePosition = prefs.getString(_enginePositionKey)?.trim();
-      final savedAerofoils = prefs.getString(_aerofoilsKey)?.trim();
-      final savedDriveType = prefs.getString(_driveTypeKey)?.trim();
+  bool get _hasUnsavedResults =>
+      _recommendations.isNotEmpty && _savedSession == null;
 
-      if ((trackSnapshot['circuit_name'] == null ||
-              trackSnapshot['circuit_name'].toString().isEmpty) &&
-          savedCircuitName != null &&
-          savedCircuitName.isNotEmpty) {
-        trackSnapshot['circuit_name'] = savedCircuitName;
-      }
-      if ((trackSnapshot['engine_position'] == null ||
-              trackSnapshot['engine_position'].toString().isEmpty) &&
-          savedEnginePosition != null &&
-          savedEnginePosition.isNotEmpty) {
-        trackSnapshot['engine_position'] = savedEnginePosition;
-      }
-      if ((trackSnapshot['aerofoils'] == null ||
-              trackSnapshot['aerofoils'].toString().isEmpty) &&
-          savedAerofoils != null &&
-          savedAerofoils.isNotEmpty) {
-        trackSnapshot['aerofoils'] = savedAerofoils;
-      }
-      if ((trackSnapshot['drive_type'] == null ||
-              trackSnapshot['drive_type'].toString().isEmpty) &&
-          savedDriveType != null &&
-          savedDriveType.isNotEmpty) {
-        trackSnapshot['drive_type'] = savedDriveType;
-      }
-
-      final symptomSnapshot = {
-        'id': widget.symptom.id,
-        'title': widget.symptom.title,
-        'description': widget.symptom.description,
-      };
-
-      final issuesSnapshot = selectedIssues
-          .map(
-            (issue) => {
-              'id': issue.id,
-              'title': issue.title,
-              'description': issue.description,
-            },
-          )
-          .toList();
-
-      final recommendationsSnapshot = recommendations
-          .map(
-            (rec) => {
-              'title': rec.title,
-              'details': rec.details,
-              'category': rec.category,
-              'id': rec.id,
-              'priority_order': rec.priorityOrder,
-            },
-          )
-          .toList();
-
-      debugPrint('[SETUP] 📊 Session data:');
-      debugPrint('[SETUP]   - Track: ${trackSnapshot['track_type']}');
-      debugPrint('[SETUP]   - Symptom: ${symptomSnapshot['title']}');
-      debugPrint('[SETUP]   - Issues: ${issuesSnapshot.length}');
-      debugPrint(
-        '[SETUP]   - Recommendations: ${recommendationsSnapshot.length}',
-      );
-
-      final savedSession = await _supabaseService.createChassisSession(
-        userId: userId,
-        trackSnapshot: trackSnapshot,
-        symptomSnapshot: symptomSnapshot,
-        issuesSnapshot: issuesSnapshot,
-        recommendations: recommendationsSnapshot,
-      );
-
-      debugPrint('[SETUP] ✨ Session saved successfully to chassis_sessions');
-      debugPrint('[SETUP] 🔑 New session ID: ${savedSession.id}');
-      debugPrint('[SETUP] ⏰ Created at: ${savedSession.createdAt}');
-    } catch (e) {
-      debugPrint('[SETUP] ❌ Error saving session: $e');
-      if (mounted) {
-        showErrorSnackbar(
-          friendlyError(e),
-          title: "Couldn't save this session to History",
-        );
-      }
+  Future<void> _confirmLeave() async {
+    var leave = false;
+    var save = false;
+    await showAppDialog(
+      title: 'Save this session?',
+      message:
+          "These recommendations aren't saved yet. Save them to History so "
+          'you can look back at what you changed.',
+      icon: Icons.bookmark_add_outlined,
+      primaryLabel: 'Save to session',
+      onPrimary: () => save = true,
+      secondaryLabel: 'Leave without saving',
+      onSecondary: () => leave = true,
+      barrierDismissible: true,
+    );
+    if (!mounted) return;
+    if (leave) {
+      setState(() => _recommendations = []);
+      Navigator.of(context).pop();
+    } else if (save) {
+      _openSaveSheet();
     }
   }
+
+  void _goToHistory() => Get.offAll(() => const BottomNavBar(initialIndex: 2));
+
+  void _goHome() => Get.offAll(() => const BottomNavBar());
 
   String _issueImageForTitle(String title) {
     switch (title.toLowerCase()) {
@@ -478,7 +523,12 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         .where((id) => visibleIssueIds.contains(id))
         .length;
 
-    return Scaffold(
+    return PopScope(
+      canPop: !_hasUnsavedResults,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _confirmLeave();
+      },
+      child: Scaffold(
       appBar: simpleAppBar(title: 'Chassis Doctor'),
       body: ListView(
         shrinkWrap: true,
@@ -673,6 +723,220 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                 ),
               ),
             ),
+          if (_recommendations.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            FadeInUp(
+              delay: staggerDelay(_recommendations.length),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 320),
+                switchInCurve: Curves.easeOutCubic,
+                transitionBuilder: (child, animation) => FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(
+                    scale: Tween(begin: 0.97, end: 1.0).animate(animation),
+                    child: child,
+                  ),
+                ),
+                child: _savedSession == null
+                    ? _SaveSessionPanel(
+                        key: const ValueKey('save'),
+                        onSave: _openSaveSheet,
+                      )
+                    : _SavedSessionPanel(
+                        key: ValueKey(_savedSession!.id),
+                        session: _savedSession!,
+                        onViewHistory: _goToHistory,
+                        onDone: _goHome,
+                      ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ],
+      ),
+    ),
+    );
+  }
+}
+
+/// Shown under the recommendations until they're saved.
+class _SaveSessionPanel extends StatelessWidget {
+  const _SaveSessionPanel({super.key, required this.onSave});
+
+  final VoidCallback onSave;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = kSecondaryColor;
+    final isDark = ThemeController.instance.isDarkMode;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: gold.withValues(alpha: 0.45)),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [gold.withValues(alpha: 0.14), gold.withValues(alpha: 0.04)],
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.bookmark_add_rounded, color: gold, size: 22),
+              const SizedBox(width: 10),
+              Expanded(
+                child: MyText(
+                  text: 'Keep a record of this',
+                  size: 15,
+                  weight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          MyText(
+            paddingTop: 6,
+            paddingBottom: 14,
+            text:
+                'Save these recommendations with the session name, track, date '
+                'and your notes. They go into History.',
+            size: 12.5,
+            color: kTertiaryColor.withValues(alpha: 0.8),
+          ),
+          PressScale(
+            child: ElevatedButton.icon(
+              onPressed: onSave,
+              icon: const Icon(Icons.save_alt_rounded, size: 20),
+              label: const Text(
+                'Save to session',
+                style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: gold,
+                foregroundColor: isDark ? Colors.black : kPrimaryColor,
+                elevation: 0,
+                minimumSize: const Size(double.infinity, 50),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Replaces the save panel once saved, with somewhere to go next.
+class _SavedSessionPanel extends StatelessWidget {
+  const _SavedSessionPanel({
+    super.key,
+    required this.session,
+    required this.onViewHistory,
+    required this.onDone,
+  });
+
+  final ChassisSession session;
+  final VoidCallback onViewHistory;
+  final VoidCallback onDone;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = kSecondaryColor;
+    const green = Color(0xff3DD68C);
+    final isDark = ThemeController.instance.isDarkMode;
+    final track = session.trackSnapshot['circuit_name']?.toString().trim();
+    final subtitle = [
+      if (track != null && track.isNotEmpty) track,
+      if (session.eventDate != null) formatSetupDate(session.eventDate!),
+    ].join(' · ');
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: kQuaternaryColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: green.withValues(alpha: 0.5)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const PopIn(
+                child: Icon(Icons.check_circle_rounded, color: green, size: 26),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MyText(
+                      text: 'Saved “${session.sessionName ?? 'Session'}”',
+                      size: 15,
+                      weight: FontWeight.bold,
+                      maxLines: 1,
+                      textOverflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle.isNotEmpty)
+                      MyText(
+                        paddingTop: 2,
+                        text: subtitle,
+                        size: 12.5,
+                        color: kTertiaryColor.withValues(alpha: 0.75),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: PressScale(
+                  child: OutlinedButton(
+                    onPressed: onDone,
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: gold,
+                      side: BorderSide(color: gold.withValues(alpha: 0.8)),
+                      minimumSize: const Size(0, 46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                    ),
+                    child: const Text(
+                      'Back to Home',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: PressScale(
+                  child: ElevatedButton(
+                    onPressed: onViewHistory,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: gold,
+                      foregroundColor: isDark ? Colors.black : kPrimaryColor,
+                      elevation: 0,
+                      minimumSize: const Size(0, 46),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(23),
+                      ),
+                    ),
+                    child: const Text(
+                      'View in History',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
