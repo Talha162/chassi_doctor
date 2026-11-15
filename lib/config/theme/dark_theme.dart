@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_fonts.dart';
 
- ThemeData darkTheme = ThemeData(
+ThemeData darkTheme = ThemeData(
   scaffoldBackgroundColor: Color(0xff000000),
   fontFamily: AppFonts.ROBOTO,
   appBarTheme: AppBarTheme(elevation: 0, backgroundColor: kWhiteColor),

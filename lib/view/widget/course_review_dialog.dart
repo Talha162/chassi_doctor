@@ -1,3 +1,5 @@
+import 'package:motorsport/utils/app_error.dart';
+import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants/app_colors.dart';
@@ -39,7 +41,7 @@ class _CourseReviewDialogState extends State<CourseReviewDialog> {
 
       widget.onSuccess();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+      showErrorSnackbar(friendlyError(e), title: "Couldn't submit your review");
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

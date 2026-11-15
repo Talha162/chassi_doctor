@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -102,7 +103,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _loadNotifications();
     }
 
-    await NotificationService.instance.handleNotificationData(notification.data);
+    await NotificationService.instance.handleNotificationData(
+      notification.data,
+    );
   }
 
   Future<void> _deleteNotification(AppNotification notification) async {
@@ -157,97 +160,105 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             : ListView.builder(
                 padding: AppSizes.DEFAULT,
                 itemCount: _notifications.length,
-                itemBuilder: (context, index) {
-                  final notification = _notifications[index];
-                  final formattedDate = DateFormat(
-                    'MMM d • hh:mm a',
-                  ).format(notification.createdAt.toLocal());
-                  return Dismissible(
-                    key: ValueKey(notification.id),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 16),
-                      color: Colors.redAccent,
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    onDismissed: (_) => _deleteNotification(notification),
-                    child: GestureDetector(
-                      onTap: () => _openNotification(notification),
-                      child: Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: kQuaternaryColor,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: notification.isRead
-                                ? kBorderColor2
-                                : kSecondaryColor,
-                            width: notification.isRead ? 1 : 1.2,
+                itemBuilder: (context, index) => FadeInUp(
+                  delay: staggerDelay(index),
+                  child: Builder(
+                    builder: (context) {
+                      final notification = _notifications[index];
+                      final formattedDate = DateFormat(
+                        'MMM d • hh:mm a',
+                      ).format(notification.createdAt.toLocal());
+                      return Dismissible(
+                        key: ValueKey(notification.id),
+                        direction: DismissDirection.endToStart,
+                        background: Container(
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 16),
+                          color: Colors.redAccent,
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                        onDismissed: (_) => _deleteNotification(notification),
+                        child: GestureDetector(
+                          onTap: () => _openNotification(notification),
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: kQuaternaryColor,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: notification.isRead
+                                    ? kBorderColor2
+                                    : kSecondaryColor,
+                                width: notification.isRead ? 1 : 1.2,
+                              ),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  height: 36,
+                                  width: 36,
+                                  decoration: BoxDecoration(
+                                    color: kSecondaryColor.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    notification.isRead
+                                        ? Icons.notifications_none
+                                        : Icons.notifications_active,
+                                    color: kSecondaryColor,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      MyText(
+                                        text: notification.title,
+                                        size: 14,
+                                        weight: FontWeight.w600,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      MyText(
+                                        text: notification.body,
+                                        size: 12,
+                                        color: kSecondaryColor,
+                                        maxLines: 2,
+                                        textOverflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 8),
+                                      MyText(
+                                        text: formattedDate,
+                                        size: 10,
+                                        color: kTertiaryColor,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                if (!notification.isRead)
+                                  Container(
+                                    margin: const EdgeInsets.only(left: 8),
+                                    height: 8,
+                                    width: 8,
+                                    decoration: BoxDecoration(
+                                      color: kSecondaryColor,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              height: 36,
-                              width: 36,
-                              decoration: BoxDecoration(
-                                color: kSecondaryColor.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                notification.isRead
-                                    ? Icons.notifications_none
-                                    : Icons.notifications_active,
-                                color: kSecondaryColor,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  MyText(
-                                    text: notification.title,
-                                    size: 14,
-                                    weight: FontWeight.w600,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  MyText(
-                                    text: notification.body,
-                                    size: 12,
-                                    color: kSecondaryColor,
-                                    maxLines: 2,
-                                    textOverflow: TextOverflow.ellipsis,
-                                  ),
-                                  const SizedBox(height: 8),
-                                  MyText(
-                                    text: formattedDate,
-                                    size: 10,
-                                    color: kTertiaryColor,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (!notification.isRead)
-                              Container(
-                                margin: const EdgeInsets.only(left: 8),
-                                height: 8,
-                                width: 8,
-                                decoration: BoxDecoration(
-                                  color: kSecondaryColor,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                      );
+                    },
+                  ),
+                ),
               ),
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/config/legal_config.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -12,9 +13,7 @@ class PrivacyPolicy extends StatelessWidget {
   Future<void> _openUrl(BuildContext context, Uri uri) async {
     final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!opened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('This link could not be opened.')),
-      );
+      showErrorSnackbar("Couldn't open that link. Please try again.");
     }
   }
 

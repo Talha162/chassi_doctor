@@ -7,7 +7,10 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SavedSetupHistoryController extends GetxController {
   final SupabaseService _supabaseService = SupabaseService.instance;
-  final _user = Supabase.instance.client.auth.currentUser;
+  // Read the signed-in user at fetch time, not once at construction: this
+  // controller can outlive a logout, and a cached user would show the
+  // previous account's history (or none) to the next person who logs in.
+  User? get _user => Supabase.instance.client.auth.currentUser;
 
   var isLoading = true.obs;
   var entries = <HistoryEntry>[].obs;
@@ -19,7 +22,9 @@ class SavedSetupHistoryController extends GetxController {
   }
 
   Future<void> fetchSavedSetups() async {
-    if (_user == null) {
+    final user = _user;
+    if (user == null) {
+      entries.clear();
       // Handle case where user is somehow not logged in
       debugPrint('[HISTORY] ⚠️ User not authenticated');
       isLoading.value = false;
@@ -27,12 +32,12 @@ class SavedSetupHistoryController extends GetxController {
     }
     try {
       isLoading.value = true;
-      debugPrint('[HISTORY] 📋 Fetching history for user: ${_user.id}');
+      debugPrint('[HISTORY] 📋 Fetching history for user: ${user.id}');
       final sessions = await _supabaseService.getChassisSessionsForUser(
-        _user.id,
+        user.id,
       );
       final configs = await _supabaseService.getTrackConfigurationsForUser(
-        _user.id,
+        user.id,
       );
 
       debugPrint(

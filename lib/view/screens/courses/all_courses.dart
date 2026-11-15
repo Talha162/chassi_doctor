@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
@@ -142,32 +143,37 @@ class _AllCoursesState extends State<AllCourses> {
             itemCount: _filters.length,
             physics: const BouncingScrollPhysics(),
             padding: AppSizes.HORIZONTAL,
-            itemBuilder: (context, index) {
-              final isSelected = _selectedFilterIndex == index;
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedFilterIndex = index;
-                  });
-                },
-                child: Container(
-                  height: 30,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: isSelected ? kSecondaryColor : kQuaternaryColor,
-                    borderRadius: BorderRadius.circular(50),
-                  ),
-                  child: Center(
-                    child: MyText(
-                      text: _filters[index],
-                      size: 13,
-                      color: isSelected ? kPrimaryColor : kTertiaryColor,
-                      weight: FontWeight.w500,
+            itemBuilder: (context, index) => FadeInUp(
+              delay: staggerDelay(index),
+              child: Builder(
+                builder: (context) {
+                  final isSelected = _selectedFilterIndex == index;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedFilterIndex = index;
+                      });
+                    },
+                    child: Container(
+                      height: 30,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: isSelected ? kSecondaryColor : kQuaternaryColor,
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: Center(
+                        child: MyText(
+                          text: _filters[index],
+                          size: 13,
+                          color: isSelected ? kPrimaryColor : kTertiaryColor,
+                          weight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
@@ -182,34 +188,37 @@ class _AllCoursesState extends State<AllCourses> {
             padding: AppSizes.HORIZONTAL,
             physics: const BouncingScrollPhysics(),
             itemCount: visibleCourses.length,
-            itemBuilder: (context, index) {
-              final course = visibleCourses[index];
-              final rating = _ratings[course.id];
-              final progress = _progress[course.id];
+            itemBuilder: (context, index) => FadeInUp(
+              delay: staggerDelay(index),
+              child: Builder(
+                builder: (context) {
+                  final course = visibleCourses[index];
+                  final rating = _ratings[course.id];
+                  final progress = _progress[course.id];
 
-              final percent = ((progress?.progressPercentage ?? 0) / 100).clamp(
-                0.0,
-                1.0,
-              );
-              final completedText =
-                  '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
+                  final percent = ((progress?.progressPercentage ?? 0) / 100)
+                      .clamp(0.0, 1.0);
+                  final completedText =
+                      '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
 
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: index < visibleCourses.length - 1 ? 12 : 0,
-                ),
-                child: _LearningHubTile(
-                  title: course.title,
-                  duration: _formatDuration(course.durationMinutes),
-                  imageUrl: course.thumbnailUrl,
-                  percent: percent.toDouble(),
-                  completedText: completedText,
-                  rating: rating?.avgRating,
-                  totalReviews: rating?.totalReviews,
-                  onTapPrimary: () => _openCourseDetail(course),
-                ),
-              );
-            },
+                  return Padding(
+                    padding: EdgeInsets.only(
+                      bottom: index < visibleCourses.length - 1 ? 12 : 0,
+                    ),
+                    child: _LearningHubTile(
+                      title: course.title,
+                      duration: _formatDuration(course.durationMinutes),
+                      imageUrl: course.thumbnailUrl,
+                      percent: percent.toDouble(),
+                      completedText: completedText,
+                      rating: rating?.avgRating,
+                      totalReviews: rating?.totalReviews,
+                      onTapPrimary: () => _openCourseDetail(course),
+                    ),
+                  );
+                },
+              ),
+            ),
           ),
       ],
     );

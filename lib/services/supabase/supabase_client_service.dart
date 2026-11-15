@@ -21,10 +21,8 @@ import '../../models/history_note.dart';
 import '../../models/track_configuration.dart';
 import '../../models/video_progress.dart';
 import '../../models/device_token.dart';
+import '../../models/saved_setup.dart';
 import 'package:path/path.dart' as p; // 👈 ADD THIS
-
-
-
 
 class SupabaseService {
   SupabaseService._();
@@ -76,8 +74,9 @@ class SupabaseService {
     final res = await _client.from('course_rating_summary').select();
 
     return (res as List)
-        .map((json) =>
-        CourseRatingSummary.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => CourseRatingSummary.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -163,13 +162,10 @@ class SupabaseService {
   }) async {
     final res = await _client
         .from('course_enrollments')
-        .upsert(
-      {
-        'user_id': userId,
-        'course_id': courseId,
-      },
-      onConflict: 'user_id,course_id',
-    )
+        .upsert({
+          'user_id': userId,
+          'course_id': courseId,
+        }, onConflict: 'user_id,course_id')
         .select()
         .single();
 
@@ -184,48 +180,52 @@ class SupabaseService {
     required int watchedSeconds,
     required bool completed,
   }) async {
-    await _client.from('video_progress').upsert(
-      {
-        'user_id': userId,
-        'video_id': videoId,
-        'watched_seconds': watchedSeconds,
-        'completed': completed,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      onConflict: 'user_id,video_id',
-    );
+    await _client.from('video_progress').upsert({
+      'user_id': userId,
+      'video_id': videoId,
+      'watched_seconds': watchedSeconds,
+      'completed': completed,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id,video_id');
   }
 
   Future<List<CourseProgressSummary>> getCourseProgressForUser(
-      String userId) async {
+    String userId,
+  ) async {
     final res = await _client
         .from('course_progress_summary')
         .select()
         .eq('user_id', userId);
 
     return (res as List)
-        .map((json) =>
-        CourseProgressSummary.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) =>
+              CourseProgressSummary.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
   Future<List<ModuleProgressSummary>> getModuleProgressForUser(
-      String userId) async {
+    String userId,
+  ) async {
     final res = await _client
         .from('module_progress_summary')
         .select()
         .eq('user_id', userId);
 
     return (res as List)
-        .map((json) =>
-        ModuleProgressSummary.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) =>
+              ModuleProgressSummary.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
   // ───────────────── TRACK CONFIGS ─────────────────
 
   Future<List<TrackConfiguration>> getTrackConfigurationsForUser(
-      String userId) async {
+    String userId,
+  ) async {
     final res = await _client
         .from('track_configurations')
         .select()
@@ -233,13 +233,15 @@ class SupabaseService {
         .order('created_at', ascending: false);
 
     return (res as List)
-        .map((json) =>
-        TrackConfiguration.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => TrackConfiguration.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
   Future<TrackConfiguration?> getLatestTrackConfigurationForUser(
-      String userId) async {
+    String userId,
+  ) async {
     final res = await _client
         .from('track_configurations')
         .select()
@@ -283,7 +285,8 @@ class SupabaseService {
   }
 
   Future<List<ChassisIssueOption>> getIssueOptionsForSymptom(
-      String symptomId) async {
+    String symptomId,
+  ) async {
     final res = await _client
         .from('chassis_issue_options')
         .select()
@@ -292,7 +295,9 @@ class SupabaseService {
         .order('created_at', ascending: false);
 
     return (res as List)
-        .map((json) => ChassisIssueOption.fromJson(json as Map<String, dynamic>))
+        .map(
+          (json) => ChassisIssueOption.fromJson(json as Map<String, dynamic>),
+        )
         .toList();
   }
 
@@ -345,7 +350,8 @@ class SupabaseService {
 
   /// Fallback query method if RPC is not available.
   /// Uses PostgREST filters to simulate the SQL logic.
-  Future<List<AdjustmentRecommendation>> _getRankableRecommendationsDirectQuery({
+  Future<List<AdjustmentRecommendation>>
+  _getRankableRecommendationsDirectQuery({
     required String symptomId,
     required List<String> issueIds,
     String? presetId,
@@ -367,7 +373,9 @@ class SupabaseService {
           .eq('is_active', true);
 
       if (setsRes.isEmpty) {
-        debugPrint('[SUPABASE] No adjustment sets found for symptomId=$symptomId');
+        debugPrint(
+          '[SUPABASE] No adjustment sets found for symptomId=$symptomId',
+        );
         return [];
       }
 
@@ -417,7 +425,8 @@ class SupabaseService {
             .order('priority_order', ascending: false);
 
         for (final recData in recRes as List) {
-          final recDetail = recData['adjustment_recommendations'] as Map<String, dynamic>?;
+          final recDetail =
+              recData['adjustment_recommendations'] as Map<String, dynamic>?;
           if (recDetail != null) {
             final recId = recDetail['id'] as String;
             // Avoid duplicates
@@ -504,7 +513,9 @@ class SupabaseService {
       _ => null,
     };
 
-    final weather = switch ((config.weatherCondition ?? '').trim().toLowerCase()) {
+    final weather = switch ((config.weatherCondition ?? '')
+        .trim()
+        .toLowerCase()) {
       'dry' => 'Dry',
       'wet' => 'Wet',
       _ => null,
@@ -516,7 +527,14 @@ class SupabaseService {
       _ => null,
     };
 
-    if ([track, surface, engine, aero, weather, drive].any((value) => value == null)) {
+    if ([
+      track,
+      surface,
+      engine,
+      aero,
+      weather,
+      drive,
+    ].any((value) => value == null)) {
       return null;
     }
 
@@ -662,7 +680,9 @@ class SupabaseService {
       _ => null,
     };
 
-    final weather = switch ((config.weatherCondition ?? '').trim().toLowerCase()) {
+    final weather = switch ((config.weatherCondition ?? '')
+        .trim()
+        .toLowerCase()) {
       'dry' => 'Dry',
       'wet' => 'Wet',
       _ => null,
@@ -731,24 +751,26 @@ class SupabaseService {
   }) async {
     try {
       debugPrint('[SUPABASE] 💾 Creating new chassis session...');
-      debugPrint('[SUPABASE] Data: userId=$userId, track=${trackSnapshot['track_type']}, symptom=${symptomSnapshot['title']}, issues=${issuesSnapshot.length}, recs=${recommendations.length}');
-      
+      debugPrint(
+        '[SUPABASE] Data: userId=$userId, track=${trackSnapshot['track_type']}, symptom=${symptomSnapshot['title']}, issues=${issuesSnapshot.length}, recs=${recommendations.length}',
+      );
+
       final res = await _client
           .from('chassis_sessions')
           .insert({
-        'user_id': userId,
-        'track_snapshot': trackSnapshot,
-        'symptom_snapshot': symptomSnapshot,
-        'issues_snapshot': issuesSnapshot,
-        'recommendations': recommendations,
-      })
+            'user_id': userId,
+            'track_snapshot': trackSnapshot,
+            'symptom_snapshot': symptomSnapshot,
+            'issues_snapshot': issuesSnapshot,
+            'recommendations': recommendations,
+          })
           .select()
           .single();
 
       final session = ChassisSession.fromJson(res as Map<String, dynamic>);
       debugPrint('[SUPABASE] ✅ Session created with ID: ${session.id}');
       debugPrint('[SUPABASE] Created at: ${session.createdAt}');
-      
+
       return session;
     } catch (e) {
       debugPrint('[SUPABASE] ❌ Error creating session: $e');
@@ -759,15 +781,17 @@ class SupabaseService {
   Future<List<ChassisSession>> getChassisSessionsForUser(String userId) async {
     try {
       debugPrint('[SUPABASE] 📖 Fetching sessions for user: $userId');
-      
+
       final res = await _client
           .from('chassis_sessions')
           .select()
           .eq('user_id', userId)
           .order('created_at', ascending: false);
 
-      debugPrint('[SUPABASE] ✅ Query returned: ${(res as List).length} sessions');
-      
+      debugPrint(
+        '[SUPABASE] ✅ Query returned: ${(res as List).length} sessions',
+      );
+
       if ((res as List).isEmpty) {
         debugPrint('[SUPABASE] ℹ️  No sessions found for this user');
         return [];
@@ -779,7 +803,9 @@ class SupabaseService {
 
       debugPrint('[SUPABASE] 📋 Sessions list:');
       for (var i = 0; i < sessions.length; i++) {
-        debugPrint('[SUPABASE]   ${i + 1}. ID: ${sessions[i].id}, Created: ${sessions[i].createdAt}, Symptom: ${sessions[i].symptomSnapshot['title'] ?? 'Unknown'}');
+        debugPrint(
+          '[SUPABASE]   ${i + 1}. ID: ${sessions[i].id}, Created: ${sessions[i].createdAt}, Symptom: ${sessions[i].symptomSnapshot['title'] ?? 'Unknown'}',
+        );
       }
 
       return sessions;
@@ -816,17 +842,11 @@ class SupabaseService {
   }
 
   Future<void> deleteNotification(String notificationId) async {
-    await _client
-        .from('user_notifications')
-        .delete()
-        .eq('id', notificationId);
+    await _client.from('user_notifications').delete().eq('id', notificationId);
   }
 
   Future<void> clearNotificationsForUser(String userId) async {
-    await _client
-        .from('user_notifications')
-        .delete()
-        .eq('user_id', userId);
+    await _client.from('user_notifications').delete().eq('user_id', userId);
   }
 
   Future<HistoryNote?> getHistoryNote({
@@ -852,16 +872,13 @@ class SupabaseService {
     required String sourceId,
     required String note,
   }) async {
-    await _client.from('history_notes').upsert(
-      {
-        'user_id': userId,
-        'source_type': sourceType,
-        'source_id': sourceId,
-        'note': note,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-      onConflict: 'user_id,source_type,source_id',
-    );
+    await _client.from('history_notes').upsert({
+      'user_id': userId,
+      'source_type': sourceType,
+      'source_id': sourceId,
+      'note': note,
+      'updated_at': DateTime.now().toIso8601String(),
+    }, onConflict: 'user_id,source_type,source_id');
   }
 
   Future<void> deleteHistoryNote({
@@ -876,7 +893,6 @@ class SupabaseService {
         .eq('source_type', sourceType)
         .eq('source_id', sourceId);
   }
-
 
   // ───────────────── ENROLLMENTS (EXTRA HELPERS) ─────────────────
 
@@ -903,8 +919,7 @@ class SupabaseService {
         .toList();
   }
 
-
-// ───────────────── VIDEO PROGRESS (LIST) ─────────────────
+  // ───────────────── VIDEO PROGRESS (LIST) ─────────────────
 
   Future<List<VideoProgress>> getVideoProgressForUser(String userId) async {
     final res = await _client
@@ -917,8 +932,10 @@ class SupabaseService {
         .toList();
   }
 
-  Future<String> getSignedVideoUrl(String storagePath,
-      {Duration expiresIn = const Duration(hours: 1)}) async {
+  Future<String> getSignedVideoUrl(
+    String storagePath, {
+    Duration expiresIn = const Duration(hours: 1),
+  }) async {
     final signedUrl = await _client.storage
         .from('course-videos') // TODO: your exact bucket name
         .createSignedUrl(storagePath, expiresIn.inSeconds);
@@ -953,7 +970,10 @@ class SupabaseService {
   }
 
   Future<List<DeviceToken>> getDeviceTokensForUser(String userId) async {
-    final res = await _client.from('device_tokens').select().eq('user_id', userId);
+    final res = await _client
+        .from('device_tokens')
+        .select()
+        .eq('user_id', userId);
     return (res as List)
         .map((json) => DeviceToken.fromJson(json as Map<String, dynamic>))
         .toList();
@@ -1010,17 +1030,102 @@ class SupabaseService {
     final filePath =
         'avatars/$userId-${DateTime.now().millisecondsSinceEpoch}$ext';
 
-    await _client.storage.from(bucketName).upload(
-      filePath,
-      file,
-      fileOptions: const FileOptions(upsert: true),
-    );
+    await _client.storage
+        .from(bucketName)
+        .upload(filePath, file, fileOptions: const FileOptions(upsert: true));
 
-    final publicUrl =
-    _client.storage.from(bucketName).getPublicUrl(filePath);
+    final publicUrl = _client.storage.from(bucketName).getPublicUrl(filePath);
 
     return publicUrl;
   }
 
+  // ───────────────── SAVED GEOMETRY SETUPS ─────────────────
+  // Shared with the website calculators (same table, same JSON).
 
+  static const _setupColumns =
+      'id, tool, state_key, name, track_name, event_date, notes, data, source, created_at, updated_at';
+
+  Future<List<SavedSetup>> getSavedSetups({String? tool}) async {
+    var query = _client.from('saved_setups').select(_setupColumns);
+    if (tool != null) query = query.eq('tool', tool);
+    final res = await query.order('updated_at', ascending: false);
+    return (res as List)
+        .map((json) => SavedSetup.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
+  Future<SavedSetup> createSavedSetup({
+    required String tool,
+    required String stateKey,
+    required Map<String, dynamic> data,
+    required String name,
+    String? trackName,
+    DateTime? eventDate,
+    String? notes,
+  }) async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) throw StateError('Not signed in');
+    final res = await _client
+        .from('saved_setups')
+        .insert({
+          'user_id': userId,
+          'tool': tool,
+          'state_key': stateKey,
+          'data': data,
+          'name': name.trim(),
+          'track_name': _blankToNull(trackName),
+          'event_date': eventDate == null ? null : _isoDate(eventDate),
+          'notes': _blankToNull(notes),
+          'source': 'app',
+        })
+        .select(_setupColumns)
+        .single();
+    return SavedSetup.fromJson(res);
+  }
+
+  /// Overwrite a setup's figures with the calculator's current state.
+  Future<SavedSetup> updateSavedSetupFigures({
+    required String id,
+    required String stateKey,
+    required Map<String, dynamic> data,
+  }) async {
+    final res = await _client
+        .from('saved_setups')
+        .update({'data': data, 'state_key': stateKey, 'source': 'app'})
+        .eq('id', id)
+        .select(_setupColumns)
+        .single();
+    return SavedSetup.fromJson(res);
+  }
+
+  Future<SavedSetup> updateSavedSetupDetails({
+    required String id,
+    required String name,
+    String? trackName,
+    DateTime? eventDate,
+    String? notes,
+  }) async {
+    final res = await _client
+        .from('saved_setups')
+        .update({
+          'name': name.trim(),
+          'track_name': _blankToNull(trackName),
+          'event_date': eventDate == null ? null : _isoDate(eventDate),
+          'notes': _blankToNull(notes),
+        })
+        .eq('id', id)
+        .select(_setupColumns)
+        .single();
+    return SavedSetup.fromJson(res);
+  }
+
+  Future<void> deleteSavedSetup(String id) async {
+    await _client.from('saved_setups').delete().eq('id', id);
+  }
+
+  static String? _blankToNull(String? v) =>
+      (v == null || v.trim().isEmpty) ? null : v.trim();
+
+  static String _isoDate(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
 }

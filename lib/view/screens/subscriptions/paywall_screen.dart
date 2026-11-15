@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/config/legal_config.dart';
 import 'package:motorsport/config/revenuecat_config.dart';
@@ -29,10 +30,9 @@ class _PaywallScreenState extends State<PaywallScreen> {
     if (customerInfo.entitlements.active.containsKey(
       RevenueCatConfig.entitlementId,
     )) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('All Access is now active on this account.'),
-        ),
+      showSuccessSnackbar(
+        'All Access is now active on this account.',
+        title: 'Welcome to All Access',
       );
       Navigator.pop(context, true);
     }
@@ -45,15 +45,14 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final hasAccess = customerInfo.entitlements.active.containsKey(
       RevenueCatConfig.entitlementId,
     );
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          hasAccess
-              ? 'Your subscription was restored successfully.'
-              : 'No active subscription was found to restore.',
-        ),
-      ),
-    );
+    if (hasAccess) {
+      showSuccessSnackbar('Your subscription was restored.');
+    } else {
+      showInfoSnackbar(
+        'No active subscription was found for this Apple ID.',
+        title: 'Nothing to restore',
+      );
+    }
     if (hasAccess) {
       Navigator.pop(context, true);
     }
@@ -65,9 +64,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       mode: LaunchMode.externalApplication,
     );
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Terms of Use could not be opened.')),
-      );
+      showErrorSnackbar("Couldn't open the Terms of Use. Please try again.");
     }
   }
 
@@ -77,9 +74,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
       mode: LaunchMode.externalApplication,
     );
     if (!opened && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Privacy Policy could not be opened.')),
-      );
+      showErrorSnackbar("Couldn't open the Privacy Policy. Please try again.");
     }
   }
 

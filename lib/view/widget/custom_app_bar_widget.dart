@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_images.dart';
@@ -21,23 +20,7 @@ AppBar simpleAppBar({
     centerTitle: centerTitle,
     leadingWidth: leadingWidth,
     leading: haveLeading
-        ? leading ??
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 5),
-                    child: GestureDetector(
-                      onTap: onLeadingTap ?? () => Get.back(),
-                      child: Image.asset(
-                        Assets.imagesArrowBack,
-                        height: 14,
-                        color: kTertiaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              )
+        ? leading ?? Center(child: AppBackButton(onTap: onLeadingTap))
         : null,
     title: MyText(
       text: title ?? '',
@@ -47,4 +30,40 @@ AppBar simpleAppBar({
     ),
     actions: actions,
   );
+}
+
+/// The app's back arrow. Use this everywhere instead of a bare arrow image.
+///
+/// - The whole 48x48 box is tappable (the arrow image alone is only 14px,
+///   which made back buttons very hard to hit).
+/// - The default action uses Flutter's Navigator rather than `Get.back()`,
+///   so it always leaves the page even if GetX thinks an overlay is open.
+class AppBackButton extends StatelessWidget {
+  const AppBackButton({super.key, this.onTap});
+
+  /// Optional custom action; defaults to popping the current page.
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Back',
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap ?? () => Navigator.of(context).maybePop(),
+        child: SizedBox(
+          width: 48,
+          height: 48,
+          child: Center(
+            child: Image.asset(
+              Assets.imagesArrowBack,
+              height: 14,
+              color: kTertiaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }

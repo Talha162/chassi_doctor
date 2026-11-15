@@ -17,6 +17,15 @@ class AuthService {
 
   final SupabaseClient _supabase = Supabase.instance.client;
 
+  /// Emails are case-insensitive; Supabase stores them lowercase. Normalise
+  /// everything we send so login/OTP/reset always match the stored address.
+  static String normalizeEmail(String email) => email.trim().toLowerCase();
+
+  /// True while an email/password sign-up request is in flight. The global
+  /// auth listener in main.dart uses it to let the sign-up flow navigate to
+  /// onboarding itself instead of jumping straight to Home.
+  static bool emailSignUpInProgress = false;
+
   // --- EMAIL LOGIN (Standard) ---
   Future<AuthResponse> signInWithEmailPassword({
     required String email,
@@ -24,7 +33,7 @@ class AuthService {
   }) async {
     // Supabase uses signInWithPassword for email/password login
     return await _supabase.auth.signInWithPassword(
-      email: email,
+      email: normalizeEmail(email),
       password: password,
     );
   }
@@ -35,11 +44,19 @@ class AuthService {
     required String password,
     required String fullName,
   }) async {
-    return await _supabase.auth.signUp(
-      email: email,
-      password: password,
-      data: {'full_name': fullName},
-    );
+    emailSignUpInProgress = true;
+    try {
+      return await _supabase.auth.signUp(
+        email: normalizeEmail(email),
+        password: password,
+        data: {'full_name': fullName},
+      );
+    } finally {
+      // Let the signedIn event (delivered asynchronously) see the flag first.
+      Future<void>.delayed(const Duration(seconds: 2), () {
+        emailSignUpInProgress = false;
+      });
+    }
   }
 
   // --- OTP VERIFICATION ---
@@ -50,26 +67,27 @@ class AuthService {
     return await _supabase.auth.verifyOTP(
       type: OtpType.signup,
       token: token,
-      email: email,
+      email: normalizeEmail(email),
     );
   }
 
   // --- RESEND OTP ---
   Future<void> resendOtp({required String email}) async {
-    await _supabase.auth.resend(type: OtpType.signup, email: email);
+    await _supabase.auth.resend(
+      type: OtpType.signup,
+      email: normalizeEmail(email),
+    );
   }
 
   Future<void> sendPasswordResetEmail({required String email}) async {
     await _supabase.auth.resetPasswordForEmail(
-      email,
+      normalizeEmail(email),
       redirectTo: _mobileGoogleRedirectUrl,
     );
   }
 
   Future<void> updatePassword({required String newPassword}) async {
-    await _supabase.auth.updateUser(
-      UserAttributes(password: newPassword),
-    );
+    await _supabase.auth.updateUser(UserAttributes(password: newPassword));
   }
 
   // --- UTILS ---
@@ -95,9 +113,7 @@ class AuthService {
     );
 
     if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw AuthException(
-        'Failed to delete account (${response.statusCode}).',
-      );
+      throw AuthException('Failed to delete account (${response.statusCode}).');
     }
 
     await NotificationService.instance.clearCurrentDeviceToken();
@@ -115,10 +131,14 @@ class AuthService {
         metadata['picture'] as String? ??
         metadata['photo_url'] as String?;
 
-    final existingProfile =
-        await _supabase.from('users').select('avatar_url').eq('id', user.id).maybeSingle();
-    final existingAvatarUrl =
-        existingProfile != null ? existingProfile['avatar_url'] as String? : null;
+    final existingProfile = await _supabase
+        .from('users')
+        .select('avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+    final existingAvatarUrl = existingProfile != null
+        ? existingProfile['avatar_url'] as String?
+        : null;
 
     await _supabase.from('users').upsert({
       'id': user.id,
@@ -170,10 +190,10 @@ class AuthService {
 
     // Apple only returns the user's name on the FIRST sign-in, so capture it
     // here when present (Supabase won't have it from the id token alone).
-    final fullName = [credential.givenName, credential.familyName]
-        .where((part) => part != null && part.isNotEmpty)
-        .join(' ')
-        .trim();
+    final fullName = [
+      credential.givenName,
+      credential.familyName,
+    ].where((part) => part != null && part.isNotEmpty).join(' ').trim();
     if (fullName.isNotEmpty && response.user != null) {
       await _supabase.auth.updateUser(
         UserAttributes(data: {'full_name': fullName}),

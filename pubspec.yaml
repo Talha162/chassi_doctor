@@ -2,7 +2,7 @@ name: motorsport
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.4+8
+version: 1.0.5+12
 
 environment:
   sdk: ^3.8.1
@@ -40,6 +40,7 @@ dependencies:
   firebase_messaging: ^16.2.0
   flutter_local_notifications: ^21.0.0
   purchases_flutter: ^10.9.1
+  webview_flutter: ^4.10.0
 
 
 
@@ -47,6 +48,8 @@ dev_dependencies:
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.1
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
 
 flutter_launcher_icons:
@@ -63,6 +66,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/onboarding/blue/
+    - assets/images/onboarding/black/
+    - assets/geometry/
+  fonts:
+    - family: Caveat
+      fonts:
+        - asset: assets/fonts/Caveat-Variable.ttf
   # fonts:
   #   - family: Urbanist
   #     fonts:

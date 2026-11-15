@@ -1,3 +1,6 @@
+import 'package:motorsport/utils/validators.dart';
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/utils/app_error.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -43,6 +46,9 @@ class _EditProfileState extends State<EditProfile> {
     _loadProfile();
   }
 
+  final _formKey = GlobalKey<FormState>();
+  bool _submitted = false;
+
   Future<void> _loadProfile() async {
     try {
       setState(() => _isLoading = true);
@@ -69,7 +75,7 @@ class _EditProfileState extends State<EditProfile> {
       if (profile.dateOfBirth != null) {
         final d = profile.dateOfBirth!;
         _dobC.text =
-        '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
+            '${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
       }
 
       _avatarUrl = profile.avatarUrl;
@@ -112,7 +118,10 @@ class _EditProfileState extends State<EditProfile> {
                 paddingBottom: 8,
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined, color: Colors.white),
+                leading: const Icon(
+                  Icons.camera_alt_outlined,
+                  color: Colors.white,
+                ),
                 title: const Text(
                   'Take photo',
                   style: TextStyle(color: Colors.white),
@@ -135,7 +144,10 @@ class _EditProfileState extends State<EditProfile> {
               ),
               if (_pickedImage != null || _avatarUrl != null) ...[
                 ListTile(
-                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  leading: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.redAccent,
+                  ),
                   title: const Text(
                     'Remove photo',
                     style: TextStyle(color: Colors.redAccent),
@@ -169,12 +181,13 @@ class _EditProfileState extends State<EditProfile> {
     } catch (e) {
       debugPrint('Error picking image: $e');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to pick image: $e')),
+      if (isUserCancelled(e)) return;
+      showErrorSnackbar(
+        "We couldn't open that photo. Please try a different one.",
+        title: 'Photo not added',
       );
     }
   }
-
 
   /// Show DatePicker for DOB, fill _dobC
   Future<void> _pickDob() async {
@@ -218,6 +231,12 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<void> _saveProfile() async {
     if (_user == null) return;
+    FocusScope.of(context).unfocus();
+    setState(() => _submitted = true);
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      showInfoSnackbar('Please fix the highlighted fields.');
+      return;
+    }
 
     try {
       setState(() => _isSaving = true);
@@ -241,7 +260,6 @@ class _EditProfileState extends State<EditProfile> {
       final updated = await _service.updateUserProfile(
         userId: _user!.id,
         fullName: _nameC.text.trim(),
-        email: _emailC.text.trim(),
         phone: _phoneC.text.trim(),
         location: _locationC.text.trim(),
         dateOfBirth: dob,
@@ -252,16 +270,15 @@ class _EditProfileState extends State<EditProfile> {
       _avatarUrl = updated.avatarUrl;
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated')),
-        );
+        showSuccessSnackbar('Your profile has been updated.');
         Navigator.pop(context, updated); // return to Settings with updated user
       }
     } catch (e) {
       debugPrint('Error saving profile: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update: $e')),
+        showErrorSnackbar(
+          friendlyError(e),
+          title: "Couldn't save your profile",
         );
       }
     } finally {
@@ -287,101 +304,112 @@ class _EditProfileState extends State<EditProfile> {
       appBar: simpleAppBar(title: 'Profile & Settings'),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
-        shrinkWrap: true,
-        padding: AppSizes.DEFAULT,
-        physics: const BouncingScrollPhysics(),
-        children: [
-          MyText(
-            text: 'Account Information',
-            size: 18,
-            paddingBottom: 8,
-            weight: FontWeight.bold,
-          ),
-          MyText(
-            text: 'Manage your personal details and account settings',
-            size: 12,
-            paddingBottom: 30,
-          ),
-          Center(
-            child: GestureDetector(
-              onTap: _showImageSourceSheet, // 👈 open options
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: kSecondaryColor,
-                    width: 4,
+          : Form(
+              key: _formKey,
+              autovalidateMode: _submitted
+                  ? AutovalidateMode.onUserInteraction
+                  : AutovalidateMode.disabled,
+              child: ListView(
+                shrinkWrap: true,
+                padding: AppSizes.DEFAULT,
+                physics: const BouncingScrollPhysics(),
+                children: [
+                  MyText(
+                    text: 'Account Information',
+                    size: 18,
+                    paddingBottom: 8,
+                    weight: FontWeight.bold,
                   ),
-                  shape: BoxShape.circle,
-                ),
-                child: ClipOval(
-                  child: SizedBox(
-                    height: 120,
-                    width: 120,
-                    child: _pickedImage != null
-                        ? Image.file(
-                      _pickedImage!,
-                      fit: BoxFit.cover,
-                    )
-                        : CommonImageView(
-                      height: 120,
-                      width: 120,
-                      radius: 100,
-                      fit: BoxFit.cover,
-                      url: _avatarUrl ?? dummyImg,
+                  MyText(
+                    text: 'Manage your personal details and account settings',
+                    size: 12,
+                    paddingBottom: 30,
+                  ),
+                  Center(
+                    child: GestureDetector(
+                      onTap: _showImageSourceSheet, // 👈 open options
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: kSecondaryColor, width: 4),
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipOval(
+                          child: SizedBox(
+                            height: 120,
+                            width: 120,
+                            child: _pickedImage != null
+                                ? Image.file(_pickedImage!, fit: BoxFit.cover)
+                                : CommonImageView(
+                                    height: 120,
+                                    width: 120,
+                                    radius: 100,
+                                    fit: BoxFit.cover,
+                                    url: _avatarUrl ?? dummyImg,
+                                  ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  MyText(
+                    text: _nameC.text.isEmpty ? 'Your name' : _nameC.text,
+                    size: 18,
+                    weight: FontWeight.bold,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  MyText(
+                    text: _emailC.text,
+                    size: 14,
+                    textAlign: TextAlign.center,
+                    color: kTertiaryColor.withValues(alpha: 0.8),
+                    paddingBottom: 50,
+                  ),
+                  _EditProfileTile(
+                    title: 'Full name',
+                    controller: _nameC,
+                    validator: AppValidators.fullName,
+                    maxLength: 60,
+                  ),
+                  // Email is the login identity; changing it needs auth-level
+                  // verification, so it's shown read-only here.
+                  _EditProfileTile(
+                    title: 'Email',
+                    controller: _emailC,
+                    readOnly: true,
+                    helper: "Email can't be changed here",
+                  ),
+                  _EditProfileTile(
+                    title: 'Date of birth',
+                    controller: _dobC,
+                    hint: 'YYYY-MM-DD',
+                    readOnly: true, // 👈 no manual typing
+                    onTap: _pickDob, // 👈 open date picker
+                  ),
+                  _EditProfileTile(
+                    title: 'Location',
+                    controller: _locationC,
+                    validator: AppValidators.optionalMax(80, label: 'Location'),
+                    maxLength: 80,
+                  ),
+                  _EditProfileTile(
+                    title: 'Phone',
+                    controller: _phoneC,
+                    hint: 'Optional',
+                    keyboardType: TextInputType.phone,
+                    validator: AppValidators.optionalPhone,
+                  ),
+                ],
               ),
             ),
-          ),
-          const SizedBox(height: 12),
-          MyText(
-            text: _nameC.text.isEmpty ? 'Your name' : _nameC.text,
-            size: 18,
-            weight: FontWeight.bold,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 8),
-          MyText(
-            text: _emailC.text,
-            size: 14,
-            textAlign: TextAlign.center,
-            color: kTertiaryColor.withValues(alpha: 0.8),
-            paddingBottom: 50,
-          ),
-          _EditProfileTile(
-            title: 'Full name',
-            controller: _nameC,
-          ),
-          _EditProfileTile(
-            title: 'Email',
-            controller: _emailC,
-          ),
-          _EditProfileTile(
-            title: 'Date of birth',
-            controller: _dobC,
-            hint: 'YYYY-MM-DD',
-            readOnly: true,          // 👈 no manual typing
-            onTap: _pickDob,         // 👈 open date picker
-          ),
-          _EditProfileTile(
-            title: 'Location',
-            controller: _locationC,
-          ),
-          _EditProfileTile(
-            title: 'Phone',
-            controller: _phoneC,
-          ),
-        ],
-      ),
       bottomNavigationBar: BottomAppBar(
         elevation: 0,
         color: kPrimaryColor,
         child: Padding(
           padding: AppSizes.DEFAULT,
           child: MyButton(
-            buttonText: _isSaving ? 'Saving...' : 'Save Configuration',
+            buttonText: _isSaving ? 'Saving...' : 'Save Changes',
             onTap: _isSaving ? null : () => _saveProfile(),
           ),
         ),
@@ -396,6 +424,10 @@ class _EditProfileTile extends StatelessWidget {
   final String? hint;
   final bool readOnly;
   final VoidCallback? onTap;
+  final FormFieldValidator<String>? validator;
+  final TextInputType? keyboardType;
+  final int? maxLength;
+  final String? helper;
 
   const _EditProfileTile({
     Key? key,
@@ -404,6 +436,10 @@ class _EditProfileTile extends StatelessWidget {
     this.hint,
     this.readOnly = false,
     this.onTap,
+    this.validator,
+    this.keyboardType,
+    this.maxLength,
+    this.helper,
   }) : super(key: key);
 
   @override
@@ -417,25 +453,42 @@ class _EditProfileTile extends StatelessWidget {
             const Spacer(),
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.55,
-              child: TextField(
+              child: TextFormField(
                 controller: controller,
                 readOnly: readOnly,
                 onTap: onTap,
+                validator: validator,
+                keyboardType: keyboardType,
+                maxLength: maxLength,
                 textAlign: TextAlign.end,
                 style: TextStyle(
                   fontSize: 14,
-                  color: kTertiaryColor,
+                  color: readOnly && onTap == null
+                      ? kTertiaryColor.withValues(alpha: 0.6)
+                      : kTertiaryColor,
                   fontWeight: FontWeight.w500,
                 ),
                 decoration: InputDecoration(
                   isDense: true,
                   hintText: hint,
+                  counterText: '',
+                  helperText: helper,
+                  helperStyle: TextStyle(
+                    color: kTertiaryColor.withValues(alpha: 0.5),
+                    fontSize: 11,
+                  ),
+                  errorStyle: const TextStyle(
+                    color: Color(0xffFF6B6B),
+                    fontSize: 12,
+                  ),
+                  errorBorder: InputBorder.none,
+                  focusedErrorBorder: InputBorder.none,
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                   contentPadding: EdgeInsets.zero,
                   hintStyle: TextStyle(
-                    color: kTertiaryColor.withOpacity(0.6),
+                    color: kTertiaryColor.withValues(alpha: 0.6),
                     fontSize: 14,
                   ),
                 ),

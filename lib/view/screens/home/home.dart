@@ -1,4 +1,6 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
+import 'package:motorsport/view/screens/geometry/geometry.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
@@ -256,88 +258,94 @@ class _HomeState extends State<Home> {
         padding: AppSizes.DEFAULT,
         physics: const BouncingScrollPhysics(),
         children: [
-          Text(
-            "Hey $_greetingName!",
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
+          FadeInUp(
+            delay: const Duration(milliseconds: 0),
+            child: Text(
+              "Hey $_greetingName!",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
             ),
           ),
           const SizedBox(height: 15),
 
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              height: 180,
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.asset(Assets.racetracklogo, fit: BoxFit.cover),
-                  Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [Color(0x40303887), Color(0xA0151B4F)],
+          FadeInUp(
+            delay: const Duration(milliseconds: 80),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                height: 180,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Image.asset(Assets.racetracklogo, fit: BoxFit.cover),
+                    Container(
+                      decoration: const BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.centerLeft,
+                          end: Alignment.centerRight,
+                          colors: [Color(0x40303887), Color(0xA0151B4F)],
+                        ),
                       ),
                     ),
-                  ),
-                  Positioned(
-                    top: 18,
-                    right: 16,
-                    left: 120,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
+                    Positioned(
+                      top: 18,
+                      right: 16,
+                      left: 120,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0x9A5B3A92),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'Chassis Setup Made Simple.',
+                              textAlign: TextAlign.right,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w800,
+                                shadows: [
+                                  Shadow(
+                                    color: Color(0xCC000000),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ),
-                          decoration: BoxDecoration(
-                            color: const Color(0x9A5B3A92),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: const Text(
-                            'Chassis Setup Made Simple.',
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Live Race Car Setup Feedback\nin your hands 24/7.',
                             textAlign: TextAlign.right,
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
+                              color: Color(0xFFE6E8FF),
+                              fontSize: 12,
+                              height: 1.3,
+                              fontWeight: FontWeight.w500,
                               shadows: [
                                 Shadow(
-                                  color: Color(0xCC000000),
-                                  blurRadius: 8,
-                                  offset: Offset(0, 2),
+                                  color: Color(0xB3000000),
+                                  blurRadius: 6,
+                                  offset: Offset(0, 1),
                                 ),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Live Race Car Setup Feedback\nin your hands 24/7.',
-                          textAlign: TextAlign.right,
-                          style: TextStyle(
-                            color: Color(0xFFE6E8FF),
-                            fontSize: 12,
-                            height: 1.3,
-                            fontWeight: FontWeight.w500,
-                            shadows: [
-                              Shadow(
-                                color: Color(0xB3000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 1),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -354,238 +362,254 @@ class _HomeState extends State<Home> {
               mainAxisExtent: 110,
             ),
             itemCount: cardData.length,
-            itemBuilder: (context, index) {
-              return GestureDetector(
-                onTap: () {
-                  final route = cardData[index]['route'];
-                  if (route == 'setup_help') {
-                    Get.to(() => const IdentifyIssues());
-                  } else if (route == 'start_learning') {
-                    Get.to(() => LearningHub());
-                  }
-                },
-                child: Stack(
-                  children: [
-                    Container(
-                      width: Get.width,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: kBorderColor2, width: 1),
-                        color: kQuaternaryColor,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 8,
-                      child: Image.asset(Assets.imagesCardBg, height: 70),
-                    ),
-                    Container(
-                      width: Get.width,
-                      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CircleAvatar(
-                            radius: 34,
-                            backgroundColor: kPrimaryColor,
-                            child: ClipOval(
-                              child: Image.asset(
-                                cardData[index]['image'] ?? '',
-                                height: 68,
-                                fit: BoxFit.contain,
+            itemBuilder: (context, index) => FadeInUp(
+              delay: staggerDelay(index),
+              child: Builder(
+                builder: (context) {
+                  return GestureDetector(
+                    onTap: () {
+                      final route = cardData[index]['route'];
+                      if (route == 'setup_help') {
+                        Get.to(() => const IdentifyIssues());
+                      } else if (route == 'start_learning') {
+                        Get.to(() => LearningHub());
+                      }
+                    },
+                    child: Stack(
+                      children: [
+                        Container(
+                          width: Get.width,
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: kBorderColor2, width: 1),
+                            color: kQuaternaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 8,
+                          child: Image.asset(Assets.imagesCardBg, height: 70),
+                        ),
+                        Container(
+                          width: Get.width,
+                          padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CircleAvatar(
+                                radius: 34,
+                                backgroundColor: kPrimaryColor,
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    cardData[index]['image'] ?? '',
+                                    height: 68,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
+                              if ((cardData[index]['subtitle'] ?? '')
+                                  .isNotEmpty)
+                                MyText(
+                                  paddingTop: 8,
+                                  text: cardData[index]['subtitle'] ?? '',
+                                  size: 12,
+                                  color: kSecondaryColor,
+                                  paddingBottom: 4,
+                                ),
+                              const SizedBox(height: 8),
+                              MyText(
+                                text: cardData[index]['title'] ?? '',
+                                size: 14,
+                                weight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Center(
+                            child: Container(
+                              width: 90,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: kSecondaryColor,
+                                borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(12),
+                                  topRight: Radius.circular(12),
+                                ),
                               ),
                             ),
                           ),
-                          if ((cardData[index]['subtitle'] ?? '').isNotEmpty)
-                            MyText(
-                              paddingTop: 8,
-                              text: cardData[index]['subtitle'] ?? '',
-                              size: 12,
-                              color: kSecondaryColor,
-                              paddingBottom: 4,
-                            ),
-                          const SizedBox(height: 8),
-                          MyText(
-                            text: cardData[index]['title'] ?? '',
-                            size: 14,
-                            weight: FontWeight.w600,
-                          ),
-                        ],
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      left: 0,
-                      right: 0,
-                      child: Center(
-                        child: Container(
-                          width: 90,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: kSecondaryColor,
-                            borderRadius: const BorderRadius.only(
-                              topLeft: Radius.circular(12),
-                              topRight: Radius.circular(12),
-                            ),
-                          ),
                         ),
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ),
           ),
 
           const SizedBox(height: 20),
 
-          Container(
-            width: Get.width,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              border: Border.all(color: kBorderColor2, width: 1),
-              color: kQuaternaryColor,
-              borderRadius: BorderRadius.circular(12),
+          FadeInUp(
+            delay: const Duration(milliseconds: 200),
+            child: _GeometryToolsCard(
+              onTap: () => Get.to(() => const Geometry()),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: MyText(
-                        text: 'Current Setup',
-                        size: 18,
-                        weight: FontWeight.w700,
-                      ),
-                    ),
-                    OutlinedButton(
-                      onPressed: _editTrackConfiguration,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: kSecondaryColor),
-                        minimumSize: const Size(72, 32),
-                      ),
-                      child: const Text('Edit'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Image.asset(Assets.imagesTt, height: 20),
-                    Expanded(
-                      child: MyText(
-                        paddingLeft: 6,
-                        text: 'Name:',
-                        size: 14,
-                        color: kSecondaryColor,
-                      ),
-                    ),
-                    MyText(
-                      text: trackNameText,
-                      size: 14,
-                      weight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Image.asset(Assets.imagesTt, height: 20),
-                    Expanded(
-                      child: MyText(
-                        paddingLeft: 6,
-                        text: 'Track Type:',
-                        size: 14,
-                        color: kSecondaryColor,
-                      ),
-                    ),
-                    MyText(
-                      text: trackTypeText,
-                      size: 14,
-                      weight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Image.asset(Assets.imagesCar, height: 20),
-                    Expanded(
-                      child: MyText(
-                        paddingLeft: 6,
-                        text: 'Car Type:',
-                        size: 14,
-                        color: kSecondaryColor,
-                      ),
-                    ),
-                    MyText(text: _carType, size: 14, weight: FontWeight.w500),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Image.asset(Assets.imagesSt, height: 20),
-                    Expanded(
-                      child: MyText(
-                        paddingLeft: 6,
-                        text: 'Surface Type:',
-                        size: 14,
-                        color: kSecondaryColor,
-                      ),
-                    ),
-                    MyText(
-                      text: surfaceTypeText,
-                      size: 14,
-                      weight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Image.asset(Assets.imagesW, height: 20),
-                    Expanded(
-                      child: MyText(
-                        paddingLeft: 6,
-                        text: 'Weather:',
-                        size: 14,
-                        color: kSecondaryColor,
-                      ),
-                    ),
-                    MyText(
-                      text: weatherText,
-                      size: 14,
-                      weight: FontWeight.w500,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (_note.isNotEmpty)
+          ),
+          const SizedBox(height: 20),
+          FadeInUp(
+            delay: const Duration(milliseconds: 260),
+            child: Container(
+              width: Get.width,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                border: Border.all(color: kBorderColor2, width: 1),
+                color: kQuaternaryColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.sticky_note_2_outlined,
-                        color: kSecondaryColor,
-                        size: 20,
+                      Expanded(
+                        child: MyText(
+                          text: 'Current Setup',
+                          size: 18,
+                          weight: FontWeight.w700,
+                        ),
                       ),
+                      OutlinedButton(
+                        onPressed: _editTrackConfiguration,
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: kSecondaryColor),
+                          minimumSize: const Size(72, 32),
+                        ),
+                        child: const Text('Edit'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Image.asset(Assets.imagesTt, height: 20),
                       Expanded(
                         child: MyText(
                           paddingLeft: 6,
-                          text: 'Notes: ',
+                          text: 'Name:',
                           size: 14,
                           color: kSecondaryColor,
-                          maxLines: 3,
-                          textOverflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      MyText(text: _note, size: 14, weight: FontWeight.w500),
+                      MyText(
+                        text: trackNameText,
+                        size: 14,
+                        weight: FontWeight.w500,
+                      ),
                     ],
                   ),
-                const SizedBox(height: 12),
-              ],
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Image.asset(Assets.imagesTt, height: 20),
+                      Expanded(
+                        child: MyText(
+                          paddingLeft: 6,
+                          text: 'Track Type:',
+                          size: 14,
+                          color: kSecondaryColor,
+                        ),
+                      ),
+                      MyText(
+                        text: trackTypeText,
+                        size: 14,
+                        weight: FontWeight.w500,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Image.asset(Assets.imagesCar, height: 20),
+                      Expanded(
+                        child: MyText(
+                          paddingLeft: 6,
+                          text: 'Car Type:',
+                          size: 14,
+                          color: kSecondaryColor,
+                        ),
+                      ),
+                      MyText(text: _carType, size: 14, weight: FontWeight.w500),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Image.asset(Assets.imagesSt, height: 20),
+                      Expanded(
+                        child: MyText(
+                          paddingLeft: 6,
+                          text: 'Surface Type:',
+                          size: 14,
+                          color: kSecondaryColor,
+                        ),
+                      ),
+                      MyText(
+                        text: surfaceTypeText,
+                        size: 14,
+                        weight: FontWeight.w500,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Image.asset(Assets.imagesW, height: 20),
+                      Expanded(
+                        child: MyText(
+                          paddingLeft: 6,
+                          text: 'Weather:',
+                          size: 14,
+                          color: kSecondaryColor,
+                        ),
+                      ),
+                      MyText(
+                        text: weatherText,
+                        size: 14,
+                        weight: FontWeight.w500,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (_note.isNotEmpty)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.sticky_note_2_outlined,
+                          color: kSecondaryColor,
+                          size: 20,
+                        ),
+                        Expanded(
+                          child: MyText(
+                            paddingLeft: 6,
+                            text: 'Notes: ',
+                            size: 14,
+                            color: kSecondaryColor,
+                            maxLines: 3,
+                            textOverflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        MyText(text: _note, size: 14, weight: FontWeight.w500),
+                      ],
+                    ),
+                  const SizedBox(height: 12),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 18),
@@ -681,6 +705,64 @@ class _HomeState extends State<Home> {
           //   ),
           // ),
         ],
+      ),
+    );
+  }
+}
+
+/// Home entry to the geometry calculators (shared with the website).
+class _GeometryToolsCard extends StatelessWidget {
+  const _GeometryToolsCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final gold = kSecondaryColor;
+    return PressScale(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: kBorderColor2),
+            gradient: LinearGradient(
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+              colors: [kQuaternaryColor, Color.lerp(kQuaternaryColor, gold, 0.12)!],
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: gold.withValues(alpha: 0.16),
+                ),
+                child: Icon(Icons.architecture_rounded, color: gold, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MyText(text: 'Geometry Tools', size: 15, weight: FontWeight.w700),
+                    const SizedBox(height: 3),
+                    MyText(
+                      text: 'Roll centre, corner weights and motion ratio. Save setups for every race.',
+                      size: 12,
+                      color: kTertiaryColor.withValues(alpha: 0.75),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: gold),
+            ],
+          ),
+        ),
       ),
     );
   }

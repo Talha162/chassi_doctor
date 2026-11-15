@@ -1,3 +1,7 @@
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/view/widget/report_dialog.dart';
+import 'package:motorsport/utils/motion.dart';
+import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -45,152 +49,23 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
   }
 
   Future<void> _showAddSymptomDialog() async {
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-    bool isSaving = false;
-
-    await showDialog(
+    final sent = await showReportDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            InputDecoration dialogInputDecoration({
-              required String labelText,
-            }) {
-              return InputDecoration(
-                labelText: labelText,
-                labelStyle: TextStyle(color: kSecondaryColor),
-                counterStyle: TextStyle(color: kTertiaryColor),
-                filled: true,
-                fillColor: const Color(0xff16295C),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kBorderColor2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kSecondaryColor, width: 1.5),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kBorderColor2),
-                ),
-              );
-            }
-
-            return AlertDialog(
-              backgroundColor: kQuaternaryColor,
-              title: Text(
-                'Report a New Symptom',
-                style: TextStyle(
-                  color: kWhiteColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      style: TextStyle(color: kWhiteColor),
-                      cursorColor: kWhiteColor,
-                      decoration: dialogInputDecoration(
-                        labelText: 'Symptom title',
-                      ),
-                      maxLength: 60,
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: descriptionController,
-                      style: TextStyle(color: kWhiteColor),
-                      cursorColor: kWhiteColor,
-                      decoration: dialogInputDecoration(
-                        labelText: 'Description',
-                      ),
-                      maxLines: 3,
-                      maxLength: 200,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: kSecondaryColor),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          final title = titleController.text.trim();
-                          final description = descriptionController.text.trim();
-                          if (title.isEmpty || description.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please fill in all fields.'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          setDialogState(() => isSaving = true);
-                          try {
-                            await _supabaseService.createSymptomReport(
-                              title: title,
-                              description: description,
-                            );
-                            if (mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Thanks — your symptom has been submitted for review.',
-                                  ),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to submit report: ${e.toString()}',
-                                  ),
-                                ),
-                              );
-                            }
-                          } finally {
-                            if (mounted) {
-                              setDialogState(() => isSaving = false);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kSecondaryColor,
-                    foregroundColor: kPrimaryColor,
-                  ),
-                  child: isSaving
-                      ? SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: kPrimaryColor,
-                          ),
-                        )
-                      : const Text('Save'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      heading: 'Report a New Symptom',
+      titleLabel: 'Symptom',
+      titleHint: 'e.g. Snap oversteer on bumps',
+      descriptionHint: 'What does the car do, and when?',
+      onSubmit: (title, description) => _supabaseService.createSymptomReport(
+        title: title,
+        description: description,
+      ),
     );
+    if (sent == true) {
+      showSuccessSnackbar(
+        "Thanks! We'll review your symptom and add it to the app.",
+        title: 'Report sent',
+      );
+    }
   }
 
   String _issueImageForTitle(String title) {
@@ -227,19 +102,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
         elevation: 0,
         backgroundColor: kPrimaryColor,
         automaticallyImplyLeading: false,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 5),
-          child: GestureDetector(
-            onTap: () => Get.back(),
-            child: Center(
-              child: Image.asset(
-                Assets.imagesArrowBack,
-                height: 14,
-                color: kTertiaryColor,
-              ),
-            ),
-          ),
-        ),
+        leading: const Center(child: AppBackButton()),
         titleSpacing: 0,
         title: Row(
           children: [
@@ -306,91 +169,103 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
                   ? 4
                   : _symptoms
                         .length, // used to handle temporarily from frontend as no backend access
-              itemBuilder: (context, index) {
-                final issue = _symptoms[index];
-                final fallbackAsset = _issueImageForTitle(issue.title);
+              itemBuilder: (context, index) => FadeInUp(
+                delay: staggerDelay(index),
+                child: Builder(
+                  builder: (context) {
+                    final issue = _symptoms[index];
+                    final fallbackAsset = _issueImageForTitle(issue.title);
 
-                return GestureDetector(
-                  onTap: () {
-                    Get.to(() => SetupRecommendation(symptom: issue));
-                  },
-                  child: Container(
-                    width: Get.width,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: kBorderColor2, width: 1),
-                      color: kQuaternaryColor,
-                      gradient: ThemeController.instance.isDarkMode
-                          ? null
-                          : const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xff23356C), Color(0xff2B3F7B)],
-                            ),
-                      image: ThemeController.instance.isDarkMode
-                          ? const DecorationImage(
-                              image: AssetImage(Assets.imagesCardBg2Dark),
-                              alignment: Alignment.bottomRight,
-                              fit: BoxFit.cover,
-                            )
-                          : null,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 60,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              if (issue.imageUrl != null)
-                                Image.network(
-                                  issue.imageUrl!,
-                                  height: 50,
-                                  errorBuilder: (_, __, ___) =>
-                                      Image.asset(fallbackAsset, height: 50),
-                                  loadingBuilder: (context, child, progress) {
-                                    if (progress == null) return child;
-                                    return SizedBox(
-                                      height: 50,
-                                      width: 50,
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: kSecondaryColor,
-                                        ),
-                                      ),
-                                    );
-                                  },
+                    return GestureDetector(
+                      onTap: () {
+                        Get.to(() => SetupRecommendation(symptom: issue));
+                      },
+                      child: Container(
+                        width: Get.width,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: kBorderColor2, width: 1),
+                          color: kQuaternaryColor,
+                          gradient: ThemeController.instance.isDarkMode
+                              ? null
+                              : const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xff23356C),
+                                    Color(0xff2B3F7B),
+                                  ],
+                                ),
+                          image: ThemeController.instance.isDarkMode
+                              ? const DecorationImage(
+                                  image: AssetImage(Assets.imagesCardBg2Dark),
+                                  alignment: Alignment.bottomRight,
+                                  fit: BoxFit.cover,
                                 )
-                              else
-                                Image.asset(fallbackAsset, height: 50),
-                            ],
-                          ),
+                              : null,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        MyText(
-                          paddingTop: 8,
-                          text: issue.title,
-                          size: 14,
-                          weight: FontWeight.w600,
-                          paddingBottom: 4,
-                          maxLines: 1,
-                          textOverflow: TextOverflow.ellipsis,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 60,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  if (issue.imageUrl != null)
+                                    Image.network(
+                                      issue.imageUrl!,
+                                      height: 50,
+                                      errorBuilder: (_, __, ___) => Image.asset(
+                                        fallbackAsset,
+                                        height: 50,
+                                      ),
+                                      loadingBuilder:
+                                          (context, child, progress) {
+                                            if (progress == null) return child;
+                                            return SizedBox(
+                                              height: 50,
+                                              width: 50,
+                                              child: Center(
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: kSecondaryColor,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  else
+                                    Image.asset(fallbackAsset, height: 50),
+                                ],
+                              ),
+                            ),
+                            MyText(
+                              paddingTop: 8,
+                              text: issue.title,
+                              size: 14,
+                              weight: FontWeight.w600,
+                              paddingBottom: 4,
+                              maxLines: 1,
+                              textOverflow: TextOverflow.ellipsis,
+                            ),
+                            MyText(
+                              text: issue.description,
+                              size: 10,
+                              lineHeight: 1.5,
+                              color: kSecondaryColor,
+                              maxLines: 3,
+                              textOverflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
-                        MyText(
-                          text: issue.description,
-                          size: 10,
-                          lineHeight: 1.5,
-                          color: kSecondaryColor,
-                          maxLines: 3,
-                          textOverflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
           SizedBox(height: 20),
           // Center(child: Image.asset(Assets.imagesChassisDoc, height: 36)),

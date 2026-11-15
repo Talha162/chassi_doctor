@@ -1,3 +1,7 @@
+import 'package:motorsport/utils/app_error.dart';
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/view/widget/report_dialog.dart';
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -108,151 +112,24 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
   }
 
   Future<void> _showAddIssueDialog() async {
-    final titleController = TextEditingController();
-    final descriptionController = TextEditingController();
-    bool isSaving = false;
-
-    await showDialog(
+    final sent = await showReportDialog(
       context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (context, setDialogState) {
-            InputDecoration dialogInputDecoration({required String labelText}) {
-              return InputDecoration(
-                labelText: labelText,
-                labelStyle: TextStyle(color: kSecondaryColor),
-                counterStyle: TextStyle(color: kTertiaryColor),
-                filled: true,
-                fillColor: const Color(0xff16295C),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kBorderColor2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kSecondaryColor, width: 1.5),
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: kBorderColor2),
-                ),
-              );
-            }
-
-            return AlertDialog(
-              backgroundColor: kQuaternaryColor,
-              title: Text(
-                'Report a New Issue for ${widget.symptom.title}',
-                style: TextStyle(
-                  color: kWhiteColor,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      style: TextStyle(color: kWhiteColor),
-                      cursorColor: kWhiteColor,
-                      decoration: dialogInputDecoration(
-                        labelText: 'Issue title',
-                      ),
-                      maxLength: 60,
-                    ),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: descriptionController,
-                      style: TextStyle(color: kWhiteColor),
-                      cursorColor: kWhiteColor,
-                      decoration: dialogInputDecoration(
-                        labelText: 'Describe what you are experiencing',
-                      ),
-                      maxLines: 3,
-                      maxLength: 200,
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: isSaving ? null : () => Navigator.pop(context),
-                  child: Text(
-                    'Cancel',
-                    style: TextStyle(color: kSecondaryColor),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: isSaving
-                      ? null
-                      : () async {
-                          final title = titleController.text.trim();
-                          final description = descriptionController.text.trim();
-                          if (title.isEmpty || description.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Please fill in all fields.'),
-                              ),
-                            );
-                            return;
-                          }
-
-                          setDialogState(() => isSaving = true);
-                          try {
-                            await _supabaseService.createIssueReport(
-                              symptomId: widget.symptom.id,
-                              title: title,
-                              description: description,
-                            );
-                            if (mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Thanks — your issue has been submitted for review.',
-                                  ),
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    'Failed to submit report: ${e.toString()}',
-                                  ),
-                                ),
-                              );
-                            }
-                          } finally {
-                            if (mounted) {
-                              setDialogState(() => isSaving = false);
-                            }
-                          }
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kSecondaryColor,
-                    foregroundColor: kPrimaryColor,
-                  ),
-                  child: isSaving
-                      ? SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: kPrimaryColor,
-                          ),
-                        )
-                      : const Text('Submit'),
-                ),
-              ],
-            );
-          },
-        );
-      },
+      heading: 'Report a New Issue for ${widget.symptom.title}',
+      titleLabel: 'Issue',
+      titleHint: 'e.g. Only on the brakes into the hairpin',
+      descriptionHint: 'Describe what you are experiencing',
+      onSubmit: (title, description) => _supabaseService.createIssueReport(
+        symptomId: widget.symptom.id,
+        title: title,
+        description: description,
+      ),
     );
+    if (sent == true) {
+      showSuccessSnackbar(
+        "Thanks! We'll review your issue and add it to the app.",
+        title: 'Report sent',
+      );
+    }
   }
 
   void _toggleIssue(String issueId) {
@@ -276,6 +153,15 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       return _stageIssues.contains(normalized);
     }).toList();
 
+    // Show stages in the order a driver goes through a corner:
+    // Entry → Mid → Exit (the DB returns them newest-first).
+    const stageOrder = ['corner entry', 'mid corner', 'corner exit'];
+    filtered.sort(
+      (a, b) => stageOrder
+          .indexOf(a.title.trim().toLowerCase())
+          .compareTo(stageOrder.indexOf(b.title.trim().toLowerCase())),
+    );
+
     return filtered;
   }
 
@@ -286,8 +172,9 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
         .toSet();
 
     if (selectedIssueIds.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Select at least one issue.')),
+      showInfoSnackbar(
+        'Select where in the corner you feel it: entry, mid or exit.',
+        title: 'Pick at least one',
       );
       return;
     }
@@ -330,11 +217,25 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
 
       if (candidates.isEmpty) {
         debugPrint('[SETUP] ❌ No advice found in chassis_combination_advice.');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No advice available for this configuration yet.'),
-          ),
-        );
+        final engine = (_trackConfiguration?.enginePosition ?? '')
+            .trim()
+            .toLowerCase();
+        if (_trackConfiguration == null) {
+          showInfoSnackbar(
+            'Set up your car and track first so we can match advice to it.',
+            title: 'Car setup needed',
+          );
+        } else if (engine == 'rear') {
+          showInfoSnackbar(
+            "We don't have advice for rear-engine cars yet. It's coming soon.",
+            title: 'No advice yet',
+          );
+        } else {
+          showInfoSnackbar(
+            "We don't have advice for this exact car and track combination yet.",
+            title: 'No advice yet',
+          );
+        }
         setState(() => _isRequesting = false);
         return;
       }
@@ -366,8 +267,9 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
       await _saveSession(selectedIssues, finalRecommendations);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to get recommendations: $e')),
+        showErrorSnackbar(
+          friendlyError(e),
+          title: "Couldn't load recommendations",
         );
       }
     } finally {
@@ -385,9 +287,7 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
     if (userId == null) {
       debugPrint('[SETUP] ⚠️ Cannot save history: user not authenticated');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please log in to save history.')),
-        );
+        showInfoSnackbar('Log in to save this session to your history.');
       }
       return;
     }
@@ -501,9 +401,10 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
     } catch (e) {
       debugPrint('[SETUP] ❌ Error saving session: $e');
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Failed to save history: $e')));
+        showErrorSnackbar(
+          friendlyError(e),
+          title: "Couldn't save this session to History",
+        );
       }
     }
   }
@@ -646,46 +547,53 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
                     mainAxisExtent: 130,
                   ),
                   itemCount: _visibleIssues.length,
-                  itemBuilder: (context, index) {
-                    final issue = _visibleIssues[index];
-                    final isSelected = _selectedIssueIds.contains(issue.id);
-                    return GestureDetector(
-                      onTap: () => _toggleIssue(issue.id),
-                      child: Container(
-                        width: Get.width,
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: isSelected ? kSecondaryColor : kBorderColor2,
-                            width: isSelected ? 2 : 1,
-                          ),
-                          color: kQuaternaryColor,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SizedBox(
-                              height: 60,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [_issueVisual(issue)],
+                  itemBuilder: (context, index) => FadeInUp(
+                    delay: staggerDelay(index),
+                    child: Builder(
+                      builder: (context) {
+                        final issue = _visibleIssues[index];
+                        final isSelected = _selectedIssueIds.contains(issue.id);
+                        return GestureDetector(
+                          onTap: () => _toggleIssue(issue.id),
+                          child: Container(
+                            width: Get.width,
+                            padding: EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              border: Border.all(
+                                color: isSelected
+                                    ? kSecondaryColor
+                                    : kBorderColor2,
+                                width: isSelected ? 2 : 1,
                               ),
+                              color: kQuaternaryColor,
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            MyText(
-                              paddingTop: 10,
-                              text: issue.title,
-                              size: 14,
-                              weight: FontWeight.w600,
-                              maxLines: 1,
-                              textOverflow: TextOverflow.ellipsis,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SizedBox(
+                                  height: 60,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [_issueVisual(issue)],
+                                  ),
+                                ),
+                                MyText(
+                                  paddingTop: 10,
+                                  text: issue.title,
+                                  size: 14,
+                                  weight: FontWeight.w600,
+                                  maxLines: 1,
+                                  textOverflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -742,23 +650,28 @@ class _SetupRecommendationState extends State<SetupRecommendation> {
               padding: AppSizes.ZERO,
               physics: BouncingScrollPhysics(),
               itemCount: _recommendations.length,
-              itemBuilder: (context, index) {
-                final recommendation = _recommendations[index];
-                return Padding(
-                  padding: EdgeInsets.only(
-                    bottom: index < _recommendations.length - 1 ? 10 : 0,
-                  ),
-                  child: _AdjustmentTile(
-                    title: recommendation.title,
-                    subtitle: recommendation.details,
-                    trailing:
-                        (recommendation.category == null ||
-                            recommendation.category!.trim().isEmpty)
-                        ? null
-                        : '${recommendation.category!.trim()} Setup',
-                  ),
-                );
-              },
+              itemBuilder: (context, index) => FadeInUp(
+                delay: staggerDelay(index),
+                child: Builder(
+                  builder: (context) {
+                    final recommendation = _recommendations[index];
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: index < _recommendations.length - 1 ? 10 : 0,
+                      ),
+                      child: _AdjustmentTile(
+                        title: recommendation.title,
+                        subtitle: recommendation.details,
+                        trailing:
+                            (recommendation.category == null ||
+                                recommendation.category!.trim().isEmpty)
+                            ? null
+                            : '${recommendation.category!.trim()} Setup',
+                      ),
+                    );
+                  },
+                ),
+              ),
             ),
         ],
       ),

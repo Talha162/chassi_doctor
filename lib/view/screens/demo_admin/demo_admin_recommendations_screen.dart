@@ -89,9 +89,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load symptoms: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load symptoms: $e')));
       }
     } finally {
       if (mounted) setState(() => _loadingSymptoms = false);
@@ -105,11 +105,7 @@ class _DemoAdminRecommendationsScreenState
       _selectedIssueIds.clear();
       _selectedPresetIds.clear();
     });
-    await Future.wait([
-      _loadSets(),
-      _loadIssues(),
-      _loadPresets(),
-    ]);
+    await Future.wait([_loadSets(), _loadIssues(), _loadPresets()]);
   }
 
   // ═══════════════════ SET MANAGEMENT ═══════════════════
@@ -128,9 +124,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load sets: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load sets: $e')));
       }
     } finally {
       if (mounted) setState(() => _loadingSets = false);
@@ -140,9 +136,9 @@ class _DemoAdminRecommendationsScreenState
   Future<void> _createSet() async {
     final title = _setTitleController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a set title')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a set title')));
       return;
     }
 
@@ -166,9 +162,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create set: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create set: $e')));
       }
     } finally {
       if (mounted) setState(() => _creatingSet = false);
@@ -204,9 +200,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to load issues: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load issues: $e')));
       }
     } finally {
       if (mounted) setState(() => _loadingIssues = false);
@@ -239,15 +235,15 @@ class _DemoAdminRecommendationsScreenState
         issueIds: _selectedIssueIds.toList(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Issue links saved!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Issue links saved!')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to save links: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to save links: $e')));
       }
     } finally {
       if (mounted) setState(() => _savingIssueLinks = false);
@@ -306,9 +302,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to create: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to create: $e')));
       }
     } finally {
       if (mounted) setState(() => _creatingRecommendation = false);
@@ -345,9 +341,9 @@ class _DemoAdminRecommendationsScreenState
 
     final priorityText = _priorityController.text.trim();
     if (priorityText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a priority')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Please enter a priority')));
       return;
     }
 
@@ -370,9 +366,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to attach: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to attach: $e')));
       }
     } finally {
       if (mounted) setState(() => _attachingRecommendation = false);
@@ -396,9 +392,9 @@ class _DemoAdminRecommendationsScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to remove: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to remove: $e')));
       }
     }
   }
@@ -457,15 +453,15 @@ class _DemoAdminRecommendationsScreenState
         presetIds: _selectedPresetIds.toList(),
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Presets linked!')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Presets linked!')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to link presets: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to link presets: $e')));
       }
     } finally {
       if (mounted) setState(() => _savingPresets = false);
@@ -489,7 +485,10 @@ class _DemoAdminRecommendationsScreenState
                   paddingBottom: 12,
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     border: Border.all(color: kBorderColor2),
                     borderRadius: BorderRadius.circular(8),
@@ -502,10 +501,8 @@ class _DemoAdminRecommendationsScreenState
                     hint: const Text('Select a symptom...'),
                     items: _symptoms
                         .map(
-                          (s) => DropdownMenuItem(
-                            value: s,
-                            child: Text(s.title),
-                          ),
+                          (s) =>
+                              DropdownMenuItem(value: s, child: Text(s.title)),
                         )
                         .toList(),
                     onChanged: (symptom) {
@@ -529,7 +526,10 @@ class _DemoAdminRecommendationsScreenState
                     const Center(child: CircularProgressIndicator())
                   else ...[
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         border: Border.all(color: kBorderColor2),
                         borderRadius: BorderRadius.circular(8),
@@ -558,9 +558,13 @@ class _DemoAdminRecommendationsScreenState
                     const SizedBox(height: 12),
                     ElevatedButton.icon(
                       onPressed: () {
-                        setState(() => _showCreateSetForm = !_showCreateSetForm);
+                        setState(
+                          () => _showCreateSetForm = !_showCreateSetForm,
+                        );
                       },
-                      icon: Icon(_showCreateSetForm ? Icons.expand_less : Icons.add),
+                      icon: Icon(
+                        _showCreateSetForm ? Icons.expand_less : Icons.add,
+                      ),
                       label: Text(
                         _showCreateSetForm ? 'Cancel' : 'Create New Set',
                       ),
@@ -598,7 +602,9 @@ class _DemoAdminRecommendationsScreenState
                             ? const SizedBox(
                                 height: 16,
                                 width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text('Create'),
                       ),
@@ -675,7 +681,10 @@ class _DemoAdminRecommendationsScreenState
                       )
                     else
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: kBorderColor2),
                           borderRadius: BorderRadius.circular(8),
@@ -710,11 +719,17 @@ class _DemoAdminRecommendationsScreenState
                     ),
                     ElevatedButton.icon(
                       onPressed: () {
-                        setState(() => _showCreateRecForm = !_showCreateRecForm);
+                        setState(
+                          () => _showCreateRecForm = !_showCreateRecForm,
+                        );
                       },
-                      icon: Icon(_showCreateRecForm ? Icons.expand_less : Icons.add),
+                      icon: Icon(
+                        _showCreateRecForm ? Icons.expand_less : Icons.add,
+                      ),
                       label: Text(
-                        _showCreateRecForm ? 'Cancel' : 'Create New Recommendation',
+                        _showCreateRecForm
+                            ? 'Cancel'
+                            : 'Create New Recommendation',
                       ),
                     ),
                     if (_showCreateRecForm) ...[
@@ -749,7 +764,10 @@ class _DemoAdminRecommendationsScreenState
                       ),
                       const SizedBox(height: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           border: Border.all(color: kBorderColor2),
                           borderRadius: BorderRadius.circular(8),
@@ -774,12 +792,16 @@ class _DemoAdminRecommendationsScreenState
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton(
-                        onPressed: _creatingRecommendation ? null : _createRecommendation,
+                        onPressed: _creatingRecommendation
+                            ? null
+                            : _createRecommendation,
                         child: _creatingRecommendation
                             ? const SizedBox(
                                 height: 16,
                                 width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : const Text('Create Recommendation'),
                       ),
@@ -819,7 +841,9 @@ class _DemoAdminRecommendationsScreenState
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton(
-                    onPressed: _attachingRecommendation ? null : _attachRecommendation,
+                    onPressed: _attachingRecommendation
+                        ? null
+                        : _attachRecommendation,
                     child: _attachingRecommendation
                         ? const SizedBox(
                             height: 16,
@@ -882,8 +906,7 @@ class _DemoAdminRecommendationsScreenState
                               if (recId != null)
                                 IconButton(
                                   icon: const Icon(Icons.delete, size: 18),
-                                  onPressed: () =>
-                                      _detachRecommendation(recId),
+                                  onPressed: () => _detachRecommendation(recId),
                                 ),
                             ],
                           ),
@@ -913,7 +936,9 @@ class _DemoAdminRecommendationsScreenState
                             onSelected: (selected) {
                               setState(() {
                                 if (selected) {
-                                  _selectedPresetIds.add(preset['id'] as String);
+                                  _selectedPresetIds.add(
+                                    preset['id'] as String,
+                                  );
                                 } else {
                                   _selectedPresetIds.remove(preset['id']);
                                 }

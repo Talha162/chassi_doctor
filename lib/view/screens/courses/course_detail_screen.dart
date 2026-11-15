@@ -1,3 +1,5 @@
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_sizes.dart';
@@ -110,11 +112,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Future<void> _openPaywall() async {
     final userId = Supabase.instance.client.auth.currentUser?.id;
     if (userId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please log in before starting your free trial.'),
-        ),
-      );
+      showInfoSnackbar('Please log in before starting your free trial.');
       return;
     }
 
@@ -141,9 +139,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         userId: userId,
         onSuccess: () {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Review submitted successfully')),
-          );
+          showSuccessSnackbar('Thanks! Your review has been submitted.');
         },
       ),
     );
@@ -229,66 +225,74 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                   shrinkWrap: true,
                   physics: const BouncingScrollPhysics(),
                   itemCount: _modules.length,
-                  itemBuilder: (context, index) {
-                    final module = _modules[index];
-                    final progress = _moduleProgress[module.id];
-                    final progressText = progress == null
-                        ? 'Locked until unlocked'
-                        : '${progress.progressPercentage.toStringAsFixed(0)}% completed';
+                  itemBuilder: (context, index) => FadeInUp(
+                    delay: staggerDelay(index),
+                    child: Builder(
+                      builder: (context) {
+                        final module = _modules[index];
+                        final progress = _moduleProgress[module.id];
+                        final progressText = progress == null
+                            ? 'Locked until unlocked'
+                            : '${progress.progressPercentage.toStringAsFixed(0)}% completed';
 
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: kQuaternaryColor,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: kBorderColor2),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: MyText(
-                                text: module.title,
-                                size: 14,
-                                weight: FontWeight.w600,
-                              ),
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: kQuaternaryColor,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: kBorderColor2),
                             ),
-                            const SizedBox(width: 10),
-                            if (_hasAccess)
-                              MyText(
-                                text: progressText,
-                                size: 11,
-                                color: kTertiaryColor.withValues(alpha: 0.8),
-                              ),
-                            const SizedBox(width: 10),
-                            SizedBox(
-                              width: 92,
-                              child: MyButton(
-                                buttonText: _hasAccess ? 'View' : 'Locked',
-                                height: 36,
-                                textSize: 12,
-                                radius: 50,
-                                onTap: !_hasAccess
-                                    ? null
-                                    : () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => ModuleVideosScreen(
-                                              course: course,
-                                              module: module,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                              ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: MyText(
+                                    text: module.title,
+                                    size: 14,
+                                    weight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                if (_hasAccess)
+                                  MyText(
+                                    text: progressText,
+                                    size: 11,
+                                    color: kTertiaryColor.withValues(
+                                      alpha: 0.8,
+                                    ),
+                                  ),
+                                const SizedBox(width: 10),
+                                SizedBox(
+                                  width: 92,
+                                  child: MyButton(
+                                    buttonText: _hasAccess ? 'View' : 'Locked',
+                                    height: 36,
+                                    textSize: 12,
+                                    radius: 50,
+                                    onTap: !_hasAccess
+                                        ? null
+                                        : () {
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (_) =>
+                                                    ModuleVideosScreen(
+                                                      course: course,
+                                                      module: module,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ],
             ),

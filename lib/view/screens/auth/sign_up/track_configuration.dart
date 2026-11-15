@@ -1,3 +1,6 @@
+import 'package:motorsport/utils/app_error.dart';
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/routes/routes.dart';
@@ -149,13 +152,9 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
       Get.offAllNamed(AppLinks.bottomNavBar);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Failed to save configuration. Check console for details. Error: ${e.toString()}',
-            ),
-            backgroundColor: Colors.redAccent,
-          ),
+        showErrorSnackbar(
+          friendlyError(e),
+          title: "Couldn't save your car setup",
         );
       }
     } finally {
@@ -281,10 +280,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
           'Engine Position',
           latest.enginePosition,
         );
-        selectedIndexes['Aerofoils'] = _indexFor(
-          'Aerofoils',
-          latest.aerofoils,
-        );
+        selectedIndexes['Aerofoils'] = _indexFor('Aerofoils', latest.aerofoils);
         selectedIndexes['Drive Type'] = _indexFor(
           'Drive Type',
           latest.driveType,
@@ -346,9 +342,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(
-        title: 'Track / Car Configuration',
-      ),
+      appBar: simpleAppBar(title: 'Track / Car Configuration'),
       body: ListView(
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
@@ -436,47 +430,51 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
             ),
           ),
 
-          ...widget.trackSections.keys.map((sectionKey) {
+          ...widget.trackSections.keys.toList().asMap().entries.map((entry) {
+            final sectionKey = entry.value;
             final items = widget.trackSections[sectionKey]!;
-            return Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: kQuaternaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              margin: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Image.asset(_sectionIcon(sectionKey), height: 24),
-                      Expanded(
-                        child: MyText(
-                          text: sectionKey,
-                          size: 16,
-                          weight: FontWeight.w500,
-                          color: kSecondaryColor,
-                          paddingLeft: 10,
+            return FadeInUp(
+              delay: staggerDelay(entry.key + 1, stepMs: 70),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kQuaternaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                margin: const EdgeInsets.only(bottom: 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Image.asset(_sectionIcon(sectionKey), height: 24),
+                        Expanded(
+                          child: MyText(
+                            text: sectionKey,
+                            size: 16,
+                            weight: FontWeight.w500,
+                            color: kSecondaryColor,
+                            paddingLeft: 10,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  ...List.generate(
-                    items.length,
-                    (index) => _CustomRadioTile(
-                      title: items[index]['title']!,
-                      imagePath: items[index]['image']!,
-                      selected: selectedIndexes[sectionKey] == index,
-                      onTap: () {
-                        setState(() {
-                          selectedIndexes[sectionKey] = index;
-                        });
-                      },
+                      ],
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    ...List.generate(
+                      items.length,
+                      (index) => _CustomRadioTile(
+                        title: items[index]['title']!,
+                        imagePath: items[index]['image']!,
+                        selected: selectedIndexes[sectionKey] == index,
+                        onTap: () {
+                          setState(() {
+                            selectedIndexes[sectionKey] = index;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }),

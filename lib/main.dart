@@ -15,6 +15,8 @@ import 'config/theme/light_theme.dart';
 import 'services/auth/auth_service.dart';
 import 'services/notification_service.dart';
 import 'services/subscription_service.dart';
+import 'utils/app_page_transition.dart';
+import 'utils/app_snackbar.dart';
 
 String? _bootstrappedUserId;
 String? _bootstrappingUserId;
@@ -62,8 +64,21 @@ Future<void> main() async {
         );
         return;
       }
+      // A brand-new email sign-up gets a session immediately (email
+      // confirmation is off), and must continue into onboarding + track setup
+      // instead of being yanked to Home.
+      const signUpFlowRoutes = {
+        AppLinks.bottomNavBar,
+        AppLinks.emailVerification,
+        AppLinks.onboarding,
+        AppLinks.trackConfiguration,
+      };
+      final isEmailSignUp =
+          Get.currentRoute == AppLinks.signUp &&
+          AuthService.emailSignUpInProgress;
       if (event == AuthChangeEvent.signedIn &&
-          Get.currentRoute != AppLinks.bottomNavBar) {
+          !isEmailSignUp &&
+          !signUpFlowRoutes.contains(Get.currentRoute)) {
         Get.offAllNamed(AppLinks.bottomNavBar);
       }
       unawaited(
@@ -142,6 +157,7 @@ class MyApp extends StatelessWidget {
     return Obx(
       () => GetMaterialApp(
         debugShowCheckedModeBanner: false,
+        scaffoldMessengerKey: rootScaffoldMessengerKey,
         debugShowMaterialGrid: false,
         title: 'Chassis Doctor',
         theme: lightTheme,
@@ -149,7 +165,9 @@ class MyApp extends StatelessWidget {
         themeMode: themeController.themeMode.value,
         initialRoute: AppLinks.splash_screen,
         getPages: AppRoutes.pages,
-        defaultTransition: Transition.fadeIn,
+        // App-wide page motion (fade + short slide, edge swipe-back).
+        customTransition: AppPageTransition(),
+        transitionDuration: const Duration(milliseconds: 340),
       ),
     );
   }

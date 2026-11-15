@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants/app_colors.dart';
@@ -26,29 +27,32 @@ class MyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius ?? 8),
-        color: bgColor ?? kSecondaryColor,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          splashColor: kWhiteColor.withValues(alpha: 0.1),
-          highlightColor: kWhiteColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(radius ?? 50),
-          child:
-              customChild ??
-              Center(
-                child: MyText(
-                  text: buttonText,
-                  size: textSize ?? 16,
-                  weight: weight ?? FontWeight.w600,
-                  color: textColor ?? kPrimaryColor,
+    return PressScale(
+      enabled: onTap != null,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(radius ?? 8),
+          color: bgColor ?? kSecondaryColor,
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: kWhiteColor.withValues(alpha: 0.1),
+            highlightColor: kWhiteColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(radius ?? 50),
+            child:
+                customChild ??
+                Center(
+                  child: MyText(
+                    text: buttonText,
+                    size: textSize ?? 16,
+                    weight: weight ?? FontWeight.w600,
+                    color: textColor ?? kPrimaryColor,
+                  ),
                 ),
-              ),
+          ),
         ),
       ),
     );
@@ -82,30 +86,33 @@ class MyBorderButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(radius ?? 50),
-        color: bgColor ?? Colors.transparent,
-        border: Border.all(width: 1.0, color: buttonColor ?? kFillColor),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          splashColor: buttonColor!.withValues(alpha: 0.1),
-          highlightColor: buttonColor!.withValues(alpha: 0.1),
+    return PressScale(
+      enabled: true,
+      child: Container(
+        height: height,
+        decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(radius ?? 50),
-          child: child != null
-              ? child
-              : Center(
-                  child: MyText(
-                    text: buttonText,
-                    size: textSize ?? 16,
-                    weight: weight ?? FontWeight.w600,
-                    color: textColor ?? kTertiaryColor,
+          color: bgColor ?? Colors.transparent,
+          border: Border.all(width: 1.0, color: buttonColor ?? kFillColor),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: buttonColor!.withValues(alpha: 0.1),
+            highlightColor: buttonColor!.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(radius ?? 50),
+            child: child != null
+                ? child
+                : Center(
+                    child: MyText(
+                      text: buttonText,
+                      size: textSize ?? 16,
+                      weight: weight ?? FontWeight.w600,
+                      color: textColor ?? kTertiaryColor,
+                    ),
                   ),
-                ),
+          ),
         ),
       ),
     );

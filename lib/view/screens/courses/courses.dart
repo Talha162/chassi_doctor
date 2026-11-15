@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
@@ -20,25 +19,13 @@ class Courses extends StatelessWidget {
     return Scaffold(
       appBar: simpleAppBar(
         title: 'Motorsport University',
-        leadingWidth: showBackButton ? 96 : 72,
+        leadingWidth: showBackButton ? 120 : 72,
         leading: Padding(
-          padding: const EdgeInsets.only(left: 8),
+          padding: EdgeInsets.only(left: showBackButton ? 0 : 8),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if (showBackButton)
-                GestureDetector(
-                  onTap: () => Get.back(),
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Image.asset(
-                      Assets.imagesArrowBack,
-                      height: 14,
-                      color: kTertiaryColor,
-                    ),
-                  ),
-                ),
+              if (showBackButton) const AppBackButton(),
               Padding(
                 padding: const EdgeInsets.only(left: 8),
                 child: CircleAvatar(

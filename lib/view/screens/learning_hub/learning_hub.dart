@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
@@ -269,42 +270,49 @@ class _LearningHubState extends State<LearningHub> {
                     padding: AppSizes.ZERO,
                     physics: const BouncingScrollPhysics(),
                     itemCount: _enrolledCourses.length,
-                    itemBuilder: (context, index) {
-                      final course = _enrolledCourses[index];
-                      final progress = _courseProgress[course.id];
+                    itemBuilder: (context, index) => FadeInUp(
+                      delay: staggerDelay(index),
+                      child: Builder(
+                        builder: (context) {
+                          final course = _enrolledCourses[index];
+                          final progress = _courseProgress[course.id];
 
-                      final percent =
-                          ((progress?.progressPercentage ?? 0) / 100).clamp(
-                            0.0,
-                            1.0,
+                          final percent =
+                              ((progress?.progressPercentage ?? 0) / 100).clamp(
+                                0.0,
+                                1.0,
+                              );
+                          final completedText =
+                              '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
+
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index < _enrolledCourses.length - 1
+                                  ? 12
+                                  : 0,
+                            ),
+                            child: _LearningHubTile(
+                              title: course.title,
+                              duration: _formatDuration(course.durationMinutes),
+                              imageUrl: course.thumbnailUrl,
+                              percent: percent.toDouble(),
+                              completedText: completedText,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => CourseDetailScreen(
+                                      course: course,
+                                      initiallyEnrolled: true,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           );
-                      final completedText =
-                          '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
-
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index < _enrolledCourses.length - 1 ? 12 : 0,
-                        ),
-                        child: _LearningHubTile(
-                          title: course.title,
-                          duration: _formatDuration(course.durationMinutes),
-                          imageUrl: course.thumbnailUrl,
-                          percent: percent.toDouble(),
-                          completedText: completedText,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CourseDetailScreen(
-                                  course: course,
-                                  initiallyEnrolled: true,
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      );
-                    },
+                        },
+                      ),
+                    ),
                   ),
 
                 // Modules of selected course
@@ -377,38 +385,43 @@ class _LearningHubState extends State<LearningHub> {
           padding: AppSizes.ZERO,
           physics: const BouncingScrollPhysics(),
           itemCount: modules.length,
-          itemBuilder: (context, index) {
-            final module = modules[index];
-            final mp = _moduleProgressByModuleId[module.id];
-            final percent = ((mp?.progressPercentage ?? 0) / 100).clamp(
-              0.0,
-              1.0,
-            );
-            final completed = (mp?.progressPercentage ?? 0) >= 99.0;
+          itemBuilder: (context, index) => FadeInUp(
+            delay: staggerDelay(index),
+            child: Builder(
+              builder: (context) {
+                final module = modules[index];
+                final mp = _moduleProgressByModuleId[module.id];
+                final percent = ((mp?.progressPercentage ?? 0) / 100).clamp(
+                  0.0,
+                  1.0,
+                );
+                final completed = (mp?.progressPercentage ?? 0) >= 99.0;
 
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index < modules.length - 1 ? 12 : 0,
-              ),
-              child: _LectureTile(
-                title: module.title,
-                duration: 'Module ${module.orderIndex}',
-                percent: percent.toDouble(),
-                completed: completed,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ModuleVideosScreen(
-                        course: selectedCourse,
-                        module: module,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index < modules.length - 1 ? 12 : 0,
+                  ),
+                  child: _LectureTile(
+                    title: module.title,
+                    duration: 'Module ${module.orderIndex}',
+                    percent: percent.toDouble(),
+                    completed: completed,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ModuleVideosScreen(
+                            course: selectedCourse,
+                            module: module,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ],
     );

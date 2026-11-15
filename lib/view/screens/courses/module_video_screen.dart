@@ -1,3 +1,5 @@
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_sizes.dart';
@@ -164,126 +166,131 @@ class _ModuleVideosScreenState extends State<ModuleVideosScreen> {
                     shrinkWrap: true,
                     physics: const BouncingScrollPhysics(),
                     itemCount: _videos.length,
-                    itemBuilder: (context, index) {
-                      final video = _videos[index];
-                      final progress = _videoProgress[video.id];
+                    itemBuilder: (context, index) => FadeInUp(
+                      delay: staggerDelay(index),
+                      child: Builder(
+                        builder: (context) {
+                          final video = _videos[index];
+                          final progress = _videoProgress[video.id];
 
-                      final durationMinutes =
-                          (video.durationSeconds ?? 0) ~/ 60;
+                          final durationMinutes =
+                              (video.durationSeconds ?? 0) ~/ 60;
 
-                      final watchedSeconds = progress?.watchedSeconds ?? 0;
-                      final totalSeconds = video.durationSeconds ?? 1;
-                      final percent = (watchedSeconds / totalSeconds).clamp(
-                        0.0,
-                        1.0,
-                      );
-                      final completed = progress?.completed ?? false;
+                          final watchedSeconds = progress?.watchedSeconds ?? 0;
+                          final totalSeconds = video.durationSeconds ?? 1;
+                          final percent = (watchedSeconds / totalSeconds).clamp(
+                            0.0,
+                            1.0,
+                          );
+                          final completed = progress?.completed ?? false;
 
-                      return Padding(
-                        padding: EdgeInsets.only(
-                          bottom: index < _videos.length - 1 ? 10 : 0,
-                        ),
-                        child: InkWell(
-                          onTap: () {
-                            final userId =
-                                Supabase.instance.client.auth.currentUser?.id;
-                            if (userId == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Please login to track progress',
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: index < _videos.length - 1 ? 10 : 0,
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                final userId = Supabase
+                                    .instance
+                                    .client
+                                    .auth
+                                    .currentUser
+                                    ?.id;
+                                if (userId == null) {
+                                  showInfoSnackbar(
+                                    'Please log in to track your progress.',
+                                  );
+                                  return;
+                                }
+
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => VideoPlayerScreen(
+                                      video: video,
+                                      userId: userId,
+                                    ),
                                   ),
+                                ).then((_) {
+                                  // Refresh progress when coming back
+                                  _loadData();
+                                });
+                              },
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: kQuaternaryColor,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: kBorderColor2),
                                 ),
-                              );
-                              return;
-                            }
-
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => VideoPlayerScreen(
-                                  video: video,
-                                  userId: userId,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      height: 60,
+                                      width: 60,
+                                      decoration: BoxDecoration(
+                                        color: kSecondaryColor.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: kSecondaryColor,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          MyText(
+                                            text: video.title,
+                                            size: 14,
+                                            weight: FontWeight.w600,
+                                            paddingBottom: 4,
+                                          ),
+                                          MyText(
+                                            text: '${durationMinutes} min',
+                                            size: 12,
+                                            color: kTertiaryColor.withValues(
+                                              alpha: 0.8,
+                                            ),
+                                            paddingBottom: 6,
+                                          ),
+                                          LinearPercentIndicator(
+                                            lineHeight: 6,
+                                            percent: percent,
+                                            padding: EdgeInsets.zero,
+                                            backgroundColor: kTertiaryColor,
+                                            progressColor: kGreenColor,
+                                            barRadius: const Radius.circular(4),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          MyText(
+                                            text: completed
+                                                ? 'Completed'
+                                                : 'Tap to continue',
+                                            size: 11,
+                                            color: completed
+                                                ? kGreenColor
+                                                : kTertiaryColor.withValues(
+                                                    alpha: 0.9,
+                                                  ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ).then((_) {
-                              // Refresh progress when coming back
-                              _loadData();
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: kQuaternaryColor,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(color: kBorderColor2),
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  height: 60,
-                                  width: 60,
-                                  decoration: BoxDecoration(
-                                    color: kSecondaryColor.withValues(
-                                      alpha: 0.2,
-                                    ),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Icon(
-                                    Icons.play_arrow_rounded,
-                                    color: kSecondaryColor,
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      MyText(
-                                        text: video.title,
-                                        size: 14,
-                                        weight: FontWeight.w600,
-                                        paddingBottom: 4,
-                                      ),
-                                      MyText(
-                                        text: '${durationMinutes} min',
-                                        size: 12,
-                                        color: kTertiaryColor.withValues(
-                                          alpha: 0.8,
-                                        ),
-                                        paddingBottom: 6,
-                                      ),
-                                      LinearPercentIndicator(
-                                        lineHeight: 6,
-                                        percent: percent,
-                                        padding: EdgeInsets.zero,
-                                        backgroundColor: kTertiaryColor,
-                                        progressColor: kGreenColor,
-                                        barRadius: const Radius.circular(4),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      MyText(
-                                        text: completed
-                                            ? 'Completed'
-                                            : 'Tap to continue',
-                                        size: 11,
-                                        color: completed
-                                            ? kGreenColor
-                                            : kTertiaryColor.withValues(
-                                                alpha: 0.9,
-                                              ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
+                          );
+                        },
+                      ),
+                    ),
                   ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
@@ -157,41 +158,44 @@ class _MyCoursesState extends State<MyCourses> {
           padding: AppSizes.ZERO,
           physics: const BouncingScrollPhysics(),
           itemCount: _courses.length,
-          itemBuilder: (context, index) {
-            final course = _courses[index];
-            final progress = _progress[course.id];
+          itemBuilder: (context, index) => FadeInUp(
+            delay: staggerDelay(index),
+            child: Builder(
+              builder: (context) {
+                final course = _courses[index];
+                final progress = _progress[course.id];
 
-            final percent = ((progress?.progressPercentage ?? 0) / 100).clamp(
-              0.0,
-              1.0,
-            );
-            final completedText =
-                '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
+                final percent = ((progress?.progressPercentage ?? 0) / 100)
+                    .clamp(0.0, 1.0);
+                final completedText =
+                    '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
 
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: index < _courses.length - 1 ? 12 : 0,
-              ),
-              child: _LearningHubTile(
-                title: course.title,
-                duration: _formatDuration(course.durationMinutes),
-                imageUrl: course.thumbnailUrl,
-                percent: percent.toDouble(),
-                completedText: completedText,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CourseDetailScreen(
-                        course: course,
-                        initiallyEnrolled: true,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            );
-          },
+                return Padding(
+                  padding: EdgeInsets.only(
+                    bottom: index < _courses.length - 1 ? 12 : 0,
+                  ),
+                  child: _LearningHubTile(
+                    title: course.title,
+                    duration: _formatDuration(course.durationMinutes),
+                    imageUrl: course.thumbnailUrl,
+                    percent: percent.toDouble(),
+                    completedText: completedText,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CourseDetailScreen(
+                            course: course,
+                            initiallyEnrolled: true,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
         ),
       ],
     );

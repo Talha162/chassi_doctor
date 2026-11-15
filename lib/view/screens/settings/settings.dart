@@ -1,3 +1,7 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:motorsport/utils/app_error.dart';
+import 'package:motorsport/utils/motion.dart';
+import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -11,7 +15,6 @@ import 'package:motorsport/services/auth/auth_service.dart';
 import 'package:motorsport/services/notification_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/screens/auth/login.dart';
-import 'package:motorsport/view/screens/demo_admin/demo_admin_recommendations_screen.dart';
 import 'package:motorsport/view/screens/settings/edit_profile.dart';
 import 'package:motorsport/view/screens/settings/privacy_policy.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
@@ -62,7 +65,8 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> _loadNotificationPreference() async {
-    final enabled = await NotificationService.instance.areNotificationsEnabled();
+    final enabled = await NotificationService.instance
+        .areNotificationsEnabled();
     if (!mounted) return;
     setState(() {
       _notificationsEnabled = enabled;
@@ -79,15 +83,35 @@ class _SettingsState extends State<Settings> {
         userId: userId,
       );
       if (!mounted) return;
+      if (value) {
+        // Turning on in the app does nothing if iOS/Android has notifications
+        // blocked for Chassis Doctor; say so instead of showing a fake "on".
+        final settings = await FirebaseMessaging.instance
+            .getNotificationSettings();
+        if (!mounted) return;
+        if (settings.authorizationStatus == AuthorizationStatus.denied) {
+          await NotificationService.instance.setNotificationsEnabled(false);
+          if (!mounted) return;
+          setState(() => _notificationsEnabled = false);
+          showInfoSnackbar(
+            'Notifications are blocked for Chassis Doctor. Turn them on in '
+            'your phone Settings, then try again.',
+            title: 'Notifications are off',
+          );
+          return;
+        }
+      }
       setState(() {
         _notificationsEnabled = value;
       });
+      showSuccessSnackbar(
+        value ? 'Push notifications are on.' : 'Push notifications are off.',
+      );
     } catch (e) {
       if (!mounted) return;
-      Get.snackbar(
-        'Notification Error',
-        'Failed to update notification preference: $e',
-        snackPosition: SnackPosition.BOTTOM,
+      showErrorSnackbar(
+        friendlyError(e),
+        title: "Couldn't change notifications",
       );
     } finally {
       if (mounted) {
@@ -101,11 +125,7 @@ class _SettingsState extends State<Settings> {
       await _authService.signOut();
       Get.offAll(() => const Login());
     } catch (e) {
-      Get.snackbar(
-        "Logout Error",
-        "Failed to log out: $e",
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      showErrorSnackbar(friendlyError(e), title: "Couldn't log out");
     }
   }
 
@@ -118,18 +138,13 @@ class _SettingsState extends State<Settings> {
     try {
       await _authService.deleteCurrentAccount();
       if (!mounted) return;
-      Get.snackbar(
-        'Account Deleted',
-        'Your account has been deleted successfully.',
-        snackPosition: SnackPosition.BOTTOM,
-      );
+      showSuccessSnackbar('Your account has been deleted.');
       Get.offAll(() => const Login());
     } catch (e) {
       if (!mounted) return;
-      Get.snackbar(
-        'Delete Failed',
-        'Failed to delete account: $e',
-        snackPosition: SnackPosition.BOTTOM,
+      showErrorSnackbar(
+        friendlyError(e),
+        title: "Couldn't delete your account",
       );
     } finally {
       if (mounted) {
@@ -156,232 +171,240 @@ class _SettingsState extends State<Settings> {
             const SizedBox(height: 16),
 
             // ---------- HEADER (stable height, better UX) ----------
-            _buildHeader(),
+            FadeInUp(child: _buildHeader()),
 
             // ---------- FIRST SETTINGS CARD ----------
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: kQuaternaryColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _SettingsTile(
-                    imagePath: Assets.imagesProfile,
-                    title: 'Profile information',
-                    onTap: () async {
-                      final updated = await Get.to(() => const EditProfile());
-                      if (updated != null) {
-                        _loadUser();
-                      }
-                    },
-                  ),
-                  const _Divider(),
-                  _SettingsTile(
-                    imagePath: Assets.imagesNotifications,
-                    title: 'Push notification',
-                    trailing: Transform.scale(
-                      scale: 0.65,
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        height: 20 / 0.65,
-                        width: 20 / 0.65,
-                        child: CupertinoSwitch(
-                          value: _notificationsEnabled,
-                          thumbColor: kPrimaryColor,
-                          activeTrackColor: kSecondaryColor,
-                          onChanged: _isUpdatingNotificationPreference
-                              ? null
-                              : _setNotificationsEnabled,
+            FadeInUp(
+              delay: const Duration(milliseconds: 120),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kQuaternaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SettingsTile(
+                      imagePath: Assets.imagesProfile,
+                      title: 'Profile information',
+                      onTap: () async {
+                        final updated = await Get.to(() => const EditProfile());
+                        if (updated != null) {
+                          _loadUser();
+                        }
+                      },
+                    ),
+                    const _Divider(),
+                    _SettingsTile(
+                      imagePath: Assets.imagesNotifications,
+                      title: 'Push notification',
+                      trailing: Transform.scale(
+                        scale: 0.65,
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 10),
+                          height: 20 / 0.65,
+                          width: 20 / 0.65,
+                          child: CupertinoSwitch(
+                            value: _notificationsEnabled,
+                            thumbColor: kPrimaryColor,
+                            activeTrackColor: kSecondaryColor,
+                            onChanged: _isUpdatingNotificationPreference
+                                ? null
+                                : _setNotificationsEnabled,
+                          ),
                         ),
                       ),
+                      onTap: _isUpdatingNotificationPreference
+                          ? null
+                          : () => _setNotificationsEnabled(
+                              !_notificationsEnabled,
+                            ),
                     ),
-                    onTap: _isUpdatingNotificationPreference
-                        ? null
-                        : () => _setNotificationsEnabled(!_notificationsEnabled),
-                  ),
 
-                  const _Divider(),
-                  _SettingsTile(
-                    imagePath: Assets.imagesData,
-                    title: 'Data and Privacy',
-                    onTap: () {
-                      Get.to(() => const PrivacyPolicy());
-                    },
-                  ),
-                  const _Divider(),
-                  _SettingsTile(
-                    imagePath: Assets.imagesTheme,
-                    title: themeController.isDarkMode
-                        ? 'Switch to Blue Theme'
-                        : 'Switch to Dark Theme',
-                    onTap: themeController.toggleTheme,
-                    trailing: Transform.scale(
-                      scale: 0.65,
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        margin: const EdgeInsets.only(right: 10),
-                        height: 20 / 0.65,
-                        width: 20 / 0.65,
-                        child: CupertinoSwitch(
-                          value: themeController.isDarkMode,
-                          thumbColor: kPrimaryColor,
-                          activeTrackColor: kSecondaryColor,
-                          onChanged: (bool value) {
-                            themeController.toggleTheme();
-                          },
+                    const _Divider(),
+                    _SettingsTile(
+                      imagePath: Assets.imagesData,
+                      title: 'Data and Privacy',
+                      onTap: () {
+                        Get.to(() => const PrivacyPolicy());
+                      },
+                    ),
+                    const _Divider(),
+                    _SettingsTile(
+                      imagePath: Assets.imagesTheme,
+                      title: themeController.isDarkMode
+                          ? 'Switch to Blue Theme'
+                          : 'Switch to Dark Theme',
+                      onTap: themeController.toggleTheme,
+                      trailing: Transform.scale(
+                        scale: 0.65,
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 10),
+                          height: 20 / 0.65,
+                          width: 20 / 0.65,
+                          child: CupertinoSwitch(
+                            value: themeController.isDarkMode,
+                            thumbColor: kPrimaryColor,
+                            activeTrackColor: kSecondaryColor,
+                            onChanged: (bool value) {
+                              themeController.toggleTheme();
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
 
             const SizedBox(height: 12),
 
             // ---------- SECOND SETTINGS CARD ----------
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: kQuaternaryColor,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _SettingsTile(
-                    imagePath: Assets.imagesLogout,
-                    title: 'Logout',
-                    onTap: () {
-                      showCupertinoModalPopup(
-                        context: context,
-                        builder: (context) => Theme(
-                          data: Theme.of(context).copyWith(
-                            cupertinoOverrideTheme: CupertinoThemeData(
-                              scaffoldBackgroundColor: kPrimaryColor,
+            FadeInUp(
+              delay: const Duration(milliseconds: 220),
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kQuaternaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _SettingsTile(
+                      imagePath: Assets.imagesLogout,
+                      title: 'Logout',
+                      onTap: () {
+                        showCupertinoModalPopup(
+                          context: context,
+                          builder: (context) => Theme(
+                            data: Theme.of(context).copyWith(
+                              cupertinoOverrideTheme: CupertinoThemeData(
+                                scaffoldBackgroundColor: kPrimaryColor,
+                              ),
                             ),
-                          ),
-                          child: CupertinoAlertDialog(
-                            title: Column(
-                              children: [
-                                Image.asset(
-                                  Assets.imagesLogoutIcon,
-                                  height: 38,
+                            child: CupertinoAlertDialog(
+                              title: Column(
+                                children: [
+                                  Image.asset(
+                                    Assets.imagesLogoutIcon,
+                                    height: 38,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  MyText(
+                                    text: 'Logout',
+                                    size: 16,
+                                    color: Colors.black,
+                                    weight: FontWeight.w700,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  MyText(
+                                    text: 'Do you really want to logout?',
+                                    size: 12,
+                                    color: Colors.black,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                              content: Container(),
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: MyText(
+                                    text: 'Cancel',
+                                    size: 14,
+                                    color: Colors.black,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
                                 ),
-                                const SizedBox(height: 8),
-                                MyText(
-                                  text: 'Logout',
-                                  size: 16,
-                                  color: Colors.black,
-                                  weight: FontWeight.w700,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 6),
-                                MyText(
-                                  text: 'Do you really want to logout?',
-                                  size: 12,
-                                  color: Colors.black,
-                                  textAlign: TextAlign.center,
+                                CupertinoDialogAction(
+                                  child: MyText(
+                                    text: 'Logout',
+                                    size: 14,
+                                    color: CupertinoColors.destructiveRed,
+                                  ),
+                                  isDestructiveAction: true,
+                                  onPressed: () {
+                                    _logout();
+                                  },
                                 ),
                               ],
                             ),
-                            content: Container(),
-                            actions: [
-                              CupertinoDialogAction(
-                                child: MyText(
-                                  text: 'Cancel',
-                                  size: 14,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              CupertinoDialogAction(
-                                child: MyText(
-                                  text: 'Logout',
-                                  size: 14,
-                                  color: CupertinoColors.destructiveRed,
-                                ),
-                                isDestructiveAction: true,
-                                onPressed: () {
-                                  _logout();
-                                },
-                              ),
-                            ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                  const _Divider(),
-                  _SettingsTile(
-                    imagePath: Assets.imagesDelete,
-                    title: 'Delete Account',
-                    onTap: () {
-                      showCupertinoModalPopup(
-                        context: context,
-                        builder: (context) => Theme(
-                          data: Theme.of(context).copyWith(
-                            cupertinoOverrideTheme: CupertinoThemeData(
-                              scaffoldBackgroundColor: kPrimaryColor,
+                        );
+                      },
+                    ),
+                    const _Divider(),
+                    _SettingsTile(
+                      imagePath: Assets.imagesDelete,
+                      title: 'Delete Account',
+                      onTap: () {
+                        showCupertinoModalPopup(
+                          context: context,
+                          builder: (context) => Theme(
+                            data: Theme.of(context).copyWith(
+                              cupertinoOverrideTheme: CupertinoThemeData(
+                                scaffoldBackgroundColor: kPrimaryColor,
+                              ),
                             ),
-                          ),
-                          child: CupertinoAlertDialog(
-                            title: Column(
-                              children: [
-                                Image.asset(
-                                  Assets.imagesDeleteProfile,
-                                  height: 38,
+                            child: CupertinoAlertDialog(
+                              title: Column(
+                                children: [
+                                  Image.asset(
+                                    Assets.imagesDeleteProfile,
+                                    height: 38,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  MyText(
+                                    text: 'Delete Account',
+                                    size: 16,
+                                    color: Colors.black,
+                                    weight: FontWeight.w700,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  MyText(
+                                    text:
+                                        'Are you sure you want to delete your account? This will permanently erase your account.',
+                                    size: 12,
+                                    color: Colors.black,
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                              content: Container(),
+                              actions: [
+                                CupertinoDialogAction(
+                                  child: MyText(
+                                    text: 'Cancel',
+                                    size: 14,
+                                    color: Colors.black,
+                                  ),
+                                  onPressed: () => Navigator.of(context).pop(),
                                 ),
-                                const SizedBox(height: 8),
-                                MyText(
-                                  text: 'Delete Account',
-                                  size: 16,
-                                  color: Colors.black,
-                                  weight: FontWeight.w700,
-                                  textAlign: TextAlign.center,
-                                ),
-                                const SizedBox(height: 6),
-                                MyText(
-                                  text:
-                                      'Are you sure you want to delete your account? This will permanently erase your account.',
-                                  size: 12,
-                                  color: Colors.black,
-                                  textAlign: TextAlign.center,
+                                CupertinoDialogAction(
+                                  child: MyText(
+                                    text: 'Delete',
+                                    size: 14,
+                                    color: CupertinoColors.destructiveRed,
+                                  ),
+                                  isDestructiveAction: true,
+                                  onPressed: () {
+                                    _deleteAccount();
+                                  },
                                 ),
                               ],
                             ),
-                            content: Container(),
-                            actions: [
-                              CupertinoDialogAction(
-                                child: MyText(
-                                  text: 'Cancel',
-                                  size: 14,
-                                  color: Colors.black,
-                                ),
-                                onPressed: () => Navigator.of(context).pop(),
-                              ),
-                              CupertinoDialogAction(
-                                child: MyText(
-                                  text: 'Delete',
-                                  size: 14,
-                                  color: CupertinoColors.destructiveRed,
-                                ),
-                                isDestructiveAction: true,
-                                onPressed: () {
-                                  _deleteAccount();
-                                },
-                              ),
-                            ],
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
 

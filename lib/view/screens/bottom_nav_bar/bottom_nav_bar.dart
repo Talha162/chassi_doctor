@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:motorsport/constants/app_colors.dart';
-import 'package:motorsport/constants/app_images.dart';
+import 'package:motorsport/view/widget/app_nav_bar.dart';
 import 'package:motorsport/view/screens/home/home.dart';
 import 'package:motorsport/view/screens/learning_hub/learning_hub.dart';
 import 'package:motorsport/controller/settings/saved_setup_history_controller.dart';
@@ -42,13 +41,6 @@ class _BottomNavBarState extends State<BottomNavBar> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> items = [
-      {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'Learning'},
-      {'icon': Assets.imagesSave, 'label': 'History'},
-      {'icon': Assets.imagesProfile, 'label': 'Profile'},
-    ];
-
     final List<Widget> screens = [
       Home(),
       const LearningHub(showBackButton: false),
@@ -59,48 +51,29 @@ class _BottomNavBarState extends State<BottomNavBar> {
     return Scaffold(
       key: _scaffoldKey,
       resizeToAvoidBottomInset: false,
-      body: screens[_currentIndex],
-      bottomNavigationBar: _buildNavBar(items),
-    );
-  }
-
-  Widget _buildNavBar(List<Map<String, dynamic>> items) {
-    return Obx(
-      () => SafeArea(
-        top: false,
-        child: Container(
-          decoration: BoxDecoration(
-            color: kPrimaryColor,
-            border: Border(
-              top: BorderSide(
-                color: kTertiaryColor.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-          ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.transparent,
-            selectedItemColor: kSecondaryColor,
-            unselectedItemColor: kTertiaryColor.withValues(alpha: 0.6),
-            currentIndex: _currentIndex,
-            onTap: _getCurrentIndex,
-            items: List.generate(items.length, (index) {
-              final data = items[index];
-              return BottomNavigationBarItem(
-                icon: SizedBox(
-                  height: 32,
-                  width: 32,
-                  child: Center(
-                    child: ImageIcon(AssetImage(data["icon"]), size: 24),
-                  ),
-                ),
-                label: data["label"],
-              );
-            }),
+      // Tabs cross-fade with a slight rise instead of snapping.
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 280),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween(
+              begin: const Offset(0, 0.015),
+              end: Offset.zero,
+            ).animate(animation),
+            child: child,
           ),
         ),
+        child: KeyedSubtree(
+          key: ValueKey(_currentIndex),
+          child: screens[_currentIndex],
+        ),
+      ),
+      bottomNavigationBar: AppNavBar(
+        currentIndex: _currentIndex,
+        onTap: _getCurrentIndex,
       ),
     );
   }
@@ -113,52 +86,9 @@ class ChildScreenBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = [
-      {'icon': Assets.imagesHome, 'label': 'Home'},
-      {'icon': Assets.imagesCourses, 'label': 'Learning'},
-      {'icon': Assets.imagesSave, 'label': 'History'},
-      {'icon': Assets.imagesProfile, 'label': 'Profile'},
-    ];
-
-    return Obx(
-      () => SafeArea(
-        top: false,
-        child: Container(
-          decoration: BoxDecoration(
-            color: kPrimaryColor,
-            border: Border(
-              top: BorderSide(
-                color: kTertiaryColor.withValues(alpha: 0.1),
-                width: 1,
-              ),
-            ),
-          ),
-          child: BottomNavigationBar(
-            elevation: 0,
-            type: BottomNavigationBarType.fixed,
-            backgroundColor: Colors.transparent,
-            selectedItemColor: kSecondaryColor,
-            unselectedItemColor: kTertiaryColor.withValues(alpha: 0.6),
-            currentIndex: selectedIndex,
-            onTap: (index) {
-              Get.offAll(() => BottomNavBar(initialIndex: index));
-            },
-            items: List.generate(items.length, (index) {
-              final data = items[index];
-              return BottomNavigationBarItem(
-                icon: SizedBox(
-                  height: 32,
-                  width: 32,
-                  child: Center(
-                    child: ImageIcon(AssetImage(data["icon"]!), size: 24),
-                  ),
-                ),
-                label: data["label"],
-              );
-            }),
-          ),
-        ),
-      ),
+    return AppNavBar(
+      currentIndex: selectedIndex,
+      onTap: (index) => Get.offAll(() => BottomNavBar(initialIndex: index)),
     );
   }
 }

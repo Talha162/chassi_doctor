@@ -1,3 +1,4 @@
+import 'package:motorsport/utils/motion.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -264,31 +265,41 @@ class SavedSetupHistory extends StatelessWidget {
                           crossAxisSpacing: 10,
                           mainAxisSpacing: 16,
                         ),
-                    itemBuilder: (context, index) {
-                      final session = controller.entries[index];
-                      final formattedDate = DateFormat(
-                        'yyyy-MM-dd',
-                      ).format(session.createdAt);
-                      final track = session.trackSnapshot;
+                    itemBuilder: (context, index) => FadeInUp(
+                      delay: staggerDelay(index),
+                      child: Builder(
+                        builder: (context) {
+                          final session = controller.entries[index];
+                          final formattedDate = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(session.createdAt);
+                          final track = session.trackSnapshot;
 
-                      return SetupHistoryTile(
-                        trackType:
-                            track['circuit_name']?.toString().isNotEmpty == true
-                            ? track['circuit_name'].toString()
-                            : (track['track_type']?.toString() ?? 'Not set'),
-                        surfaceType:
-                            track['surface_type']?.toString() ?? 'Not set',
-                        weather:
-                            track['weather_condition']?.toString() ?? 'Not set',
-                        date: formattedDate,
-                        onView: () {
-                          Get.to(() => ChassisSessionDetail(session: session));
+                          return SetupHistoryTile(
+                            trackType:
+                                track['circuit_name']?.toString().isNotEmpty ==
+                                    true
+                                ? track['circuit_name'].toString()
+                                : (track['track_type']?.toString() ??
+                                      'Not set'),
+                            surfaceType:
+                                track['surface_type']?.toString() ?? 'Not set',
+                            weather:
+                                track['weather_condition']?.toString() ??
+                                'Not set',
+                            date: formattedDate,
+                            onView: () {
+                              Get.to(
+                                () => ChassisSessionDetail(session: session),
+                              );
+                            },
+                            onShare: () {
+                              _shareSessionAsPdf(context, session);
+                            },
+                          );
                         },
-                        onShare: () {
-                          _shareSessionAsPdf(context, session);
-                        },
-                      );
-                    },
+                      ),
+                    ),
                   );
                 }),
               ),

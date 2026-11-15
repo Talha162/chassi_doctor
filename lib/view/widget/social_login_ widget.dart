@@ -32,10 +32,7 @@ class SocialLogin extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                icon,
-                height: 20,
-              ),
+              Image.asset(icon, height: 20),
               MyText(
                 paddingLeft: 8,
                 paddingRight: 8,

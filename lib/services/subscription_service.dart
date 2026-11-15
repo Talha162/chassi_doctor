@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 
 import '../config/revenuecat_config.dart';
@@ -316,6 +317,19 @@ class SubscriptionService {
         hasActiveSubscription: _hasEntitlement(customerInfo),
       );
       return customerInfo;
+    } on PlatformException catch (e) {
+      debugPrint('RevenueCat purchase failed: $e');
+      final cancelled =
+          PurchasesErrorHelper.getErrorCode(e) ==
+          PurchasesErrorCode.purchaseCancelledError;
+      // Closing the App Store sheet is not an error; just stop loading.
+      state.value = cancelled
+          ? state.value.copyWith(isLoading: false, clearErrorMessage: true)
+          : state.value.copyWith(
+              isLoading: false,
+              errorMessage: 'The purchase was not completed. Please try again.',
+            );
+      return null;
     } on Exception catch (e) {
       debugPrint('RevenueCat purchase failed: $e');
       state.value = state.value.copyWith(

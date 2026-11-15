@@ -1,3 +1,5 @@
+import 'package:motorsport/utils/app_snackbar.dart';
+import 'package:motorsport/utils/app_error.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -51,7 +53,9 @@ class VerificationController extends GetxController {
     try {
       isLoading.value = true;
       final response = await _authService.verifyOtp(
-          email: email, token: pinController.text);
+        email: email,
+        token: pinController.text,
+      );
 
       if (response.session != null) {
         pinStatus.value = 'verified';
@@ -61,16 +65,16 @@ class VerificationController extends GetxController {
       } else {
         // This case can happen if the token is wrong but doesn't throw for some reason
         pinStatus.value = 'invalid';
-        Get.snackbar("Verification Failed", "The code you entered is incorrect.",
-            backgroundColor: Colors.redAccent, colorText: Colors.white);
+        showErrorSnackbar(
+          "That code isn't right. Please check it and try again.",
+          title: 'Verification failed',
+        );
       }
     } on AuthException catch (e) {
       pinStatus.value = 'invalid';
-      Get.snackbar("Verification Failed", e.message,
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      showErrorSnackbar(friendlyError(e), title: 'Verification failed');
     } catch (e) {
-      Get.snackbar("Error", "An unexpected error occurred: $e",
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      showErrorSnackbar(friendlyError(e), title: 'Verification failed');
     } finally {
       isLoading.value = false;
     }
@@ -80,19 +84,22 @@ class VerificationController extends GetxController {
     if (resendSeconds.value > 0) return;
     try {
       await _authService.resendOtp(email: email);
-      Get.snackbar("Sent", "A new code has been sent to your email.",
-          backgroundColor: Colors.green, colorText: Colors.white);
+      showSuccessSnackbar('A new code has been sent to your email.');
       startResendTimer();
     } catch (e) {
-      Get.snackbar("Error", "Failed to resend code. Please try again later.",
-          backgroundColor: Colors.redAccent, colorText: Colors.white);
+      showErrorSnackbar(friendlyError(e), title: "Couldn't resend the code");
     }
   }
 
   @override
   void onClose() {
+    // GetX closes this controller as soon as the route is removed, but the
+    // old page is still drawn while it animates out. Disposing the text
+    // controllers immediately crashes that last frame, so wait it out.
+    Future<void>.delayed(const Duration(milliseconds: 800), () {
+      pinController.dispose();
+    });
     _timer?.cancel();
-    pinController.dispose();
     super.onClose();
   }
 }
