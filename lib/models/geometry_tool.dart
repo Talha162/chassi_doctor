@@ -52,7 +52,25 @@ class GeometryTool {
     icon: Icons.architecture_rounded,
   );
 
-  static const all = [rollCentre, cornerWeight, motionRatio];
+  static const beamAxle = GeometryTool(
+    key: 'beam-axle-roll-centre',
+    title: 'Beam Axle Roll Centre Calculator',
+    shortTitle: 'Beam Axle',
+    summary: 'Panhard, Watts, Mumford, Wob link, Jacob’s ladder or A-frame: where the rear roll centre sits and moves.',
+    stateKey: 'chassis-doctor:beam-axle:v1',
+    icon: Icons.linear_scale_rounded,
+  );
+
+  static const setupRecord = GeometryTool(
+    key: 'setup-record',
+    title: 'Setup Record',
+    shortTitle: 'Setup Record',
+    summary: 'One record per session: weights, springs, geometry, tyres, how the car felt and lap times, with every change tracked.',
+    stateKey: 'chassis-doctor:setup-record:v1',
+    icon: Icons.fact_check_outlined,
+  );
+
+  static const all = [setupRecord, rollCentre, beamAxle, cornerWeight, motionRatio];
 
   static GeometryTool? byKey(String key) {
     for (final t in all) {

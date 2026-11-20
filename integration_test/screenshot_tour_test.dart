@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 // Screenshot tour: opens every screen of the app in both themes and prints
 // `SHOT:<theme>_<name>` when each one is ready. A shell watcher captures the
 // simulator at each marker (see scripts/screenshot_tour.sh).
@@ -14,6 +16,7 @@ import 'package:get/get.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/main.dart' as app;
+import 'package:motorsport/models/geometry_tool.dart';
 import 'package:motorsport/models/history_entry.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:motorsport/view/screens/auth/forgot_pass/forgot_pass.dart';
@@ -27,6 +30,8 @@ import 'package:motorsport/view/screens/courses/course_detail_screen.dart';
 import 'package:motorsport/view/screens/courses/courses.dart';
 import 'package:motorsport/view/screens/courses/module_video_screen.dart';
 import 'package:motorsport/view/screens/courses/my_courses.dart';
+import 'package:motorsport/view/screens/geometry/geometry_calculator_screen.dart';
+import 'package:motorsport/view/screens/geometry/geometry.dart';
 import 'package:motorsport/view/screens/home/identify_issues.dart';
 import 'package:motorsport/view/screens/home/setup_recommendation.dart';
 import 'package:motorsport/view/screens/launch/onboarding.dart';
@@ -49,6 +54,7 @@ const _validationOnly = bool.fromEnvironment('TOUR_VALIDATION_ONLY');
 const _geometryStep = String.fromEnvironment('TOUR_GEOMETRY');
 const _demo = bool.fromEnvironment('TOUR_DEMO');
 const _sessionTheme = String.fromEnvironment('TOUR_SESSION');
+const _record = bool.fromEnvironment('TOUR_RECORD');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -64,6 +70,12 @@ void main() {
 
     if (_demo) {
       await _demoWalkthrough(tester);
+      print('TOUR_DONE');
+      return;
+    }
+
+    if (_record) {
+      await _recordFlow(tester);
       print('TOUR_DONE');
       return;
     }
@@ -724,4 +736,74 @@ Future<void> _sessionFlow(WidgetTester t, String theme) async {
   final view = find.descendant(of: find.byType(MyButton), matching: find.text('View'));
   await tap(view, after: 3200);
   await _shot(t, theme, 'sess_8_detail');
+}
+
+
+/// Geometry hub with the new tools, Setup Record example, and filling in from the calculators.
+Future<void> _recordFlow(WidgetTester t) async {
+  const theme = 'blue';
+  final auth = Supabase.instance.client.auth;
+  if (auth.currentSession == null) {
+    await auth.signInWithPassword(email: _email, password: _password);
+  }
+  Get.offAll(() => const BottomNavBar());
+  await _wait(t, 3000);
+  Get.to(() => const Geometry());
+  await _wait(t, 3500);
+  await _shot(t, theme, 'rec_1_hub');
+
+  Future<String> js(String code) async {
+    try {
+      return (await geometryDebugController!.runJavaScriptReturningResult(code)).toString();
+    } on ArgumentError {
+      return 'null'; // the statement returned nothing
+    }
+  }
+  Future<void> press(String label) => js(
+    "(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(${jsonEncode(label)})); if (b) { b.scrollIntoView({block: 'center'}); b.click(); return 'ok' } return 'missing' })()",
+  );
+
+  // Use the Corner Weight Analyser like a member would (a figure saved in the app).
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.cornerWeight));
+  await _wait(t, 6000);
+  print('STORAGE_PROBE=${await js("(() => { try { localStorage.setItem('probe','1'); return 'ok ' + location.origin } catch (e) { return 'blocked ' + e.name + ' ' + location.href.slice(0, 40) } })()")}');
+  print('STORAGE_KEYS=${await js("(() => { try { return Object.keys(localStorage).join(',') } catch (e) { return 'none' } })()")}');
+  await js("(() => { try { localStorage.setItem('chassis-doctor:corner-weight:v1', JSON.stringify({weights:{fl:201,fr:149,rl:236,rr:194}})); return 'ok' } catch (e) { return 'blocked' } })()");
+  Get.back();
+  await _wait(t, 1500);
+
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.setupRecord));
+  await _wait(t, 6500);
+  await _shot(t, theme, 'rec_2_empty');
+  await press('Load example');
+  await _wait(t, 1500);
+  await _shot(t, theme, 'rec_3_confirm');
+  if (find.text('Continue').evaluate().isNotEmpty) {
+    await t.tap(find.text('Continue'));
+    await _wait(t, 1500);
+  }
+  await _shot(t, theme, 'rec_4_example');
+  await press('Corner Weight Analyser');
+  await _wait(t, 1200);
+  print('RECORD_LF=${await js("JSON.parse(localStorage.getItem('chassis-doctor:setup-record:v1')).current.corners.LF.weight")}');
+  await _shot(t, theme, 'rec_5_linked');
+  await press('Full setup');
+  await _wait(t, 800);
+  await js("document.querySelector('dl').scrollIntoView(); window.scrollBy(0, 2600)");
+  await _wait(t, 1000);
+  await _shot(t, theme, 'rec_6_glance');
+  await js("window.scrollTo(0, document.body.scrollHeight - 2600)");
+  await _wait(t, 1000);
+  await _shot(t, theme, 'rec_7_history');
+  Get.back();
+  await _wait(t, 1500);
+  // Leave and come back: the sessions are still there.
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.setupRecord));
+  await _wait(t, 6000);
+  print('RECORD_AFTER_REOPEN=${await js("JSON.parse(localStorage.getItem('chassis-doctor:setup-record:v1')).history.length + ' sessions, LF ' + JSON.parse(localStorage.getItem('chassis-doctor:setup-record:v1')).current.corners.LF.weight")}');
+  Get.back();
+  await _wait(t, 1500);
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.beamAxle));
+  await _wait(t, 6500);
+  await _shot(t, theme, 'rec_8_beam_axle');
 }

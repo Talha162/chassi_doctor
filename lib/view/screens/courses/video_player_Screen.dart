@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/models/module_video.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -29,11 +30,49 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _isInitializing = true;
   bool _isCompletedMarked = false;
   Timer? _progressTimer;
+  bool _showOverlay = true;
+  bool _wasLandscape = false;
+  Timer? _overlayTimer;
+
+  static const _portrait = [
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ];
+  static const _landscape = [
+    DeviceOrientation.landscapeLeft,
+    DeviceOrientation.landscapeRight,
+  ];
 
   @override
   void initState() {
     super.initState();
+    // The rest of the app is portrait; lessons can turn sideways for full screen.
+    SystemChrome.setPreferredOrientations([..._portrait, ..._landscape]);
     _initPlayer();
+  }
+
+  /// Full-screen button: turn to landscape (or back), then let the phone rotate freely again.
+  Future<void> _toggleFullScreen(bool landscape) async {
+    await SystemChrome.setPreferredOrientations(landscape ? _portrait : _landscape);
+    await Future<void>.delayed(const Duration(milliseconds: 600));
+    if (mounted) {
+      SystemChrome.setPreferredOrientations([..._portrait, ..._landscape]);
+    }
+  }
+
+  void _pokeOverlaySoon() =>
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pokeOverlay();
+      });
+
+  void _pokeOverlay() {
+    _overlayTimer?.cancel();
+    setState(() => _showOverlay = true);
+    if (_controller?.value.isPlaying ?? false) {
+      _overlayTimer = Timer(const Duration(seconds: 3), () {
+        if (mounted) setState(() => _showOverlay = false);
+      });
+    }
   }
 
   Future<void> _initPlayer() async {
@@ -114,6 +153,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   @override
   void dispose() {
+    _overlayTimer?.cancel();
+    SystemChrome.setPreferredOrientations(_portrait);
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     _progressTimer?.cancel();
     _syncProgress(); // final sync (fire-and-forget)
     _controller?.dispose();
@@ -123,6 +165,21 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final video = widget.video;
+    final landscape =
+        MediaQuery.orientationOf(context) == Orientation.landscape;
+    final ready = !_isInitializing &&
+        _controller != null &&
+        _controller!.value.isInitialized;
+
+    if (landscape != _wasLandscape) {
+      // Only when the phone turns: the player rebuilds many times a second.
+      _wasLandscape = landscape;
+      SystemChrome.setEnabledSystemUIMode(
+        landscape ? SystemUiMode.immersiveSticky : SystemUiMode.edgeToEdge,
+      );
+      if (landscape) _pokeOverlaySoon();
+    }
+    if (landscape && ready) return _buildFullScreen();
 
     return Scaffold(
       appBar: AppBar(
@@ -142,7 +199,20 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                   aspectRatio: _controller!.value.aspectRatio == 0
                       ? 16 / 9
                       : _controller!.value.aspectRatio,
-                  child: VideoPlayer(_controller!),
+                  child: Stack(
+                    children: [
+                      Positioned.fill(child: VideoPlayer(_controller!)),
+                      Positioned(
+                        right: 6,
+                        bottom: 6,
+                        child: _RoundIcon(
+                          icon: Icons.fullscreen_rounded,
+                          tooltip: 'Full screen',
+                          onTap: () => _toggleFullScreen(false),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 _buildControls(),
@@ -169,6 +239,81 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  /// Sideways: the video fills the screen, with controls that fade after a few seconds.
+  Widget _buildFullScreen() {
+    final value = _controller!.value;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          if (_showOverlay) {
+            _overlayTimer?.cancel();
+            setState(() => _showOverlay = false);
+          } else {
+            _pokeOverlay();
+          }
+        },
+        child: Stack(
+          children: [
+            Center(
+              child: AspectRatio(
+                aspectRatio: value.aspectRatio == 0 ? 16 / 9 : value.aspectRatio,
+                child: VideoPlayer(_controller!),
+              ),
+            ),
+            IgnorePointer(
+              ignoring: !_showOverlay,
+              child: AnimatedOpacity(
+                opacity: _showOverlay ? 1 : 0,
+                duration: const Duration(milliseconds: 250),
+                child: Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x99000000), Color(0x00000000), Color(0xB3000000)],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            _RoundIcon(
+                              icon: Icons.fullscreen_exit_rounded,
+                              tooltip: 'Exit full screen',
+                              onTap: () => _toggleFullScreen(true),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                widget.video.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        _buildControls(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -242,6 +387,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     _controller!.play();
                   }
                 });
+                _pokeOverlay();
               },
             ),
             IconButton(
@@ -294,6 +440,33 @@ class _SupportingContentCard extends StatelessWidget {
             color: kTertiaryColor.withValues(alpha: 0.9),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RoundIcon extends StatelessWidget {
+  const _RoundIcon({required this.icon, required this.tooltip, required this.onTap});
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: const Color(0x80000000),
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Icon(icon, color: Colors.white, size: 26),
+          ),
+        ),
       ),
     );
   }

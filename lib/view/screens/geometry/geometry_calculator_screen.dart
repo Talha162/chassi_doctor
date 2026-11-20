@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/models/geometry_tool.dart';
@@ -12,6 +13,10 @@ import 'package:motorsport/view/screens/geometry/setup_sheets.dart';
 import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+
+/// The open calculator page, so integration tests can press its buttons.
+@visibleForTesting
+WebViewController? geometryDebugController;
 
 /// Runs one of the website's calculators offline (same maths, same screens) and
 /// lets the member save or open setups shared with the website.
@@ -34,6 +39,7 @@ class GeometryCalculatorScreen extends StatefulWidget {
 
 class _GeometryCalculatorScreenState extends State<GeometryCalculatorScreen> {
   late final WebViewController _web;
+
   bool _ready = false;
   SavedSetup? _current;
 
@@ -49,6 +55,9 @@ class _GeometryCalculatorScreenState extends State<GeometryCalculatorScreen> {
           onPageFinished: (_) => _onLoaded(),
           onNavigationRequest: (request) {
             final uri = Uri.tryParse(request.url);
+            if (uri != null && uri.host == _pageHost) {
+              return NavigationDecision.navigate; // the calculator page itself
+            }
             if (uri != null && (uri.scheme == 'http' || uri.scheme == 'https')) {
               launchUrl(uri, mode: LaunchMode.externalApplication);
               return NavigationDecision.prevent;
@@ -57,7 +66,58 @@ class _GeometryCalculatorScreenState extends State<GeometryCalculatorScreen> {
           },
         ),
       )
-      ..loadFlutterAsset(widget.tool.asset);
+      // The page asks "are you sure?" before replacing a record.
+      ..setOnJavaScriptConfirmDialog((request) => _confirm(request.message))
+      ..setOnJavaScriptAlertDialog((request) async {
+        showInfoSnackbar(request.message);
+      })
+      ;
+    _loadPage();
+    geometryDebugController = _web;
+  }
+
+  /// The pages are served from this address inside the app (nothing is fetched from it), so
+  /// they get normal browser storage, shared between calculators like on the website. Loaded
+  /// as a local file they would have none: figures and Setup Record sessions would be lost on
+  /// leaving the screen, and "fill in from" couldn't see the other calculators.
+  static const _pageHost = 'app.chassis-doctor.com';
+
+  Future<void> _loadPage() async {
+    final html = await rootBundle.loadString(widget.tool.asset);
+    await _web.loadHtmlString(
+      html,
+      baseUrl: 'https://$_pageHost/geometry/${widget.tool.key}',
+    );
+  }
+
+  Future<bool> _confirm(String message) async {
+    if (!mounted) return false;
+    final gold = kSecondaryColor;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: kQuaternaryColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        content: Text(
+          message,
+          style: TextStyle(color: kTertiaryColor, fontSize: 15, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('Cancel', style: TextStyle(color: kTertiaryColor)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(
+              'Continue',
+              style: TextStyle(color: gold, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
   }
 
   Future<void> _onLoaded() async {
