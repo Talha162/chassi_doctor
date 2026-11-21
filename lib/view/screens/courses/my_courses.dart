@@ -7,6 +7,7 @@ import 'package:motorsport/models/course.dart';
 import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/subscriptions/paywall_screen.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -19,10 +20,10 @@ class MyCourses extends StatefulWidget {
   const MyCourses({super.key});
 
   @override
-  State<MyCourses> createState() => _MyCoursesState();
+  State<MyCourses> createState() => MyCoursesState();
 }
 
-class _MyCoursesState extends State<MyCourses> {
+class MyCoursesState extends State<MyCourses> {
   final _service = SupabaseService.instance;
 
   bool _isLoading = true;
@@ -37,10 +38,13 @@ class _MyCoursesState extends State<MyCourses> {
     _loadData();
   }
 
+  /// Reloads the list without showing the loading skeleton again.
+  Future<void> reload() => _loadData();
+
   Future<void> _loadData() async {
     try {
       setState(() {
-        _isLoading = true;
+        _isLoading = _courses.isEmpty;
         _error = null;
       });
 
@@ -81,7 +85,10 @@ class _MyCoursesState extends State<MyCourses> {
     final hasSubscription = SubscriptionService.instance.hasActiveSubscription;
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SizedBox(
+        height: 320,
+        child: SkeletonCardList(count: 3, thumbSize: 84),
+      );
     }
 
     if (_error != null) {
@@ -94,7 +101,7 @@ class _MyCoursesState extends State<MyCourses> {
       return ListView(
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
-        physics: const BouncingScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: [
           MyText(
             text: 'My Learning',
@@ -129,7 +136,7 @@ class _MyCoursesState extends State<MyCourses> {
       return ListView(
         shrinkWrap: true,
         padding: AppSizes.DEFAULT,
-        physics: const BouncingScrollPhysics(),
+        physics: const NeverScrollableScrollPhysics(),
         children: [
           MyText(
             text: 'My Learning',
@@ -137,7 +144,12 @@ class _MyCoursesState extends State<MyCourses> {
             paddingBottom: 12,
             weight: FontWeight.bold,
           ),
-          MyText(text: 'No published courses are available yet.', size: 14),
+          const EmptyState(
+            compact: true,
+            icon: Icons.school_outlined,
+            title: 'No courses yet',
+            message: 'New courses are on the way. Pull down to check again.',
+          ),
         ],
       );
     }
@@ -145,7 +157,7 @@ class _MyCoursesState extends State<MyCourses> {
     return ListView(
       shrinkWrap: true,
       padding: AppSizes.DEFAULT,
-      physics: const BouncingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         MyText(
           text: 'My Learning',
@@ -156,7 +168,7 @@ class _MyCoursesState extends State<MyCourses> {
         ListView.builder(
           shrinkWrap: true,
           padding: AppSizes.ZERO,
-          physics: const BouncingScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: _courses.length,
           itemBuilder: (context, index) => FadeInUp(
             delay: staggerDelay(index),

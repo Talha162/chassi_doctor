@@ -2,12 +2,11 @@ import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:motorsport/constants/app_colors.dart';
-import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/app_notification.dart';
 import 'package:motorsport/services/notification_service.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
-import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -42,7 +41,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     try {
-      setState(() => _isLoading = true);
+      // Only the first load shows skeletons; a pull-to-refresh keeps the list.
+      if (_notifications.isEmpty) setState(() => _isLoading = true);
       final items = await _service.getNotificationsForUser(userId);
       if (!mounted) return;
       setState(() {
@@ -115,50 +115,41 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: simpleAppBar(
-        title: 'Notifications',
-        actions: [
-          PopupMenuButton<String>(
-            color: kQuaternaryColor,
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            onSelected: (value) {
-              if (value == 'read') _markAllRead();
-              if (value == 'clear') _clearAll();
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'read',
-                child: Text('Mark all as read'),
-              ),
-              const PopupMenuItem(value: 'clear', child: Text('Clear all')),
-            ],
-          ),
-          const SizedBox(width: 12),
-        ],
-      ),
-      body: RefreshIndicator(
-        color: kSecondaryColor,
+    return AppPageScaffold(
+      title: 'Notifications',
+      actions: [
+        PopupMenuButton<String>(
+          color: kQuaternaryColor,
+          icon: const Icon(Icons.more_vert, color: Colors.white),
+          onSelected: (value) {
+            if (value == 'read') _markAllRead();
+            if (value == 'clear') _clearAll();
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(value: 'read', child: Text('Mark all as read')),
+            const PopupMenuItem(value: 'clear', child: Text('Clear all')),
+          ],
+        ),
+        const SizedBox(width: 12),
+      ],
+      body: AppRefresh(
         onRefresh: _loadNotifications,
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const SkeletonCardList(count: 6, thumbSize: 36)
             : _notifications.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  const SizedBox(height: 120),
-                  Image.asset(Assets.imagesPushNotification, height: 80),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: MyText(
-                      text: 'No notifications yet.',
-                      color: kTertiaryColor,
-                    ),
-                  ),
-                ],
+            ? const ScrollableEmptyState(
+                child: EmptyState(
+                  icon: Icons.notifications_none_rounded,
+                  title: 'No notifications yet',
+                  message:
+                      'New courses, lessons and updates will show up here. Pull down to check again.',
+                ),
               )
             : ListView.builder(
                 padding: AppSizes.DEFAULT,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 itemCount: _notifications.length,
                 itemBuilder: (context, index) => FadeInUp(
                   delay: staggerDelay(index),

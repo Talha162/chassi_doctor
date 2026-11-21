@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// Whether decorative motion should run. Honours the OS "reduce motion"
 /// setting; when off, animated widgets render their final (design) state.
@@ -151,6 +152,7 @@ class PressScale extends StatefulWidget {
 
 class _PressScaleState extends State<PressScale> {
   bool _down = false;
+  Offset? _downAt;
 
   void _set(bool down) {
     if (_down != down && mounted) setState(() => _down = down);
@@ -159,9 +161,27 @@ class _PressScaleState extends State<PressScale> {
   @override
   Widget build(BuildContext context) {
     return Listener(
-      onPointerDown: widget.enabled ? (_) => _set(true) : null,
-      onPointerUp: (_) => _set(false),
-      onPointerCancel: (_) => _set(false),
+      onPointerDown: widget.enabled
+          ? (e) {
+              _downAt = e.position;
+              _set(true);
+            }
+          : null,
+      onPointerUp: (e) {
+        // A light tick for a real tap, not for the start of a scroll.
+        final start = _downAt;
+        if (widget.enabled &&
+            start != null &&
+            (e.position - start).distance < 12) {
+          HapticFeedback.selectionClick();
+        }
+        _downAt = null;
+        _set(false);
+      },
+      onPointerCancel: (_) {
+        _downAt = null;
+        _set(false);
+      },
       child: AnimatedScale(
         scale: _down ? 0.97 : 1,
         duration: const Duration(milliseconds: 120),

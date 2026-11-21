@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -22,7 +23,10 @@ class CustomCheckBox extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isRadio!) {
       return GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         child: AnimatedContainer(
           duration: Duration(milliseconds: 230),
           curve: Curves.easeInOut,
@@ -56,7 +60,10 @@ class CustomCheckBox extends StatelessWidget {
       );
     } else {
       return GestureDetector(
-        onTap: onTap,
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
         child: AnimatedContainer(
           duration: Duration(milliseconds: 230),
           curve: Curves.easeInOut,

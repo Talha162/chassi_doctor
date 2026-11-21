@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -128,6 +129,7 @@ class _SaveSessionFormState extends State<_SaveSessionForm> {
           notes: _notes.text.trim(),
         ),
       );
+      HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(saved);
     } catch (e) {
       if (mounted) {
@@ -330,7 +332,12 @@ class _SuggestionChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: onTap == null
+          ? null
+          : () {
+              HapticFeedback.selectionClick();
+              onTap!();
+            },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(

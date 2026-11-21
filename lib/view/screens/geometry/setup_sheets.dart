@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/config/theme/theme_controller.dart';
 import 'package:motorsport/constants/app_colors.dart';
@@ -185,6 +186,7 @@ class _SaveSetupFormState extends State<_SaveSetupForm> {
               eventDate: _date,
               notes: _notes.text,
             );
+      HapticFeedback.mediumImpact();
       if (mounted) Navigator.of(context).pop(saved);
     } catch (e) {
       if (mounted) {

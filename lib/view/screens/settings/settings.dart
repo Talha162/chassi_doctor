@@ -18,7 +18,7 @@ import 'package:motorsport/view/screens/auth/login.dart';
 import 'package:motorsport/view/screens/settings/edit_profile.dart';
 import 'package:motorsport/view/screens/settings/privacy_policy.dart';
 import 'package:motorsport/view/widget/common_image_view_widget.dart';
-import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -74,6 +74,7 @@ class _SettingsState extends State<Settings> {
   }
 
   Future<void> _setNotificationsEnabled(bool value) async {
+    AppHaptics.tap();
     final userId = Supabase.instance.client.auth.currentUser?.id;
     setState(() => _isUpdatingNotificationPreference = true);
 
@@ -158,13 +159,10 @@ class _SettingsState extends State<Settings> {
     final themeController = Get.find<ThemeController>();
 
     return Obx(
-      () => Scaffold(
-        appBar: simpleAppBar(
-          title: 'Settings',
-          haveLeading: widget.showBackButton,
-        ),
+      () => AppPageScaffold(
+        title: 'Settings',
+        showBack: widget.showBackButton,
         body: ListView(
-          shrinkWrap: true,
           padding: AppSizes.DEFAULT,
           physics: const BouncingScrollPhysics(),
           children: [
@@ -237,7 +235,10 @@ class _SettingsState extends State<Settings> {
                       title: themeController.isDarkMode
                           ? 'Switch to Blue Theme'
                           : 'Switch to Dark Theme',
-                      onTap: themeController.toggleTheme,
+                      onTap: () {
+                        AppHaptics.tap();
+                        themeController.toggleTheme();
+                      },
                       trailing: Transform.scale(
                         scale: 0.65,
                         alignment: Alignment.centerRight,
@@ -250,6 +251,7 @@ class _SettingsState extends State<Settings> {
                             thumbColor: kPrimaryColor,
                             activeTrackColor: kSecondaryColor,
                             onChanged: (bool value) {
+                              AppHaptics.tap();
                               themeController.toggleTheme();
                             },
                           ),
@@ -466,31 +468,30 @@ class _SettingsState extends State<Settings> {
                 ),
               ),
               if (isLoading)
-                Container(
-                  height: 120,
-                  width: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.35),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Center(
-                    child: SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ),
+                const Shimmer(
+                  child: SkeletonBox(width: 120, height: 120, radius: 60),
                 ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        MyText(
-          text: name,
-          size: 18,
-          weight: FontWeight.bold,
-          textAlign: TextAlign.center,
-        ),
+        if (isLoading && _user == null)
+          const Shimmer(
+            child: Column(
+              children: [
+                SkeletonBox(width: 150, height: 18),
+                SizedBox(height: 10),
+                SkeletonBox(width: 190, height: 13),
+              ],
+            ),
+          )
+        else
+          MyText(
+            text: name,
+            size: 18,
+            weight: FontWeight.bold,
+            textAlign: TextAlign.center,
+          ),
         const SizedBox(height: 8),
         if (email.isNotEmpty)
           MyText(

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:motorsport/utils/motion.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/view/screens/geometry/geometry.dart';
@@ -368,6 +369,7 @@ class _HomeState extends State<Home> {
                 builder: (context) {
                   return GestureDetector(
                     onTap: () {
+                      HapticFeedback.selectionClick();
                       final route = cardData[index]['route'];
                       if (route == 'setup_help') {
                         Get.to(() => const IdentifyIssues());

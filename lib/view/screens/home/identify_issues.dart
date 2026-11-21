@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:motorsport/view/widget/report_dialog.dart';
 import 'package:motorsport/utils/motion.dart';
@@ -178,6 +179,7 @@ class _IdentifyIssuesState extends State<IdentifyIssues> {
 
                     return GestureDetector(
                       onTap: () {
+                        HapticFeedback.selectionClick();
                         Get.to(() => SetupRecommendation(symptom: issue));
                       },
                       child: Container(

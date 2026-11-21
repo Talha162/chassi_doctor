@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:motorsport/utils/app_error.dart';
 import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:motorsport/utils/motion.dart';
@@ -467,6 +468,7 @@ class _TrackConfigurationState extends State<TrackConfiguration> {
                         imagePath: items[index]['image']!,
                         selected: selectedIndexes[sectionKey] == index,
                         onTap: () {
+                          HapticFeedback.selectionClick();
                           setState(() {
                             selectedIndexes[sectionKey] = index;
                           });

@@ -8,6 +8,7 @@ import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/course_rating_summary.dart';
 import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/courses/course_detail_screen.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -19,10 +20,10 @@ class AllCourses extends StatefulWidget {
   const AllCourses({super.key});
 
   @override
-  State<AllCourses> createState() => _AllCoursesState();
+  State<AllCourses> createState() => AllCoursesState();
 }
 
-class _AllCoursesState extends State<AllCourses> {
+class AllCoursesState extends State<AllCourses> {
   final _service = SupabaseService.instance;
 
   final List<String> _filters = [
@@ -46,11 +47,15 @@ class _AllCoursesState extends State<AllCourses> {
     _loadData();
   }
 
+  /// Reloads the list without showing the loading skeleton again.
+  Future<void> reload() => _loadData();
+
   Future<void> _loadData() async {
     try {
       if (!mounted) return;
       setState(() {
-        _isLoading = true;
+        // Skeletons only on the first load; refreshes keep the list visible.
+        _isLoading = _courses.isEmpty;
         _error = null;
       });
 
@@ -111,7 +116,10 @@ class _AllCoursesState extends State<AllCourses> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const SizedBox(
+        height: 420,
+        child: SkeletonCardList(count: 4, thumbSize: 84),
+      );
     }
 
     if (_error != null) {
@@ -125,7 +133,7 @@ class _AllCoursesState extends State<AllCourses> {
     return ListView(
       shrinkWrap: true,
       padding: AppSizes.VERTICAL,
-      physics: const BouncingScrollPhysics(),
+      physics: const NeverScrollableScrollPhysics(),
       children: [
         MyText(
           paddingLeft: 20,
@@ -150,6 +158,7 @@ class _AllCoursesState extends State<AllCourses> {
                   final isSelected = _selectedFilterIndex == index;
                   return GestureDetector(
                     onTap: () {
+                      AppHaptics.tap();
                       setState(() {
                         _selectedFilterIndex = index;
                       });
@@ -178,15 +187,25 @@ class _AllCoursesState extends State<AllCourses> {
         ),
         const SizedBox(height: 16),
         if (visibleCourses.isEmpty)
-          Padding(
-            padding: AppSizes.HORIZONTAL,
-            child: MyText(text: 'No courses found.', size: 14),
+          EmptyState(
+            compact: true,
+            icon: Icons.school_outlined,
+            title: _courses.isEmpty
+                ? 'No courses yet'
+                : 'Nothing in ${_filters[_selectedFilterIndex]}',
+            message: _courses.isEmpty
+                ? 'New courses are on the way. Pull down to check again.'
+                : 'Try another topic, or see every course.',
+            actionText: _courses.isEmpty ? null : 'Show all courses',
+            onAction: _courses.isEmpty
+                ? null
+                : () => setState(() => _selectedFilterIndex = 0),
           )
         else
           ListView.builder(
             shrinkWrap: true,
             padding: AppSizes.HORIZONTAL,
-            physics: const BouncingScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: visibleCourses.length,
             itemBuilder: (context, index) => FadeInUp(
               delay: staggerDelay(index),

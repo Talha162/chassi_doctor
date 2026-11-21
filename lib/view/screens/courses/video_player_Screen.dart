@@ -53,17 +53,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   /// Full-screen button: turn to landscape (or back), then let the phone rotate freely again.
   Future<void> _toggleFullScreen(bool landscape) async {
-    await SystemChrome.setPreferredOrientations(landscape ? _portrait : _landscape);
+    await SystemChrome.setPreferredOrientations(
+      landscape ? _portrait : _landscape,
+    );
     await Future<void>.delayed(const Duration(milliseconds: 600));
     if (mounted) {
       SystemChrome.setPreferredOrientations([..._portrait, ..._landscape]);
     }
   }
 
-  void _pokeOverlaySoon() =>
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _pokeOverlay();
-      });
+  void _pokeOverlaySoon() => WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) _pokeOverlay();
+  });
 
   void _pokeOverlay() {
     _overlayTimer?.cancel();
@@ -167,7 +168,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     final video = widget.video;
     final landscape =
         MediaQuery.orientationOf(context) == Orientation.landscape;
-    final ready = !_isInitializing &&
+    final ready =
+        !_isInitializing &&
         _controller != null &&
         _controller!.value.isInitialized;
 
@@ -261,7 +263,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
           children: [
             Center(
               child: AspectRatio(
-                aspectRatio: value.aspectRatio == 0 ? 16 / 9 : value.aspectRatio,
+                aspectRatio: value.aspectRatio == 0
+                    ? 16 / 9
+                    : value.aspectRatio,
                 child: VideoPlayer(_controller!),
               ),
             ),
@@ -275,7 +279,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Color(0x99000000), Color(0x00000000), Color(0xB3000000)],
+                      colors: [
+                        Color(0x99000000),
+                        Color(0x00000000),
+                        Color(0xB3000000),
+                      ],
                     ),
                   ),
                   child: SafeArea(
@@ -446,7 +454,11 @@ class _SupportingContentCard extends StatelessWidget {
 }
 
 class _RoundIcon extends StatelessWidget {
-  const _RoundIcon({required this.icon, required this.tooltip, required this.onTap});
+  const _RoundIcon({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String tooltip;

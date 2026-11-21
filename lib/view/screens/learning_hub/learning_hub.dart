@@ -9,7 +9,7 @@ import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/module_progress_summary.dart';
 import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
-import 'package:motorsport/view/widget/custom_app_bar_widget.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
@@ -62,10 +62,16 @@ class _LearningHubState extends State<LearningHub> {
     _loadData();
   }
 
+  Future<void> _refresh() async {
+    await SubscriptionService.instance.refresh();
+    await _loadData();
+  }
+
   Future<void> _loadData() async {
     try {
       setState(() {
-        _isLoading = true;
+        // Skeletons only on the first load; refreshes keep the page visible.
+        _isLoading = _enrolledCourses.isEmpty && _error == null;
         _error = null;
       });
 
@@ -138,198 +144,202 @@ class _LearningHubState extends State<LearningHub> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: simpleAppBar(
-        title: 'Motorsport University',
-        haveLeading: widget.showBackButton,
-      ),
+    return AppPageScaffold(
+      title: 'Motorsport University',
+      showBack: widget.showBackButton,
       bottomNavigationBar: widget.showBottomNav
           ? const ChildScreenBottomNav(selectedIndex: 1)
           : null,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const SkeletonCardList(count: 3, thumbSize: 72, header: true)
           : _error != null
-          ? Center(
-              child: MyText(text: _error!, size: 14, color: Colors.red),
+          ? AppRefresh(
+              onRefresh: _refresh,
+              child: ScrollableEmptyState(
+                child: EmptyState(
+                  icon: Icons.wifi_off_rounded,
+                  title: 'Couldn\'t load your courses',
+                  message: _error,
+                  actionText: 'Try again',
+                  onAction: _loadData,
+                ),
+              ),
             )
-          : ListView(
-              shrinkWrap: true,
-              padding: AppSizes.DEFAULT,
-              physics: const BouncingScrollPhysics(),
-              children: [
-                const SizedBox(height: 14),
-                MyText(
-                  text:
-                      'Your dedicated learning space for courses, supporting content, and self-paced motorsport education.',
-                  size: 12,
-                  paddingBottom: 25,
+          : AppRefresh(
+              onRefresh: _refresh,
+              child: ListView(
+                padding: AppSizes.DEFAULT,
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
                 ),
-
-                // Hero card
-                Container(
-                  decoration: BoxDecoration(
-                    image: const DecorationImage(
-                      image: AssetImage(Assets.imagesRaceCraftBg),
-                      fit: BoxFit.cover,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    color: kQuaternaryColor,
-                  ),
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MyText(
-                        text: 'Learn Inside Motorsport University',
-                        size: 18,
-                        weight: FontWeight.bold,
-                        paddingBottom: 6,
-                      ),
-                      MyText(
-                        text: SubscriptionService.instance.hasActiveSubscription
-                            ? 'Your All Access subscription is active, so every current course and module is ready to use here.'
-                            : 'Start a 3-day free trial to unlock every current course, video lesson, and supporting learning material.',
-                        size: 12,
-                        lineHeight: 1.5,
-                        color: kTertiaryColor,
-                        paddingBottom: 16,
-                      ),
-                      SizedBox(
-                        width: 170,
-                        child: MyButton(
-                          buttonText:
-                              SubscriptionService.instance.hasActiveSubscription
-                              ? 'Explore Courses'
-                              : 'Start Free Trial',
-                          height: 30,
-                          textSize: 12,
-                          textColor: kTertiaryColor,
-                          bgColor: const Color(0xff636AE8),
-                          radius: 8,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    SubscriptionService
-                                        .instance
-                                        .hasActiveSubscription
-                                    ? const Courses(showBackButton: true)
-                                    : const PaywallScreen(
-                                        sourceLabel: 'Learning Hub Hero',
-                                      ),
-                              ),
-                            ).then((_) => _loadData());
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // My Learning Module (enrolled courses)
-                MyText(
-                  paddingTop: 16,
-                  text: 'My Courses',
-                  size: 18,
-                  paddingBottom: 12,
-                  weight: FontWeight.bold,
-                ),
-                if (_enrolledCourses.isEmpty)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MyText(
-                        text:
-                            'Start your All Access subscription to unlock every current course here.',
-                        size: 14,
-                        lineHeight: 1.5,
-                        paddingBottom: 12,
-                      ),
-                      SizedBox(
-                        width: 180,
-                        child: MyButton(
-                          buttonText: 'See Subscription Plans',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const PaywallScreen(
-                                  sourceLabel: 'Learning Hub',
-                                ),
-                              ),
-                            ).then((_) => _loadData());
-                          },
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  ListView.builder(
-                    shrinkWrap: true,
-                    padding: AppSizes.ZERO,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: _enrolledCourses.length,
-                    itemBuilder: (context, index) => FadeInUp(
-                      delay: staggerDelay(index),
-                      child: Builder(
-                        builder: (context) {
-                          final course = _enrolledCourses[index];
-                          final progress = _courseProgress[course.id];
-
-                          final percent =
-                              ((progress?.progressPercentage ?? 0) / 100).clamp(
-                                0.0,
-                                1.0,
-                              );
-                          final completedText =
-                              '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
-
-                          return Padding(
-                            padding: EdgeInsets.only(
-                              bottom: index < _enrolledCourses.length - 1
-                                  ? 12
-                                  : 0,
-                            ),
-                            child: _LearningHubTile(
-                              title: course.title,
-                              duration: _formatDuration(course.durationMinutes),
-                              imageUrl: course.thumbnailUrl,
-                              percent: percent.toDouble(),
-                              completedText: completedText,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => CourseDetailScreen(
-                                      course: course,
-                                      initiallyEnrolled: true,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-
-                // Modules of selected course
-                const SizedBox(height: 16),
-                if (_selectedCourseId != null &&
-                    _courseModulesByCourseId[_selectedCourseId] != null &&
-                    _courseModulesByCourseId[_selectedCourseId]!.isNotEmpty)
-                  _buildModulesSection()
-                else
+                children: [
+                  const SizedBox(height: 14),
                   MyText(
-                    paddingTop: 8,
                     text:
-                        'No modules available yet. Start a course to see its modules here.',
-                    size: 14,
+                        'Your dedicated learning space for courses, supporting content, and self-paced motorsport education.',
+                    size: 12,
+                    paddingBottom: 25,
                   ),
-                const SizedBox(height: 16),
-              ],
+
+                  // Hero card
+                  Container(
+                    decoration: BoxDecoration(
+                      image: const DecorationImage(
+                        image: AssetImage(Assets.imagesRaceCraftBg),
+                        fit: BoxFit.cover,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      color: kQuaternaryColor,
+                    ),
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        MyText(
+                          text: 'Learn Inside Motorsport University',
+                          size: 18,
+                          weight: FontWeight.bold,
+                          paddingBottom: 6,
+                        ),
+                        MyText(
+                          text:
+                              SubscriptionService.instance.hasActiveSubscription
+                              ? 'Your All Access subscription is active, so every current course and module is ready to use here.'
+                              : 'Start a 3-day free trial to unlock every current course, video lesson, and supporting learning material.',
+                          size: 12,
+                          lineHeight: 1.5,
+                          color: kTertiaryColor,
+                          paddingBottom: 16,
+                        ),
+                        SizedBox(
+                          width: 170,
+                          child: MyButton(
+                            buttonText:
+                                SubscriptionService
+                                    .instance
+                                    .hasActiveSubscription
+                                ? 'Explore Courses'
+                                : 'Start Free Trial',
+                            height: 30,
+                            textSize: 12,
+                            textColor: kTertiaryColor,
+                            bgColor: const Color(0xff636AE8),
+                            radius: 8,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SubscriptionService
+                                          .instance
+                                          .hasActiveSubscription
+                                      ? const Courses(showBackButton: true)
+                                      : const PaywallScreen(
+                                          sourceLabel: 'Learning Hub Hero',
+                                        ),
+                                ),
+                              ).then((_) => _loadData());
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // My Learning Module (enrolled courses)
+                  MyText(
+                    paddingTop: 16,
+                    text: 'My Courses',
+                    size: 18,
+                    paddingBottom: 12,
+                    weight: FontWeight.bold,
+                  ),
+                  if (_enrolledCourses.isEmpty)
+                    EmptyState(
+                      compact: true,
+                      icon: Icons.lock_open_rounded,
+                      title: 'Unlock every course',
+                      message:
+                          'Start your All Access subscription to see your courses and progress here.',
+                      actionText: 'See Subscription Plans',
+                      onAction: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PaywallScreen(
+                              sourceLabel: 'Learning Hub',
+                            ),
+                          ),
+                        ).then((_) => _loadData());
+                      },
+                    )
+                  else
+                    ListView.builder(
+                      shrinkWrap: true,
+                      padding: AppSizes.ZERO,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: _enrolledCourses.length,
+                      itemBuilder: (context, index) => FadeInUp(
+                        delay: staggerDelay(index),
+                        child: Builder(
+                          builder: (context) {
+                            final course = _enrolledCourses[index];
+                            final progress = _courseProgress[course.id];
+
+                            final percent =
+                                ((progress?.progressPercentage ?? 0) / 100)
+                                    .clamp(0.0, 1.0);
+                            final completedText =
+                                '${(progress?.progressPercentage ?? 0).toStringAsFixed(0)}% completed';
+
+                            return Padding(
+                              padding: EdgeInsets.only(
+                                bottom: index < _enrolledCourses.length - 1
+                                    ? 12
+                                    : 0,
+                              ),
+                              child: _LearningHubTile(
+                                title: course.title,
+                                duration: _formatDuration(
+                                  course.durationMinutes,
+                                ),
+                                imageUrl: course.thumbnailUrl,
+                                percent: percent.toDouble(),
+                                completedText: completedText,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => CourseDetailScreen(
+                                        course: course,
+                                        initiallyEnrolled: true,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+
+                  // Modules of selected course
+                  const SizedBox(height: 16),
+                  if (_selectedCourseId != null &&
+                      _courseModulesByCourseId[_selectedCourseId] != null &&
+                      _courseModulesByCourseId[_selectedCourseId]!.isNotEmpty)
+                    _buildModulesSection()
+                  else if (_enrolledCourses.isNotEmpty)
+                    const EmptyState(
+                      compact: true,
+                      icon: Icons.video_library_outlined,
+                      title: 'No modules yet',
+                      message: 'Modules for this course will appear here.',
+                    ),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
     );
   }
@@ -359,31 +369,32 @@ class _LearningHubState extends State<LearningHub> {
                 weight: FontWeight.bold,
               ),
             ),
-            DropdownButton<String>(
-              value: _selectedCourseId,
-              dropdownColor: kPrimaryColor,
-              underline: const SizedBox(),
-              items: _enrolledCourses
-                  .map(
-                    (c) => DropdownMenuItem<String>(
-                      value: c.id,
-                      child: MyText(text: c.title, size: 12),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedCourseId = value;
-                });
-              },
-            ),
+            if (_enrolledCourses.length > 1)
+              _CoursePickerButton(
+                onTap: () async {
+                  final picked = await showOptionSheet<Course>(
+                    context,
+                    title: 'Choose a course',
+                    options: _enrolledCourses,
+                    selected: selectedCourse,
+                    labelOf: (c) => c.title,
+                    subtitleOf: (c) {
+                      final p = _courseProgress[c.id]?.progressPercentage ?? 0;
+                      return '${p.toStringAsFixed(0)}% completed';
+                    },
+                  );
+                  if (picked != null && mounted) {
+                    setState(() => _selectedCourseId = picked.id);
+                  }
+                },
+              ),
           ],
         ),
 
         ListView.builder(
           shrinkWrap: true,
           padding: AppSizes.ZERO,
-          physics: const BouncingScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           itemCount: modules.length,
           itemBuilder: (context, index) => FadeInUp(
             delay: staggerDelay(index),
@@ -583,6 +594,49 @@ class _LectureTile extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "Change course" pill that opens the course picker sheet.
+class _CoursePickerButton extends StatelessWidget {
+  const _CoursePickerButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return PressScale(
+      child: Material(
+        color: kQuaternaryColor,
+        shape: StadiumBorder(
+          side: BorderSide(color: kSecondaryColor.withValues(alpha: 0.5)),
+        ),
+        child: InkWell(
+          customBorder: const StadiumBorder(),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                MyText(
+                  text: 'Change',
+                  size: 12,
+                  weight: FontWeight.w600,
+                  color: kSecondaryColor,
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.unfold_more_rounded,
+                  size: 16,
+                  color: kSecondaryColor,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

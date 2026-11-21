@@ -55,6 +55,7 @@ const _geometryStep = String.fromEnvironment('TOUR_GEOMETRY');
 const _demo = bool.fromEnvironment('TOUR_DEMO');
 const _sessionTheme = String.fromEnvironment('TOUR_SESSION');
 const _record = bool.fromEnvironment('TOUR_RECORD');
+const _modern = bool.fromEnvironment('TOUR_MODERN');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -70,6 +71,12 @@ void main() {
 
     if (_demo) {
       await _demoWalkthrough(tester);
+      print('TOUR_DONE');
+      return;
+    }
+
+    if (_modern) {
+      await _modernFlow(tester);
       print('TOUR_DONE');
       return;
     }
@@ -806,4 +813,62 @@ Future<void> _recordFlow(WidgetTester t) async {
   Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.beamAxle));
   await _wait(t, 6500);
   await _shot(t, theme, 'rec_8_beam_axle');
+}
+
+
+/// Large titles, skeletons, pull-to-refresh, empty states and the course
+/// picker sheet (TOUR_MODERN=true).
+Future<void> _modernFlow(WidgetTester t) async {
+  final auth = Supabase.instance.client.auth;
+  await auth.signInWithPassword(email: _email, password: _password);
+  await _wait(t, 2000);
+  const theme = 'modern';
+
+  Future<void> tab(int i, String name) async {
+    Get.offAll(() => BottomNavBar(initialIndex: i));
+    await _wait(t, 250);
+    await _shot(t, theme, '${name}_loading');
+    await _wait(t, 3500);
+    await _shot(t, theme, name);
+    // Scroll a little: the big title shrinks into the bar.
+    final list = find.byType(Scrollable).first;
+    await t.drag(list, const Offset(0, -260));
+    await _wait(t, 900);
+    await _shot(t, theme, '${name}_scrolled');
+    await t.drag(list, const Offset(0, 600));
+    await _wait(t, 900);
+    // Pull to refresh.
+    final gesture = await t.startGesture(t.getCenter(list));
+    for (var k = 0; k < 12; k++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await t.pump(const Duration(milliseconds: 30));
+    }
+    await _shot(t, theme, '${name}_pull');
+    await gesture.up();
+    await _wait(t, 2500);
+  }
+
+  await tab(1, 'learning');
+  await tab(2, 'history');
+  await tab(3, 'settings');
+
+  await _open(t, theme, 'notifications', () => Get.to(() => const NotificationsScreen()));
+  await _open(t, theme, 'courses', () => Get.to(() => const Courses(showBackButton: true)));
+  final courseList = find.byType(Scrollable).first;
+  await t.drag(courseList, const Offset(0, -300));
+  await _wait(t, 900);
+  await _shot(t, theme, 'courses_scrolled');
+
+  Get.offAll(() => BottomNavBar(initialIndex: 1));
+  await _wait(t, 3500);
+  final change = find.text('Change');
+  if (change.evaluate().isNotEmpty) {
+    await t.ensureVisible(change.first);
+    await _wait(t, 400);
+    await t.tap(change.first);
+    await _wait(t, 900);
+    await _shot(t, theme, 'course_picker');
+  } else {
+    print('NO_CHANGE_BUTTON');
+  }
 }

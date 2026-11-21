@@ -31,7 +31,8 @@ class SavedSetupHistoryController extends GetxController {
       return;
     }
     try {
-      isLoading.value = true;
+      // Skeletons only on the first load; pull-to-refresh keeps the list.
+      isLoading.value = entries.isEmpty;
       debugPrint('[HISTORY] 📋 Fetching history for user: ${user.id}');
       final sessions = await _supabaseService.getChassisSessionsForUser(
         user.id,

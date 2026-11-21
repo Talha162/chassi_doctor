@@ -8,11 +8,12 @@ import 'package:intl/intl.dart';
 import 'package:motorsport/controller/settings/saved_setup_history_controller.dart';
 import 'package:motorsport/constants/app_colors.dart';
 import 'package:motorsport/constants/app_images.dart';
-import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/models/history_entry.dart';
 import 'package:motorsport/view/screens/settings/chassis_session_detail.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
+import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
+import 'package:motorsport/view/screens/home/identify_issues.dart';
 import 'package:motorsport/services/supabase/supabase_client_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -195,25 +196,23 @@ class SavedSetupHistory extends StatelessWidget {
 
     return Scaffold(
       body: SafeArea(
-        child: Padding(
-          padding: AppSizes.DEFAULT,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: CircleAvatar(
-                        radius: 20,
-                        backgroundColor: kBorderColor2,
-                        child: ClipOval(
-                          child: Image.asset(
-                            Assets.mainlogo,
-                            fit: BoxFit.contain,
-                          ),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: CircleAvatar(
+                      radius: 20,
+                      backgroundColor: kBorderColor2,
+                      child: ClipOval(
+                        child: Image.asset(
+                          Assets.mainlogo,
+                          fit: BoxFit.contain,
                         ),
                       ),
                     ),
@@ -240,78 +239,91 @@ class SavedSetupHistory extends StatelessWidget {
                   ),
                 ],
               ),
-              Expanded(
-                child: Obx(() {
-                  if (controller.isLoading.value) {
-                    return Center(
-                      child: CircularProgressIndicator(color: kSecondaryColor),
-                    );
-                  }
-
-                  if (controller.entries.isEmpty) {
-                    return Center(
-                      child: MyText(
-                        text: 'No saved setups found.',
-                        color: kTertiaryColor,
-                      ),
-                    );
-                  }
-
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: controller.entries.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          mainAxisExtent: 196,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 16,
-                        ),
-                    itemBuilder: (context, index) => FadeInUp(
-                      delay: staggerDelay(index),
-                      child: Builder(
-                        builder: (context) {
-                          final session = controller.entries[index];
-                          final formattedDate = DateFormat(
-                            'd MMM yyyy',
-                          ).format(session.displayDate);
-                          final track = session.trackSnapshot;
-                          final trackName =
-                              track['circuit_name']?.toString().isNotEmpty ==
-                                  true
-                              ? track['circuit_name'].toString()
-                              : (track['track_type']?.toString() ?? 'Not set');
-
-                          return SetupHistoryTile(
-                            sessionName: session.sessionName,
-                            trackType: trackName,
-                            surfaceType:
-                                track['surface_type']?.toString() ?? 'Not set',
-                            weather:
-                                track['weather_condition']?.toString() ??
-                                'Not set',
-                            date: formattedDate,
-                            onView: () {
-                              Get.to(
-                                () => ChassisSessionDetail(session: session),
-                              );
-                            },
-                            onShare: () {
-                              _shareSessionAsPdf(context, session);
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  );
-                }),
-              ),
-            ],
-          ),
+            ),
+            Expanded(child: _body(context, controller)),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _body(BuildContext context, SavedSetupHistoryController controller) {
+    return Obx(() {
+      if (controller.isLoading.value) {
+        return const SkeletonGrid(padding: EdgeInsets.fromLTRB(20, 0, 20, 20));
+      }
+
+      if (controller.entries.isEmpty) {
+        return AppRefresh(
+          onRefresh: controller.fetchSavedSetups,
+          child: ScrollableEmptyState(
+            child: EmptyState(
+              icon: Icons.history_rounded,
+              title: 'No saved sessions yet',
+              message:
+                  'Get setup help, then tap "Save to session" to keep your recommendations here.',
+              actionText: 'Get setup help',
+              onAction: () => Get.to(() => const IdentifyIssues()),
+            ),
+          ),
+        );
+      }
+
+      return AppRefresh(
+        onRefresh: controller.fetchSavedSetups,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
+              sliver: SliverGrid.builder(
+                itemCount: controller.entries.length,
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisExtent: 196,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 16,
+                ),
+                itemBuilder: (context, index) => FadeInUp(
+                  delay: staggerDelay(index),
+                  child: Builder(
+                    builder: (context) {
+                      final session = controller.entries[index];
+                      final formattedDate = DateFormat(
+                        'd MMM yyyy',
+                      ).format(session.displayDate);
+                      final track = session.trackSnapshot;
+                      final trackName =
+                          track['circuit_name']?.toString().isNotEmpty == true
+                          ? track['circuit_name'].toString()
+                          : (track['track_type']?.toString() ?? 'Not set');
+
+                      return SetupHistoryTile(
+                        sessionName: session.sessionName,
+                        trackType: trackName,
+                        surfaceType:
+                            track['surface_type']?.toString() ?? 'Not set',
+                        weather:
+                            track['weather_condition']?.toString() ?? 'Not set',
+                        date: formattedDate,
+                        onView: () {
+                          Get.to(() => ChassisSessionDetail(session: session));
+                        },
+                        onShare: () {
+                          _shareSessionAsPdf(context, session);
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 
