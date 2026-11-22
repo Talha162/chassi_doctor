@@ -2,6 +2,7 @@ import 'package:motorsport/utils/motion.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:motorsport/view/widget/auth_hero.dart';
 import 'package:motorsport/utils/validators.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/config/routes/routes.dart';
@@ -52,19 +53,16 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: simpleAppBar(title: 'Sign In', haveLeading: false),
+      extendBodyBehindAppBar: true,
+      appBar: simpleAppBar(
+        bgColor: Colors.transparent,title: 'Sign In', haveLeading: false),
       body: Stack(
         children: [
+          const AuthHero(),
           Container(
             height: Get.height,
             width: Get.width,
             decoration: BoxDecoration(
-              color: kPrimaryColor,
-              image: DecorationImage(
-                image: AssetImage(Assets.imagesCar),
-                alignment: const Alignment(0, -1),
-                fit: BoxFit.contain,
-              ),
             ),
           ),
           FadeInUp(

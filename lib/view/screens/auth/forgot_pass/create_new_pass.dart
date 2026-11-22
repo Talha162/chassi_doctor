@@ -1,8 +1,8 @@
 import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
+import 'package:motorsport/view/widget/auth_hero.dart';
 import 'package:get/get.dart';
 import 'package:motorsport/constants/app_colors.dart';
-import 'package:motorsport/constants/app_images.dart';
 import 'package:motorsport/constants/app_sizes.dart';
 import 'package:motorsport/services/auth/auth_service.dart';
 import 'package:motorsport/view/screens/auth/login.dart';
@@ -75,7 +75,9 @@ class _CreateNewPassState extends State<CreateNewPass> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: simpleAppBar(
+        bgColor: Colors.transparent,
         title: 'New Password',
         onLeadingTap: () {
           Get.offAll(() => const Login());
@@ -83,16 +85,11 @@ class _CreateNewPassState extends State<CreateNewPass> {
       ),
       body: Stack(
         children: [
+          const AuthHero(),
           Container(
             height: Get.height,
             width: Get.width,
             decoration: BoxDecoration(
-              color: kPrimaryColor,
-              image: DecorationImage(
-                image: AssetImage(Assets.imagesCar),
-                alignment: const Alignment(0, -0.75),
-                fit: BoxFit.contain,
-              ),
             ),
           ),
           Align(

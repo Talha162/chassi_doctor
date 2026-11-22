@@ -87,7 +87,7 @@ class Assets {
 
   /// Assets for imagesCar
   /// assets/images/car.png
-  static const String imagesCar = "assets/images/car.png";
+  static const String imagesCar = "assets/images/login_garage.jpg";
 
   /// Assets for imagesCardBg
   /// assets/images/card_bg.png
