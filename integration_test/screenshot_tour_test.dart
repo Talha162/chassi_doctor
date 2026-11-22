@@ -56,6 +56,7 @@ const _demo = bool.fromEnvironment('TOUR_DEMO');
 const _sessionTheme = String.fromEnvironment('TOUR_SESSION');
 const _record = bool.fromEnvironment('TOUR_RECORD');
 const _modern = bool.fromEnvironment('TOUR_MODERN');
+const _marketing = bool.fromEnvironment('TOUR_MARKETING');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -71,6 +72,12 @@ void main() {
 
     if (_demo) {
       await _demoWalkthrough(tester);
+      print('TOUR_DONE');
+      return;
+    }
+
+    if (_marketing) {
+      await _marketingFlow(tester);
       print('TOUR_DONE');
       return;
     }
@@ -871,4 +878,120 @@ Future<void> _modernFlow(WidgetTester t) async {
   } else {
     print('NO_CHANGE_BUTTON');
   }
+}
+
+
+/// The screens used for the App Store images (TOUR_MARKETING=true).
+Future<void> _marketingFlow(WidgetTester t) async {
+  const theme = 'mk';
+  ThemeController.instance.setTheme(ThemeMode.light);
+  final auth = Supabase.instance.client.auth;
+  await auth.signInWithPassword(email: _email, password: _password);
+  await _wait(t, 2500);
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('track_circuit_name', 'Brands Hatch');
+  await prefs.setString('engine_position', 'Front');
+  await prefs.setString('aerofoils', 'No');
+  await prefs.setString('drive_type', 'RWD');
+
+  Get.offAll(() => const BottomNavBar());
+  await _wait(t, 6000);
+  await _shot(t, theme, 'home');
+
+  // Setup Help → recommendations.
+  final service = SupabaseService.instance;
+  Get.to(() => const IdentifyIssues());
+  await _wait(t, 5000);
+  await _shot(t, theme, 'symptoms');
+  final symptoms = await service.getChassisSymptoms();
+  final oversteer = symptoms.firstWhere(
+    (s) => s.title.toLowerCase() == 'oversteer',
+    orElse: () => symptoms.first,
+  );
+  Get.to(() => SetupRecommendation(symptom: oversteer));
+  await _wait(t, 3500);
+  final entry = find.text('Corner Entry');
+  if (entry.evaluate().isNotEmpty) {
+    await t.tap(entry.first);
+    await _wait(t, 600);
+    await _shot(t, theme, 'corner_phase');
+    final go = find.text('Recommend Adjustments');
+    await t.ensureVisible(go.first);
+    await _wait(t, 500);
+    await t.tap(go.first);
+    await _wait(t, 5000);
+    final heading = find.text('Recommended Adjustment');
+    if (heading.evaluate().isNotEmpty) {
+      await Scrollable.ensureVisible(
+        heading.evaluate().first,
+        alignment: 0.0,
+        duration: const Duration(milliseconds: 300),
+      );
+      await _wait(t, 1200);
+    }
+    await _shot(t, theme, 'recommendations');
+  }
+
+  // Geometry tools.
+  Future<String> js(String code) async {
+    try {
+      return (await geometryDebugController!.runJavaScriptReturningResult(code)).toString();
+    } on ArgumentError {
+      return 'null';
+    }
+  }
+  Future<void> press(String label) => js(
+    "(() => { const b = [...document.querySelectorAll('button')].find(b => b.textContent.trim().startsWith(${jsonEncode(label)})); if (b) { b.scrollIntoView({block: 'center'}); b.click(); return 'ok' } return 'missing' })()",
+  );
+  Get.offAll(() => const BottomNavBar());
+  await _wait(t, 2500);
+  Get.to(() => const Geometry());
+  await _wait(t, 4000);
+  await _shot(t, theme, 'geometry');
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.rollCentre));
+  await _wait(t, 7000);
+  await js("(() => { const h = [...document.querySelectorAll('h2,h3,p,strong')].find(e => e.textContent.trim().startsWith('Both wheels')); if (h) { h.scrollIntoView({block: 'start'}); window.scrollBy(0, -12) } })()");
+  await _wait(t, 1200);
+  await _shot(t, theme, 'roll_centre');
+  Get.back();
+  await _wait(t, 1500);
+
+  Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.setupRecord));
+  await _wait(t, 7000);
+  await press('Load example');
+  await _wait(t, 1500);
+  if (find.text('Continue').evaluate().isNotEmpty) {
+    await t.tap(find.text('Continue'));
+    await _wait(t, 1500);
+  }
+  await js('window.scrollTo(0, 0)');
+  await _wait(t, 1200);
+  await _shot(t, theme, 'setup_record');
+  await press('Full setup');
+  await _wait(t, 800);
+  await js("document.querySelector('dl').scrollIntoView(); window.scrollBy(0, 2600)");
+  await _wait(t, 1200);
+  await _shot(t, theme, 'setup_record_glance');
+  await js("window.scrollTo(0, document.body.scrollHeight - 2600)");
+  await _wait(t, 1200);
+  await _shot(t, theme, 'setup_record_history');
+  Get.back();
+  await _wait(t, 1500);
+
+  // Courses and history.
+  Get.to(() => const Courses(showBackButton: true));
+  await _wait(t, 7000);
+  await _shot(t, theme, 'courses');
+  final courses = await service.getPublishedCourses();
+  if (courses.isNotEmpty) {
+    Get.to(() => CourseDetailScreen(course: courses.first, initiallyEnrolled: true));
+    await _wait(t, 6000);
+    await _shot(t, theme, 'course_detail');
+  }
+  Get.offAll(() => const BottomNavBar(initialIndex: 2));
+  await _wait(t, 5000);
+  await _shot(t, theme, 'history');
+  Get.offAll(() => const BottomNavBar(initialIndex: 3));
+  await _wait(t, 5000);
+  await _shot(t, theme, 'profile');
 }
