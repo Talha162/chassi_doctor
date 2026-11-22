@@ -949,7 +949,7 @@ Future<void> _marketingFlow(WidgetTester t) async {
   await _wait(t, 4000);
   await _shot(t, theme, 'geometry');
   Get.to(() => const GeometryCalculatorScreen(tool: GeometryTool.rollCentre));
-  await _wait(t, 7000);
+  await _wait(t, 14000);
   await js("(() => { const h = [...document.querySelectorAll('h2,h3,p,strong')].find(e => e.textContent.trim().startsWith('Both wheels')); if (h) { h.scrollIntoView({block: 'start'}); window.scrollBy(0, -12) } })()");
   await _wait(t, 1200);
   await _shot(t, theme, 'roll_centre');
@@ -980,7 +980,7 @@ Future<void> _marketingFlow(WidgetTester t) async {
 
   // Courses and history.
   Get.to(() => const Courses(showBackButton: true));
-  await _wait(t, 7000);
+  await _wait(t, 15000);
   await _shot(t, theme, 'courses');
   final courses = await service.getPublishedCourses();
   if (courses.isNotEmpty) {
