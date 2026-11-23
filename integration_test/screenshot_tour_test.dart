@@ -57,6 +57,7 @@ const _sessionTheme = String.fromEnvironment('TOUR_SESSION');
 const _record = bool.fromEnvironment('TOUR_RECORD');
 const _modern = bool.fromEnvironment('TOUR_MODERN');
 const _marketing = bool.fromEnvironment('TOUR_MARKETING');
+const _gate = String.fromEnvironment('TOUR_GATE');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -72,6 +73,23 @@ void main() {
 
     if (_demo) {
       await _demoWalkthrough(tester);
+      print('TOUR_DONE');
+      return;
+    }
+
+    if (_gate.isNotEmpty) {
+      await Supabase.instance.client.auth
+          .signInWithPassword(email: _email, password: _password);
+      await _wait(tester, 2000);
+      Get.offAll(() => const BottomNavBar());
+      await _wait(tester, 9000);
+      await _shot(tester, 'gate', _gate);
+      final menu = find.byIcon(Icons.more_horiz_rounded);
+      if (menu.evaluate().isNotEmpty) {
+        await tester.tap(menu.first);
+        await _wait(tester, 800);
+        await _shot(tester, 'gate', '${_gate}_menu');
+      }
       print('TOUR_DONE');
       return;
     }

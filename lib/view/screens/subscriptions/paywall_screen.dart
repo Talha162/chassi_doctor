@@ -1,3 +1,8 @@
+import 'package:get/get.dart';
+import 'package:motorsport/services/auth/auth_service.dart';
+import 'package:motorsport/utils/app_error.dart';
+import 'package:motorsport/view/screens/auth/login.dart';
+import 'package:motorsport/view/widget/app_dialog.dart';
 import 'package:motorsport/utils/app_snackbar.dart';
 import 'package:flutter/material.dart';
 import 'package:motorsport/config/legal_config.dart';
@@ -12,9 +17,13 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class PaywallScreen extends StatefulWidget {
-  const PaywallScreen({super.key, this.sourceLabel});
+  const PaywallScreen({super.key, this.sourceLabel, this.gate = false});
 
   final String? sourceLabel;
+
+  /// Shown in place of the whole app (trial required): no back button, and
+  /// the app appears by itself once the trial starts.
+  final bool gate;
 
   @override
   State<PaywallScreen> createState() => _PaywallScreenState();
@@ -34,7 +43,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
         'All Access is now active on this account.',
         title: 'Welcome to All Access',
       );
-      Navigator.pop(context, true);
+      if (!widget.gate) Navigator.pop(context, true);
     }
   }
 
@@ -53,9 +62,42 @@ class _PaywallScreenState extends State<PaywallScreen> {
         title: 'Nothing to restore',
       );
     }
-    if (hasAccess) {
+    if (hasAccess && !widget.gate) {
       Navigator.pop(context, true);
     }
+  }
+
+  Future<void> _logOut() async {
+    try {
+      await AuthService().signOut();
+      Get.offAll(() => const Login());
+    } catch (e) {
+      showErrorSnackbar(friendlyError(e), title: "Couldn't log out");
+    }
+  }
+
+  void _confirmDelete() {
+    showAppDialog(
+      title: 'Delete your account?',
+      message:
+          'This permanently deletes your account and saved setups. It does not cancel an App Store subscription.',
+      icon: Icons.delete_outline_rounded,
+      primaryLabel: 'Delete account',
+      onPrimary: () async {
+        try {
+          await AuthService().deleteCurrentAccount();
+          showSuccessSnackbar('Your account has been deleted.');
+          Get.offAll(() => const Login());
+        } catch (e) {
+          showErrorSnackbar(
+            friendlyError(e),
+            title: "Couldn't delete your account",
+          );
+        }
+      },
+      secondaryLabel: 'Cancel',
+      barrierDismissible: true,
+    );
   }
 
   Future<void> _openTerms() async {
@@ -92,10 +134,13 @@ class _PaywallScreenState extends State<PaywallScreen> {
               children: [
                 Row(
                   children: [
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
-                    ),
+                    if (!widget.gate)
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      )
+                    else
+                      const SizedBox(width: 4),
                     Expanded(
                       child: MyText(
                         text: 'Chassis Doctor All Access',
@@ -103,6 +148,22 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         weight: FontWeight.bold,
                       ),
                     ),
+                    if (widget.gate)
+                      PopupMenuButton<String>(
+                        color: kQuaternaryColor,
+                        icon: Icon(Icons.more_horiz_rounded, color: kTertiaryColor),
+                        onSelected: (v) {
+                          if (v == 'logout') _logOut();
+                          if (v == 'delete') _confirmDelete();
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'logout', child: Text('Log out')),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete account'),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -144,7 +205,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
                                   color: kSecondaryColor,
                                 ),
                                 MyText(
-                                  text: hasTrial
+                                  text: widget.gate
+                                      ? (hasTrial
+                                            ? 'Try everything free for 3 days. Cancel any time before it ends and you won\'t be charged.'
+                                            : 'Subscribe to keep using Chassis Doctor.')
+                                      : hasTrial
                                       ? 'Then unlock every current course with one subscription.'
                                       : 'Unlock every current course with one subscription.',
                                   size: 12,
@@ -155,7 +220,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
                           ),
                         ],
                       ),
-                      if (widget.sourceLabel != null) ...[
+                      if (widget.sourceLabel != null && !widget.gate) ...[
                         const SizedBox(height: 14),
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -173,6 +238,15 @@ class _PaywallScreenState extends State<PaywallScreen> {
                         ),
                       ],
                       const SizedBox(height: 16),
+                      if (widget.gate) ...const [
+                        _BenefitRow(
+                          text: 'Setup Help: instant chassis setup advice',
+                        ),
+                        _BenefitRow(
+                          text:
+                              'Geometry tools, Setup Record and saved setups',
+                        ),
+                      ],
                       const _BenefitRow(
                         text: 'Full access to all currently published courses',
                       ),

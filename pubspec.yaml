@@ -2,7 +2,7 @@ name: motorsport
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.7+15
+version: 1.0.8+16
 
 environment:
   sdk: ^3.8.1
@@ -41,6 +41,7 @@ dependencies:
   flutter_local_notifications: ^21.0.0
   purchases_flutter: ^10.9.1
   webview_flutter: ^4.10.0
+  package_info_plus: ^9.0.1
 
 
 

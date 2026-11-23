@@ -6,6 +6,7 @@ import 'package:motorsport/view/screens/learning_hub/learning_hub.dart';
 import 'package:motorsport/controller/settings/saved_setup_history_controller.dart';
 import 'package:motorsport/view/screens/settings/saved_setup_history.dart';
 import 'package:motorsport/view/screens/settings/settings.dart';
+import 'package:motorsport/view/screens/subscriptions/access_gate.dart';
 
 // ignore: must_be_immutable
 class BottomNavBar extends StatefulWidget {
@@ -48,32 +49,34 @@ class _BottomNavBarState extends State<BottomNavBar> {
       Settings(),
     ];
 
-    return Scaffold(
-      key: _scaffoldKey,
-      resizeToAvoidBottomInset: false,
-      // Tabs cross-fade with a slight rise instead of snapping.
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 280),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) => FadeTransition(
-          opacity: animation,
-          child: SlideTransition(
-            position: Tween(
-              begin: const Offset(0, 0.015),
-              end: Offset.zero,
-            ).animate(animation),
-            child: child,
+    return AccessGate(
+      child: Scaffold(
+        key: _scaffoldKey,
+        resizeToAvoidBottomInset: false,
+        // Tabs cross-fade with a slight rise instead of snapping.
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 280),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (child, animation) => FadeTransition(
+            opacity: animation,
+            child: SlideTransition(
+              position: Tween(
+                begin: const Offset(0, 0.015),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            ),
+          ),
+          child: KeyedSubtree(
+            key: ValueKey(_currentIndex),
+            child: screens[_currentIndex],
           ),
         ),
-        child: KeyedSubtree(
-          key: ValueKey(_currentIndex),
-          child: screens[_currentIndex],
+        bottomNavigationBar: AppNavBar(
+          currentIndex: _currentIndex,
+          onTap: _getCurrentIndex,
         ),
-      ),
-      bottomNavigationBar: AppNavBar(
-        currentIndex: _currentIndex,
-        onTap: _getCurrentIndex,
       ),
     );
   }

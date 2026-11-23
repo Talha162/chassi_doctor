@@ -127,6 +127,12 @@ class SubscriptionService {
   );
 
   Future<void>? _initializationFuture;
+
+  /// The account RevenueCat is currently answering for (null = anonymous).
+  String? activeUserId;
+
+  /// True once the SDK set-up has been tried (whether or not it worked).
+  bool initAttempted = false;
   CustomerInfoUpdateListener? _customerInfoUpdateListener;
 
   bool get hasActiveSubscription => state.value.hasActiveSubscription;
@@ -153,6 +159,15 @@ class SubscriptionService {
   }
 
   Future<void> _initializeSdk({String? appUserId}) async {
+    try {
+      await _configureSdk(appUserId: appUserId);
+    } finally {
+      initAttempted = true;
+      state.value = state.value.copyWith(); // tell listeners
+    }
+  }
+
+  Future<void> _configureSdk({String? appUserId}) async {
     final apiKey = _platformApiKey;
     if (apiKey == null || apiKey.isEmpty) {
       state.value = state.value.copyWith(
@@ -191,6 +206,7 @@ class SubscriptionService {
       Purchases.addCustomerInfoUpdateListener(_customerInfoUpdateListener!);
 
       final customerInfo = await Purchases.getCustomerInfo();
+      activeUserId = appUserId;
       final offerings = await Purchases.getOfferings();
       final trialEligibility = await _trialEligibilityFor(offerings);
       state.value = state.value.copyWith(
@@ -255,6 +271,7 @@ class SubscriptionService {
         clearErrorMessage: true,
       );
       final result = await Purchases.logIn(appUserId);
+      activeUserId = appUserId;
       state.value = state.value.copyWith(
         isLoading: false,
         customerInfo: result.customerInfo,
@@ -279,6 +296,7 @@ class SubscriptionService {
 
     try {
       await Purchases.logOut();
+      activeUserId = null;
       state.value = state.value.copyWith(
         customerInfo: null,
         hasActiveSubscription: false,
