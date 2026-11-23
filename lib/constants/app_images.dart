@@ -87,7 +87,7 @@ class Assets {
 
   /// Assets for imagesCar
   /// assets/images/car.png
-  static const String imagesCar = "assets/images/car.png";
+  static const String imagesCar = "assets/images/car_icon.png";
 
   /// Full-bleed photo behind the sign-in screens.
   static const String imagesLoginHero = "assets/images/login_garage.jpg";

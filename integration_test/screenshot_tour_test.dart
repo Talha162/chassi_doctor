@@ -84,6 +84,13 @@ void main() {
       Get.offAll(() => const BottomNavBar());
       await _wait(tester, 9000);
       await _shot(tester, 'gate', _gate);
+      if (_gate == 'icons') {
+        Get.to(() => TrackConfiguration());
+        await _wait(tester, 3000);
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -900));
+        await _wait(tester, 1000);
+        await _shot(tester, 'gate', 'icons_track');
+      }
       final menu = find.byIcon(Icons.more_horiz_rounded);
       if (menu.evaluate().isNotEmpty) {
         await tester.tap(menu.first);
