@@ -24,7 +24,7 @@ class AuthHero extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             Image.asset(
-              Assets.imagesCar,
+              Assets.imagesLoginHero,
               fit: BoxFit.cover,
               alignment: const Alignment(0, 0.25),
             ),
