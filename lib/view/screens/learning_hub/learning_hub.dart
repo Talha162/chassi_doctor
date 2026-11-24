@@ -11,6 +11,7 @@ import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/bottom_nav_bar/bottom_nav_bar.dart';
 import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
+import 'package:motorsport/view/widget/course_banner.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -479,22 +480,7 @@ class _LearningHubTile extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: imageUrl != null && imageUrl!.isNotEmpty
-                  ? Image.network(
-                      imageUrl!,
-                      height: 70,
-                      width: 70,
-                      fit: BoxFit.cover,
-                    )
-                  : Image.asset(
-                      Assets.imagesAdvanced,
-                      height: 70,
-                      width: 70,
-                      fit: BoxFit.cover,
-                    ),
-            ),
+            CourseBanner(url: imageUrl, width: 112),
             const SizedBox(width: 8),
             Expanded(
               child: Column(

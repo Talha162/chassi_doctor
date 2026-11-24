@@ -8,6 +8,7 @@ import 'package:motorsport/models/course_progress_summary.dart';
 import 'package:motorsport/models/course_rating_summary.dart';
 import 'package:motorsport/services/subscription_service.dart';
 import 'package:motorsport/view/screens/courses/course_detail_screen.dart';
+import 'package:motorsport/view/widget/course_banner.dart';
 import 'package:motorsport/view/widget/modern_ui.dart';
 import 'package:motorsport/view/widget/my_button_widget.dart';
 import 'package:motorsport/view/widget/my_text_widget.dart';
@@ -289,16 +290,7 @@ class _LearningHubTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: imageUrl != null && imageUrl!.isNotEmpty
-                ? Image.network(imageUrl!, height: 120, fit: BoxFit.cover)
-                : Image.asset(
-                    Assets.imagesAdvanced,
-                    height: 120,
-                    fit: BoxFit.cover,
-                  ),
-          ),
+          CourseBanner(url: imageUrl),
           MyText(
             paddingTop: 6,
             text: title,

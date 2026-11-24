@@ -84,6 +84,13 @@ void main() {
       Get.offAll(() => const BottomNavBar());
       await _wait(tester, 9000);
       await _shot(tester, 'gate', _gate);
+      if (_gate == 'banners') {
+        Get.to(() => const Courses(showBackButton: true));
+        await _wait(tester, 12000);
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, -500));
+        await _wait(tester, 1200);
+        await _shot(tester, 'gate', 'banners_list');
+      }
       if (_gate == 'icons') {
         Get.to(() => TrackConfiguration());
         await _wait(tester, 3000);
